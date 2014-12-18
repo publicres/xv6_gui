@@ -20,20 +20,32 @@ void initGraphMode()
     cprintf("@Video card drivers initialized successfully.\n");
 }
 
-void setPixelColor(uint x, uint y, uchar r, uchar g, uchar b)
+void setPixelColor(uint x, uint y,color24 color)
+{
+
+    uint pos=(y*WIDTH_RES+x)*3;
+    color24* add=(color24*)(base+pos);
+    *add=color;
+}
+void setRangeColor(color24 *src, uint len, uint x, uint y)
 {
     uint pos=(y*WIDTH_RES+x)*3;
-    uchar *add=base+pos;
-    *add=b;
-    *(++add)=g;
-    *(++add)=r;
+    color24* add=(color24*)(base+pos);
+    memmove(add,src,len*3);
 }
 
-void tryToWrite()
+color24 rgb(uchar r,uchar g,uchar b)
 {
-    uint i,j;
-
-    for (j=0;j<HEIGHT_RES;j++)
-        for (i=0;i<WIDTH_RES;i++)
-            setPixelColor(i,j,i,i>>8,j);
+    color24 t;
+    t.r=r;
+    t.g=g;
+    t.b=b;
+    return t;
+}
+color32 rgba(uchar r, uchar g, uchar b, uchar a)
+{
+    color32 t;
+    t.c=rgb(r,g,b);
+    t.a=a;
+    return t;
 }
