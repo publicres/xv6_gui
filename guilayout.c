@@ -111,7 +111,7 @@ uint getABSposy(dom* src)
 //===========================================
 void reDraw(dom *src)
 {
-    reDraw_(src,src->x,src->y,src->width,src->height);
+    reDraw_(src,0,0,src->width,src->height);
 }
 void reDraw_(dom *src,uint x,uint y,uint w,uint h)
 {

@@ -29,7 +29,7 @@ OBJS = \
 	vm.o\
 	graphbase.o\
 	guilayout.o\
-	guientity.o\
+	guientity_div.o\
 	guiexp.o\
 
 # Cross-compiling (e.g., on Mac OS X)

@@ -2,7 +2,7 @@
 #include "defs.h"
 #include "graphbase.h"
 #include "guilayout.h"
-#include "guientity.h"
+#include "guientity_div.h"
 
 //==============================================
 uchar drawDiv(dom* elem, uint x, uint y, uint w, uint h)
@@ -16,8 +16,20 @@ uchar drawDiv(dom* elem, uint x, uint y, uint w, uint h)
 
     for (j=0;j<h;j++)
     {
-        for (i=0;i<w;i++)
-            setPixelColor(xs+i,ys+j,ent->bgColor.c);
+        if (y+j==0 || y+j==elem->height-1)
+        {
+            for (i=0;i<w;i++)
+                setPixelColor(xs+i,ys+j,rgb(0,0,0));
+        }
+        else
+        {
+            for (i=0;i<w;i++)
+                setPixelColor(xs+i,ys+j,ent->bgColor.c);
+            if (x==0)
+                setPixelColor(xs,ys+j,rgb(0,0,0));
+            if (x+w==elem->width)
+                setPixelColor(xs+w-1,ys+j,rgb(0,0,0));
+        }
     }
     return 1;
 }
@@ -44,6 +56,21 @@ div* div_createDom(uint _id, uint x, uint y, uint w, uint h, dom* parent)
     prepend(parent,&t->ds);
 
     return t;
+}
+
+void _cascade_release(dom *elem)
+{
+    if (elem->frater!=0)
+        _cascade_release(elem->frater);
+    if (elem->descent!=0)
+        _cascade_release(elem->descent);
+    kfree((char*)(elem->entity));
+}
+void div_release(div* elem)
+{
+    if (elem->ds.parent!=0)
+        delete(&elem->ds);
+    _cascade_release(&elem->ds);
 }
 div* div_changeBgcolor(div* elem, color32 color)
 {
