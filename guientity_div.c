@@ -5,12 +5,47 @@
 #include "guientity_div.h"
 
 //==============================================
+uchar drawDiv_trans(dom* elem, uint x, uint y, uint w, uint h);
+
 uchar drawDiv(dom* elem, uint x, uint y, uint w, uint h)
 {
     uint i,j;
     div *ent=(div*)(elem->entity);
-    if (ent->bgColor.a!=0)
+    uint xs;
+    uint ys;
+
+    if (ent->bgColor.a>0)
+    {
+        drawDiv_trans(elem,x,y,w,h);
         return 1;
+    }
+
+    xs=getABSposx(elem)+x;
+    ys=getABSposy(elem)+y;
+    for (j=0;j<h;j++)
+    {
+        if (y+j==0 || y+j==elem->height-1)
+        {
+            for (i=0;i<w;i++)
+                setPixelColor(xs+i,ys+j,rgb(0,0,0));
+        }
+        else
+        {
+            for (i=0;i<w;i++)
+                setPixelColor(xs+i,ys+j,ent->bgColor.c);
+
+            if (x==0)
+                setPixelColor(xs,ys+j,rgb(0,0,0));
+            if (x+w==elem->width)
+                setPixelColor(xs+w-1,ys+j,rgb(0,0,0));
+        }
+    }
+    return 1;
+}
+uchar drawDiv_trans(dom* elem, uint x, uint y, uint w, uint h)
+{
+    uint i,j;
+    div *ent=(div*)(elem->entity);
     uint xs=getABSposx(elem)+x;
     uint ys=getABSposy(elem)+y;
 
@@ -24,7 +59,8 @@ uchar drawDiv(dom* elem, uint x, uint y, uint w, uint h)
         else
         {
             for (i=0;i<w;i++)
-                setPixelColor(xs+i,ys+j,ent->bgColor.c);
+                setPixelColor(xs+i,ys+j,mingle(getPixelColor(xs+i,ys+j),ent->bgColor));
+
             if (x==0)
                 setPixelColor(xs,ys+j,rgb(0,0,0));
             if (x+w==elem->width)
