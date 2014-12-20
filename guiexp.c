@@ -8,7 +8,7 @@
 void tryOnce()
 {
     div *r=div_createDom(0,0,0,WIDTH_RES,HEIGHT_RES,bingolingo);
-    div_changeBgcolor(r,rgba(100,128,128,0));
+    div_changeBgcolor(r,rgba(255,255,255,0));
 
     div *l3=div_createDom(10,500,0,500,100,&r->ds);
     div_changeBgcolor(l3,rgba(0,255,0,0));
