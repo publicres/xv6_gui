@@ -41,21 +41,8 @@ uchar drawDiv_trans(dom* elem, uint x, uint y, uint w, uint h)
 
     for (j=0;j<h;j++)
     {
-        if (y+j==0 || y+j==elem->height-1)
-        {
-            for (i=0;i<w;i++)
-                setPixelColor(xs+i,ys+j,rgb(0,0,0));
-        }
-        else
-        {
-            for (i=0;i<w;i++)
-                setPixelColor(xs+i,ys+j,mingle(getPixelColor(xs+i,ys+j),ent->bgColor));
-
-            if (x==0)
-                setPixelColor(xs,ys+j,rgb(0,0,0));
-            if (x+w==elem->width)
-                setPixelColor(xs+w-1,ys+j,rgb(0,0,0));
-        }
+        for (i=0;i<w;i++)
+            setPixelColor(xs+i,ys+j,mingle(getPixelColor(xs+i,ys+j),ent->bgColor));
     }
     return 1;
 }

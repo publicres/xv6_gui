@@ -4,6 +4,7 @@
 #include "guilayout.h"
 #include "guientity.h"
 #include "guiexp.h"
+#include "ex_mem.h"
 
 void tryOnce()
 {
