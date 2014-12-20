@@ -24,6 +24,11 @@ char* sbrk(int);
 int sleep(int);
 int uptime(void);
 
+int createdom(int,uint,uint*);
+int releasedom(int,uint);
+int setattr(int,uint,int,void*);
+int getattr(int,uint,int,void*);
+
 // ulib.c
 int stat(char*, struct stat*);
 char* strcpy(char*, char*);

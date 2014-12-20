@@ -116,6 +116,7 @@ void reDraw(dom *src)
 void reDraw_(dom *src,uint x,uint y,uint w,uint h)
 {
     passRenderEvent(bingolingo,getABSposx(src)+x,getABSposy(src)+y,w,h);
+    sync(getABSposx(src)+x,getABSposy(src)+y,w,h);
 }
 //===========================================
 void passFocusEvent(dom* now,void* pkg)

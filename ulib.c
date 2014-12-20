@@ -3,6 +3,7 @@
 #include "fcntl.h"
 #include "user.h"
 #include "x86.h"
+#include "colordef.h"
 
 char*
 strcpy(char *s, char *t)
@@ -96,10 +97,36 @@ void*
 memmove(void *vdst, void *vsrc, int n)
 {
   char *dst, *src;
-  
+
   dst = vdst;
   src = vsrc;
   while(n-- > 0)
     *dst++ = *src++;
   return vdst;
+}
+
+color24 rgb(uchar r,uchar g,uchar b)
+{
+    color24 t;
+    t.r=r;
+    t.g=g;
+    t.b=b;
+    return t;
+}
+color32 rgba(uchar r, uchar g, uchar b, uchar a)
+{
+    color32 t;
+    t.c=rgb(r,g,b);
+    t.a=a;
+    return t;
+}
+color24 mingle(color24 c1, color32 c2)
+{
+    color24 t;
+    uint op=255-(uint)c2.a;
+    t.r=(uchar)(((uint)c2.c.r*op+(uint)c1.r*(255-op))/255);
+    t.g=(uchar)(((uint)c2.c.g*op+(uint)c1.g*(255-op))/255);
+    t.b=(uchar)(((uint)c2.c.b*op+(uint)c1.b*(255-op))/255);
+
+    return t;
 }

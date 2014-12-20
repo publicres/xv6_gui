@@ -3,15 +3,31 @@
 #include "memlayout.h"
 #include "graphbase.h"
 
-uchar *base;
+uchar *_base;
+uchar base[3*1024*768];
 
+void sync(uint x,uint y,uint w,uint h)
+{
+    uint i;
+    uchar *src=base+(y*WIDTH_RES+x)*3;
+    uchar *des=_base+(y*WIDTH_RES+x)*3;
+    uint delta=w*3;
+    uint offset=WIDTH_RES*3;
+    for (i=0;i<h;i++)
+    {
+        memmove(des,src,delta);
+        src+=offset;
+        des+=offset;
+    }
+}
 void initGraphMode()
 {
     uint GraphicMem=KERNBASE+0x1028;
     uint baseAdd=*((uint*)GraphicMem);
-    base=(uchar*)baseAdd;
+    _base=(uchar*)baseAdd;
     WIDTH_RES =*((ushort*)(KERNBASE+0x1012));
     HEIGHT_RES =*((ushort*)(KERNBASE+0x1014));
+    memset(base,0,sizeof(base));
 
     cprintf("@Resolution Width: %d\n", WIDTH_RES);
     cprintf("@Resolution Height:  %d\n", HEIGHT_RES);

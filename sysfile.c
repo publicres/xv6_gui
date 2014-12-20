@@ -13,6 +13,10 @@
 #include "fs.h"
 #include "file.h"
 #include "fcntl.h"
+#include "graphbase.h"
+#include "guilayout.h"
+#include "guientity.h"
+#include "guientity_attrvalue.h"
 
 // Fetch the nth word-sized system call argument as a file descriptor
 // and return both the descriptor and the corresponding struct file.
@@ -54,7 +58,7 @@ sys_dup(void)
 {
   struct file *f;
   int fd;
-  
+
   if(argfd(0, 0, &f) < 0)
     return -1;
   if((fd=fdalloc(f)) < 0)
@@ -92,7 +96,7 @@ sys_close(void)
 {
   int fd;
   struct file *f;
-  
+
   if(argfd(0, &fd, &f) < 0)
     return -1;
   proc->ofile[fd] = 0;
@@ -105,7 +109,7 @@ sys_fstat(void)
 {
   struct file *f;
   struct stat *st;
-  
+
   if(argfd(0, 0, &f) < 0 || argptr(1, (void*)&st, sizeof(*st)) < 0)
     return -1;
   return filestat(f, st);
@@ -353,7 +357,7 @@ sys_mknod(void)
   char *path;
   int len;
   int major, minor;
-  
+
   begin_op();
   if((len=argstr(0, &path)) < 0 ||
      argint(1, &major) < 0 ||
@@ -439,4 +443,96 @@ sys_pipe(void)
   fd[0] = fd0;
   fd[1] = fd1;
   return 0;
+}
+//==========================
+int sys_createdom(void)
+{
+    int domtype;
+    uint parent;
+    uint *target;
+
+    if (argint(0, &domtype)<0)
+        return -1;
+    switch (domtype)
+    {
+    case GUIENT_DIV:
+        if (argint(1, (int*)&parent)<0)
+            return -1;
+        if (argptr(2, (void*)&target, 4)<0)
+            return -1;
+
+        *target=div_createDom(0,0,0,0,parent);
+        return 0;
+    default:
+        return -1;
+    }
+}
+int sys_releasedom(void)
+{
+    int domtype;
+    uint i1;
+
+    if (argint(0, &domtype)<0)
+        return -1;
+    switch (domtype)
+    {
+    case GUIENT_DIV:
+        if (argint(1, (int*)&i1)<0)
+            return -1;
+
+        div_release(i1);
+        return 0;
+    default:
+        return -1;
+    }
+
+    return 0;
+}
+int sys_setattr(void)
+{
+    int domtype;
+    uint domname;
+    int attrname;
+    void* i1;
+    if (argint(0, &domtype)<0)
+        return -1;
+    if (argint(1, (int*)&domname)<0)
+        return -1;
+    if (argint(2, &attrname)<0)
+        return -1;
+    if (argptr(3, (void*)&i1, 4)<0)
+        return -1;
+    switch (domtype)
+    {
+    case GUIENT_DIV:
+        return div_setAttr(domname,attrname,i1);
+    default:
+        return -1;
+    }
+
+    return 0;
+}
+int sys_getattr(void)
+{
+    int domtype;
+    uint domname;
+    int attrname;
+    void* i1;
+    if (argint(0, &domtype)<0)
+        return -1;
+    if (argint(1, (int*)&domname)<0)
+        return -1;
+    if (argint(2, &attrname)<0)
+        return -1;
+    if (argptr(3, (void*)&i1, 4)<0)
+        return -1;
+    switch (domtype)
+    {
+    case GUIENT_DIV:
+        return div_getAttr(domname,attrname,i1);
+    default:
+        return -1;
+    }
+
+    return 0;
 }

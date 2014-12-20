@@ -29,3 +29,8 @@ SYSCALL(getpid)
 SYSCALL(sbrk)
 SYSCALL(sleep)
 SYSCALL(uptime)
+
+SYSCALL(createdom)
+SYSCALL(releasedom)
+SYSCALL(setattr)
+SYSCALL(getattr)
