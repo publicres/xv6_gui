@@ -30,22 +30,35 @@ main(void)
   ioapicinit();    // another interrupt controller
   consoleinit();   // I/O devices & their interrupts
   uartinit();      // serial port
+    initGraphMode();
+    initDom();
+    tryOnce();
+    toggleOn();
   pinit();         // process table
+    toggleOn();
   tvinit();        // trap vectors
+    toggleOn();
   binit();         // buffer cache
+    toggleOn();
   fileinit();      // file table
+    toggleOn();
   iinit();         // inode cache
+    toggleOn();
   ideinit();       // disk
+    toggleOn();
   if(!ismp)
     timerinit();   // uniprocessor timer
-  startothers();   // start other processors
-  kinit2(P2V(4*1024*1024), P2V(PHYSTOP)); // must come after startothers()
 
-  initGraphMode();
-  initDom();
-  tryOnce();
+    toggleOn();
+  startothers();   // start other processors
+    toggleOn();
+  kinit2(P2V(4*1024*1024), P2V(PHYSTOP)); // must come after startothers()
+    toggleOn();
+
 
   userinit();      // first user process
+    toggleOn();
+    endToggle();
   // Finish setting up this processor in mpmain.
   mpmain();
 }

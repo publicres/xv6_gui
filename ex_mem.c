@@ -15,6 +15,11 @@ void* ex_alloc(uint size)
         *iterate=kalloc();
         iterate++;
     }
+    for (;i<1024;i++)
+    {
+        *iterate=0;
+        iterate++;
+    }
     return indexes;
 }
 void* getPointer(void* res, uint pos)
@@ -22,4 +27,16 @@ void* getPointer(void* res, uint pos)
     uint block=pos>>12;
     pos&=0x00000fff;
     return *(((void**)res)+block)+pos;
+}
+void ex_free(void* res)
+{
+    void** iterate=(void**)res;
+    uint count=0;
+    while (*iterate!=0 && count<1024)
+    {
+        kfree(*iterate);
+        iterate++;
+        count++;
+    }
+    kfree(res);
 }
