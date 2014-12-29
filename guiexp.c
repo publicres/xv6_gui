@@ -18,7 +18,7 @@ void tryOnce()
 
     for (i=0;i<5;i++)
     {
-        hua[i]=div_createDom(438+i*40,500,4,12,r);
+        hua[i]=div_createDom(438+i*40,500,5,8,r);
         div_changeBgcolor(hua[i],rgba(0,0,0,0));
     }
     n=-1;
@@ -27,14 +27,14 @@ void lightOn(uint i)
 {
     uchar j,k;
     for (j=0;j<255;j++)
-        for (k=0;k<60;k++)
+        for (k=0;k<70;k++)
             div_changeBgcolor(hua[i],rgba(j,j,0,0));
 }
 void lightOff(uint i)
 {
     uchar j,k;
     for (j=255;j>0;j--)
-        for (k=0;k<60;k++)
+        for (k=0;k<70;k++)
             div_changeBgcolor(hua[i],rgba(j,j,0,0));
 }
 void toggleOn()

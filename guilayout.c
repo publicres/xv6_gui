@@ -76,6 +76,14 @@ dom* delete(dom* src)
 
     return src;
 }
+void _cascade_release(dom *elem)
+{
+    if (elem->frater!=0)
+        _cascade_release(elem->frater);
+    if (elem->descent!=0)
+        _cascade_release(elem->descent);
+    kfree((char*)(elem->entity));
+}
 
 dom* setFocus(dom* src)
 {

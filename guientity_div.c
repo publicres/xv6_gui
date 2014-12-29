@@ -74,14 +74,6 @@ uint div_createDom(uint x, uint y, uint w, uint h, uint parent)
     return (uint)t;
 }
 
-void _cascade_release(dom *elem)
-{
-    if (elem->frater!=0)
-        _cascade_release(elem->frater);
-    if (elem->descent!=0)
-        _cascade_release(elem->descent);
-    kfree((char*)(elem->entity));
-}
 void div_release(uint elem_)
 {
     div* elem=(div*)elem_;
