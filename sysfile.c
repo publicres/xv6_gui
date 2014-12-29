@@ -463,6 +463,14 @@ int sys_createdom(void)
 
         *target=div_createDom(0,0,0,0,parent);
         return 0;
+    case GUIENT_IMG:
+        if (argint(1, (int*)&parent)<0)
+            return -1;
+        if (argptr(2, (void*)&target, 4)<0)
+            return -1;
+
+        *target=img_createDom(0,0,0,0,parent);
+        return 0;
     default:
         return -1;
     }
@@ -481,6 +489,12 @@ int sys_releasedom(void)
             return -1;
 
         div_release(i1);
+        return 0;
+    case GUIENT_IMG:
+        if (argint(1, (int*)&i1)<0)
+            return -1;
+
+        img_release(i1);
         return 0;
     default:
         return -1;
@@ -506,6 +520,8 @@ int sys_setattr(void)
     {
     case GUIENT_DIV:
         return div_setAttr(domname,attrname,i1);
+    case GUIENT_IMG:
+        return img_setAttr(domname,attrname,i1);
     default:
         return -1;
     }
@@ -530,6 +546,8 @@ int sys_getattr(void)
     {
     case GUIENT_DIV:
         return div_getAttr(domname,attrname,i1);
+    case GUIENT_IMG:
+        return img_getAttr(domname,attrname,i1);
     default:
         return -1;
     }

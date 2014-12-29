@@ -29,25 +29,47 @@ main(int argc, char *argv[])
     exit();
   }
 //======
+    uchar* buff=(uchar*)malloc(3333 * sizeof(uchar));
+    uchar* buff2=(uchar*)malloc(4444 * sizeof(uchar));
+    uint huahua,j;
+    int fd1, n, i1, j1;
+    contentStruct pic;
     #define parh(x) (j=x,&j)
-    uint huahua,j,p2;
-    createdom(GUIENT_DIV,0xffffffff,&huahua);
-    setattr(GUIENT_DIV,huahua,GUIATTR_DIV_X,parh(20));
-    setattr(GUIENT_DIV,huahua,GUIATTR_DIV_Y,parh(90));
-    setattr(GUIENT_DIV,huahua,GUIATTR_DIV_WIDTH,parh(190));
-    setattr(GUIENT_DIV,huahua,GUIATTR_DIV_HEIGHT,parh(290));
-    setattr(GUIENT_DIV,huahua,GUIATTR_DIV_HEIGHT,parh(290));
-    color32 c=rgba(233,100,20,100);
-    setattr(GUIENT_DIV,huahua,GUIATTR_DIV_BGCOLOR,&c);
 
-    createdom(GUIENT_DIV,huahua,&p2);
-    setattr(GUIENT_DIV,p2,GUIATTR_DIV_WIDTH,parh(100));
-    setattr(GUIENT_DIV,p2,GUIATTR_DIV_HEIGHT,parh(1000));
-    c.a=0;
-    c.c.r=200;
-    setattr(GUIENT_DIV,p2,GUIATTR_DIV_BGCOLOR,&c);
+    fd1 = open("A", 0);
+    if (fd1 < 0)
+    {
+        printf(1, "open file error\n");
+    }
+    else
+    {
+        n = read(fd1, buff, 3100);
+        buff2[0]=buff2[1]=32;
+        j1=2;
+        for (i1=0;i1<n;i1+=3)
+        {
+            buff2[j1++]=buff[i1+2];
+            buff2[j1++]=buff[i1+1];
+            buff2[j1++]=buff[i1];
+            buff2[j1++]=129;
+        }
 
+        createdom(GUIENT_IMG,0xffffffff,&huahua);
+        setattr(GUIENT_IMG,huahua,GUIATTR_IMG_X,parh(50));
+        setattr(GUIENT_IMG,huahua,GUIATTR_IMG_Y,parh(50));
+        setattr(GUIENT_IMG,huahua,GUIATTR_IMG_WIDTH,parh(320));
+        setattr(GUIENT_IMG,huahua,GUIATTR_IMG_HEIGHT,parh(320));
+        pic.pics=buff2;
+        pic.isRepeat=1;
+        setattr(GUIENT_IMG,huahua,GUIATTR_IMG_CONTENT,&pic);
+
+        uint qq;
+        createdom(GUIENT_DIV,huahua,&qq);
+        setattr(GUIENT_DIV,huahua,GUIATTR_DIV_X,parh(50));
+        setattr(GUIENT_DIV,huahua,GUIATTR_DIV_X,parh(50));
+    }
 //======
+
   for(i = 1; i < argc; i++){
     if((fd = open(argv[i], 0)) < 0){
       printf(1, "cat: cannot open %s\n", argv[i]);
@@ -57,8 +79,7 @@ main(int argc, char *argv[])
     close(fd);
   }
  //====
-    printf(1,"%d",j);
-    setattr(GUIENT_DIV,huahua,GUIATTR_DIV_Y,parh(290));
+
  //===
   exit();
 }

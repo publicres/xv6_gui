@@ -30,6 +30,7 @@ OBJS = \
 	graphbase.o\
 	guilayout.o\
 	guientity_div.o\
+	guientity_img.o\
 	guiexp.o\
 	ex_mem.o\
 
@@ -177,6 +178,7 @@ UPROGS=\
 	_usertests\
 	_wc\
 	_zombie\
+	A\
 
 fs.img: mkfs README $(UPROGS)
 	./mkfs fs.img README $(UPROGS)

@@ -14,3 +14,8 @@
 #define GUIATTR_IMG_HEIGHT  3
 #define GUIATTR_IMG_CONTENT 4
 #define GUIATTR_IMG_REFRESH 5
+typedef struct ori_contentStruct
+{
+    void* pics;
+    uchar isRepeat;
+} contentStruct;
