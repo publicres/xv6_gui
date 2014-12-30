@@ -8,6 +8,7 @@ dom domRoot,delRoot;
 dom* bingolingo=0;
 dom* del=0;
 
+
 void initDom()
 {
     domRoot._id=(uint)(&domRoot);
@@ -29,7 +30,9 @@ void initDom()
     bingolingo=&domRoot;
     delRoot=domRoot;
     del=&delRoot;
+
     prepend(bingolingo,del);
+
 }
 
 dom* prepend(dom* src, dom* des)

@@ -92,6 +92,19 @@ uint div_changeBgcolor(uint elem_, color32 color)
     return (uint)elem;
 }
 
+void div_setXY(uint elem_, int x, int y)
+{
+    div *elem=(div*)elem_;
+    uint i,j;
+
+    i=elem->ds.x;
+    j=elem->ds.y;
+    elem->ds.x=x;
+    elem->ds.y=y;
+    reDraw_(elem->ds.parent,i,j,elem->ds.width,elem->ds.height);
+    reDraw(&elem->ds);
+}
+
 uint div_setAttr(uint elem_, int attr, void *val)
 {
     div *elem=(div*)elem_;

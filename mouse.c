@@ -6,6 +6,7 @@
 #include "mouse.h"
 #include "graphbase.h"
 #include "guilayout.h"
+#include "guientity_div.h"
 
 static struct spinlock mouselock;
 static int x_position = 0;
@@ -17,8 +18,10 @@ static int right_button_down = 0;
 static int left_button_pressed = 0;
 static int right_button_pressed = 0;
 static int count = 0;
+div* mouseIcon=0;
 
 void eventGenerate();
+void SetMouseXY();
 
 void mouseEnable()
 {
@@ -40,7 +43,7 @@ void mouseEnable()
 	// outb(0x60, 0xF2);
 	// inb(MSDATAP);
 	// st = inb(MSDATAP);
-	// cprintf("****%x\n", st);
+	// cprintf("****%x\r\n", st);
 
 	// outb(0x64, 0xD4);
 	// outb(0x60, 0xF3);
@@ -67,7 +70,7 @@ void mouseEnable()
 	// outb(0x60, 0xF2);
 	// inb(MSDATAP);
 	// st = inb(MSDATAP);
-	// cprintf("****%x\n", st);	//3D
+	// cprintf("****%x\r\n", st);	//3D
 
 
 	outb(0x64, 0xD4);
@@ -77,7 +80,13 @@ void mouseEnable()
 	outb(0x60, 0x47);
 	initlock(&mouselock,"mouse");
 	picenable(IRQ_MOUSE);
+	cprintf("0000");
 	ioapicenable(IRQ_MOUSE, 0);
+
+	mouseIcon = (div *)div_createDom(WIDTH_RES, HEIGHT_RES, 10, 10, (uint)bingolingo);
+	div_changeBgcolor((uint)mouseIcon, rgba(0,255,0,0));
+	x_position = WIDTH_RES / 2;
+	y_position = HEIGHT_RES / 2;
 }
 
 void mouseintr()
@@ -89,7 +98,7 @@ void mouseintr()
 	data = inb(MSDATAP);
 	// if (!(data & MIDDLE_BTN) && (data & CHECK_FLAG) && !(data & X_OVERFLOW) && !(data & Y_OVERFLOW))
 	// 	count = 0;
-	cprintf("%x\n", data);
+	cprintf("%x\r\n", data);
 	switch (++count)
 	{
 	case 1:
@@ -101,10 +110,6 @@ void mouseintr()
 	case 2:
 		if (x_sign == 1)
 			data -= 256;
-		if (data == 127 || data == -127)
-			data = data / 127;
-		else
-			data = 0;
 		x_position += data;
 		x_position = (x_position > WIDTH_RES) ? WIDTH_RES : x_position;
 		x_position = (x_position < 0) ? 0 : x_position;
@@ -112,11 +117,7 @@ void mouseintr()
 	case 3:
 		if (y_sign == 1)
 			data -= 256;
-		if (data == 127 || data == -127)
-			data = data / 127;
-		else
-			data = 0;
-		y_position  -= data;
+		y_position -= data;
 		y_position = (y_position > HEIGHT_RES) ? HEIGHT_RES : y_position;
 		y_position = (y_position < 0) ? 0 : y_position;
 		break;
@@ -124,7 +125,7 @@ void mouseintr()
 		break;
 	}
 
-	cprintf("count:%d\n", count);
+	cprintf("count:%d\r\n", count);
 	if (count == 3)
 	{
 		eventGenerate();
@@ -160,10 +161,11 @@ void eventGenerate()
 		button_flag |= RIGHT_BTN_UP;
 	}
 	
-	// cprintf("x: %d\n", x_position);
-	// cprintf("y: %d\n", y_position);
-	// cprintf("flag: %d\n", button_flag);
-	//cprintf("------------%d\n", num);
+	cprintf("x: %d\r\n", x_position);
+	cprintf("y: %d\r\n", y_position);
+	// cprintf("flag: %d\r\n", button_flag);
+	//cprintf("------------%d\r\n", num);
 	//num++;
-	passPointEvent(bingolingo, x_position, y_position, button_flag);
+	div_setXY((uint)mouseIcon, x_position, y_position);
+	passPointEvent(del, x_position, y_position, button_flag);
 }
