@@ -56,5 +56,5 @@ dom* bingolingo;
 
 void passRenderEvent(dom* now,uint x,uint y,uint w,uint h);
 void passFocusEvent(dom* now,void* pkg);
-void passPointEvent(dom* now,uint x,uint y,uint typ);
+int passPointEvent(dom* now,uint x,uint y,uint typ);
 void faireFocus(dom *now);

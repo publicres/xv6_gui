@@ -134,16 +134,16 @@ void passFocusEvent(dom* now,void* pkg)
         if (now->focus!=0)
             passFocusEvent(now->focus,pkg);
 }
-bool passPointEvent(dom* now,uint x,uint y,uint typ)
+int passPointEvent(dom* now,uint x,uint y,uint typ)
 {
     while (now!=0 && (now->x>x || now->x+now->width<=x || now->y>y || now->y+now->height<=y))
         now=now->frater;
     if (now==0)
-        return false;
+        return 0;
     if (!passPointEvent(now->descent,x-now->x,y-now->y,typ))
         if (now->onPoint!=0)
             now->onPoint(now,x-now->x,y-now->y,typ);
-    return true;
+    return 1;
     // if (now->onPoint==0 || now->onPoint(now,x-now->x,y-now->y,typ)!=0)
     //     passPointEvent(now->descent,x-now->x,y-now->y,typ);
 }

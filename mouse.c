@@ -17,7 +17,6 @@ static int right_button_down = 0;
 static int left_button_pressed = 0;
 static int right_button_pressed = 0;
 static int count = 0;
-static int num = 0;
 
 void eventGenerate();
 
