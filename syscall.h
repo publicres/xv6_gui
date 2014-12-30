@@ -20,3 +20,8 @@
 #define SYS_link   19
 #define SYS_mkdir  20
 #define SYS_close  21
+
+#define SYS_createdom       22
+#define SYS_releasedom      23
+#define SYS_setattr         24
+#define SYS_getattr         25

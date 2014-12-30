@@ -3,6 +3,7 @@
 #include "graphbase.h"
 #include "guilayout.h"
 #include "guientity_div.h"
+#include "guientity_attrvalue.h"
 
 //==============================================
 uchar drawDiv_trans(dom* elem, uint x, uint y, uint w, uint h);
@@ -16,6 +17,8 @@ uchar drawDiv(dom* elem, uint x, uint y, uint w, uint h)
 
     if (ent->bgColor.a>0)
     {
+        if (ent->bgColor.a==255)
+            return 1;
         drawDiv_trans(elem,x,y,w,h);
         return 1;
     }
@@ -24,21 +27,8 @@ uchar drawDiv(dom* elem, uint x, uint y, uint w, uint h)
     ys=getABSposy(elem)+y;
     for (j=0;j<h;j++)
     {
-        if (y+j==0 || y+j==elem->height-1)
-        {
-            for (i=0;i<w;i++)
-                setPixelColor(xs+i,ys+j,rgb(0,0,0));
-        }
-        else
-        {
-            for (i=0;i<w;i++)
-                setPixelColor(xs+i,ys+j,ent->bgColor.c);
-
-            if (x==0)
-                setPixelColor(xs,ys+j,rgb(0,0,0));
-            if (x+w==elem->width)
-                setPixelColor(xs+w-1,ys+j,rgb(0,0,0));
-        }
+        for (i=0;i<w;i++)
+            setPixelColor(xs+i,ys+j,ent->bgColor.c);
     }
     return 1;
 }
@@ -51,25 +41,12 @@ uchar drawDiv_trans(dom* elem, uint x, uint y, uint w, uint h)
 
     for (j=0;j<h;j++)
     {
-        if (y+j==0 || y+j==elem->height-1)
-        {
-            for (i=0;i<w;i++)
-                setPixelColor(xs+i,ys+j,rgb(0,0,0));
-        }
-        else
-        {
-            for (i=0;i<w;i++)
-                setPixelColor(xs+i,ys+j,mingle(getPixelColor(xs+i,ys+j),ent->bgColor));
-
-            if (x==0)
-                setPixelColor(xs,ys+j,rgb(0,0,0));
-            if (x+w==elem->width)
-                setPixelColor(xs+w-1,ys+j,rgb(0,0,0));
-        }
+        for (i=0;i<w;i++)
+            setPixelColor(xs+i,ys+j,mingle(getPixelColor(xs+i,ys+j),ent->bgColor));
     }
     return 1;
 }
-div* div_createDom(uint _id, uint x, uint y, uint w, uint h, dom* parent)
+uint div_createDom(uint x, uint y, uint w, uint h, uint parent)
 {
     div *t;
     if((t = (div*)kalloc()) == 0)
@@ -82,38 +59,106 @@ div* div_createDom(uint _id, uint x, uint y, uint w, uint h, dom* parent)
     t->ds.y=y;
     t->ds.width=w;
     t->ds.height=h;
-    t->ds._id=_id;
-    t->ds.trans=1;
-    t->bgColor.a=1;
+    t->ds._id=(uint)t;
+    t->ds.trans=255;
+    t->bgColor.a=255;
 
     t->ds.entity=(void*)t;
     t->ds.onRender=drawDiv;
 
-    prepend(parent,&t->ds);
+    if (parent==0xffffffff)
+        prepend(bingolingo,&t->ds);
+    else
+        prepend((dom*)parent,&t->ds);
 
-    return t;
+    return (uint)t;
 }
 
-void _cascade_release(dom *elem)
+void div_release(uint elem_)
 {
-    if (elem->frater!=0)
-        _cascade_release(elem->frater);
-    if (elem->descent!=0)
-        _cascade_release(elem->descent);
-    kfree((char*)(elem->entity));
-}
-void div_release(div* elem)
-{
+    div* elem=(div*)elem_;
     if (elem->ds.parent!=0)
         delete(&elem->ds);
     _cascade_release(&elem->ds);
 }
-div* div_changeBgcolor(div* elem, color32 color)
+uint div_changeBgcolor(uint elem_, color32 color)
 {
+    div* elem=(div*)elem_;
     elem->bgColor=color;
     elem->ds.trans=color.a;
 
     reDraw(&elem->ds);
 
-    return elem;
+    return (uint)elem;
+}
+
+uint div_setAttr(uint elem_, int attr, void *val)
+{
+    div *elem=(div*)elem_;
+    uint i,j;
+
+    switch (attr)
+    {
+    case GUIATTR_DIV_X:
+        i=elem->ds.x;
+        elem->ds.x=*((uint*)val);
+        reDraw_(elem->ds.parent,i,elem->ds.y,elem->ds.width,elem->ds.height);
+        reDraw(&elem->ds);
+        return 0;
+    case GUIATTR_DIV_Y:
+        j=elem->ds.y;
+        elem->ds.y=*((uint*)val);
+        reDraw_(elem->ds.parent,elem->ds.x,j,elem->ds.width,elem->ds.height);
+        reDraw(&elem->ds);
+        return 0;
+    case GUIATTR_DIV_WIDTH:
+        i=elem->ds.width;
+        elem->ds.width=*((uint*)val);
+        reDraw_(elem->ds.parent,elem->ds.x,elem->ds.y,i,elem->ds.height);
+        reDraw(&elem->ds);
+        return 0;
+    case GUIATTR_DIV_HEIGHT:
+        j=elem->ds.height;
+        elem->ds.height=*((uint*)val);
+        reDraw_(elem->ds.parent,elem->ds.x,elem->ds.y,elem->ds.width,j);
+        reDraw(&elem->ds);
+        return 0;
+    case GUIATTR_DIV_BGCOLOR:
+        elem->bgColor=*((color32*)val);
+        elem->ds.trans=((color32*)val)->a;
+        reDraw(&elem->ds);
+        return 0;
+    case GUIATTR_DIV_REFRESH:
+        reDraw(elem->ds.parent);
+        return 0;
+    default:
+        return -1;
+    }
+    return 0;
+}
+uint div_getAttr(uint elem_, int attr, void *des)
+{
+    div* elem=(div*)elem_;
+
+    switch (attr)
+    {
+    case GUIATTR_DIV_X:
+        return -1;
+        break;
+    case GUIATTR_DIV_Y:
+        return -1;
+        break;
+    case GUIATTR_DIV_WIDTH:
+        return -1;
+        break;
+    case GUIATTR_DIV_HEIGHT:
+        return -1;
+        break;
+    case GUIATTR_DIV_BGCOLOR:
+        *((color32*)des)=elem->bgColor;
+        break;
+    default:
+        return -1;
+    }
+    return 0;
 }

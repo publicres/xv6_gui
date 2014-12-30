@@ -76,6 +76,14 @@ dom* delete(dom* src)
 
     return src;
 }
+void _cascade_release(dom *elem)
+{
+    if (elem->frater!=0)
+        _cascade_release(elem->frater);
+    if (elem->descent!=0)
+        _cascade_release(elem->descent);
+    kfree((char*)(elem->entity));
+}
 
 dom* setFocus(dom* src)
 {
@@ -116,6 +124,7 @@ void reDraw(dom *src)
 void reDraw_(dom *src,uint x,uint y,uint w,uint h)
 {
     passRenderEvent(bingolingo,getABSposx(src)+x,getABSposy(src)+y,w,h);
+    sync(getABSposx(src)+x,getABSposy(src)+y,w,h);
 }
 //===========================================
 void passFocusEvent(dom* now,void* pkg)

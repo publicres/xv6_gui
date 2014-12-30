@@ -4,26 +4,60 @@
 #include "guilayout.h"
 #include "guientity.h"
 #include "guiexp.h"
+#include "ex_mem.h"
+
+uint r,n;
+uint hua[5];
 
 void tryOnce()
 {
-    div *r=div_createDom(0,0,0,WIDTH_RES,HEIGHT_RES,bingolingo);
-    div_changeBgcolor(r,rgba(100,128,128,0));
+    uint i;
 
-    div *l3=div_createDom(10,500,0,500,100,&r->ds);
-    div_changeBgcolor(l3,rgba(0,255,0,0));
+    r=div_createDom(0,0,WIDTH_RES,HEIGHT_RES,0xffffffff);
+    div_changeBgcolor(r,rgba(56,5,39,0));
 
-    div *l1=div_createDom(11,70,20,500,100,&r->ds);
-    div_changeBgcolor(l1,rgba(200,100,35,0));
-    div_changeBgcolor(l1,rgba(255,0,0,128));
-
-
-        div *l2=div_createDom(20,50,50,500,100,&l1->ds);
-        div_changeBgcolor(l2,rgba(0,0,255,200));
-        div *l4=div_createDom(21,400,60,10,10,&l1->ds);
-        div_changeBgcolor(l4,rgba(0,255,255,0));
-
-
-    div *l9=div_createDom(11,90,220,200,30,&r->ds);
-    div_changeBgcolor(l9,rgba(200,100,35,0));
+    for (i=0;i<5;i++)
+    {
+        hua[i]=div_createDom(438+i*40,500,5,8,r);
+        div_changeBgcolor(hua[i],rgba(0,0,0,0));
+    }
+    n=-1;
+}
+void lightOn(uint i)
+{
+    uchar j,k;
+    for (j=0;j<255;j++)
+        for (k=0;k<70;k++)
+            div_changeBgcolor(hua[i],rgba(j,j,0,0));
+}
+void lightOff(uint i)
+{
+    uchar j,k;
+    for (j=255;j>0;j--)
+        for (k=0;k<70;k++)
+            div_changeBgcolor(hua[i],rgba(j,j,0,0));
+}
+void toggleOn()
+{
+    if (n==-1)
+    {
+        lightOn(0);
+        n=0;
+        return;
+    }
+    lightOff(n);
+    n=(n+1)%5;
+    lightOn(n);
+}
+void endToggle()
+{
+    uchar i,j,k;
+    for (j=0;j<255;j++)
+        for (i=0;i<5;i++)
+            for (k=0;k<8;k++)
+                if (i==n)
+                    div_changeBgcolor(hua[i],rgba(255,255,0,j));
+                else
+                    div_changeBgcolor(hua[i],rgba(0,0,0,j));
+    //div_release(r);
 }

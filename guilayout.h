@@ -50,10 +50,11 @@ uint getABSposy(dom* src);
 void reDraw(dom *src);
 void reDraw_(dom *src,uint x,uint y,uint w,uint h);
 void outputDom(dom* src, uint lay);
+void _cascade_release(dom *elem);
 
 dom* bingolingo;
 
 void passRenderEvent(dom* now,uint x,uint y,uint w,uint h);
 void passFocusEvent(dom* now,void* pkg);
-void passFocusEvent(dom* now,void* pkg);
+void passPointEvent(dom* now,uint x,uint y,uint typ);
 void faireFocus(dom *now);
