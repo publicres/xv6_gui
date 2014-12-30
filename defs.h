@@ -86,6 +86,10 @@ void            log_write(struct buf*);
 void            begin_op();
 void            end_op();
 
+// mouse.c
+void            mouseEnable(void);
+void            mouseintr(void);
+
 // mp.c
 extern int      ismp;
 int             mpbcpu(void);
