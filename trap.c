@@ -7,6 +7,7 @@
 #include "x86.h"
 #include "traps.h"
 #include "spinlock.h"
+#include "mouse.h"
 
 // Interrupt descriptor table (shared by all CPUs).
 struct gatedesc idt[256];
@@ -65,6 +66,10 @@ trap(struct trapframe *tf)
     break;
   case T_IRQ0 + IRQ_KBD:
     kbdintr();
+    lapiceoi();
+    break;
+  case T_IRQ0 + IRQ_MOUSE:
+    mouseintr();
     lapiceoi();
     break;
   case T_IRQ0 + IRQ_COM1:
