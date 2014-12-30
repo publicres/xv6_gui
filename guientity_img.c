@@ -85,7 +85,7 @@ uint img_createDom(uint x, uint y, uint w, uint h, uint parent)
     t->imgContent=0;
 
     if (parent==0xffffffff)
-        prepend(bingolingo,&t->ds);
+        prepend(del,&t->ds);
     else
         prepend((dom*)parent,&t->ds);
 

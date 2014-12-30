@@ -53,6 +53,7 @@ void outputDom(dom* src, uint lay);
 void _cascade_release(dom *elem);
 
 dom* bingolingo;
+dom* del;
 
 void passRenderEvent(dom* now,uint x,uint y,uint w,uint h);
 void passFocusEvent(dom* now,void* pkg);

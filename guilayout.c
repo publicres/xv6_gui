@@ -4,12 +4,13 @@
 #include "guilayout.h"
 #include "eventpackage.h"
 
-dom domRoot;
+dom domRoot,delRoot;
 dom* bingolingo=0;
+dom* del=0;
 
 void initDom()
 {
-    domRoot._id=0xffffffff;
+    domRoot._id=(uint)(&domRoot);
     domRoot.x=domRoot.y=0;
     domRoot.width=WIDTH_RES;
     domRoot.height=HEIGHT_RES;
@@ -26,6 +27,9 @@ void initDom()
     domRoot.entity=0;
 
     bingolingo=&domRoot;
+    delRoot=domRoot;
+    del=&delRoot;
+    prepend(bingolingo,del);
 }
 
 dom* prepend(dom* src, dom* des)

@@ -67,7 +67,7 @@ uint div_createDom(uint x, uint y, uint w, uint h, uint parent)
     t->ds.onRender=drawDiv;
 
     if (parent==0xffffffff)
-        prepend(bingolingo,&t->ds);
+        prepend(del,&t->ds);
     else
         prepend((dom*)parent,&t->ds);
 
