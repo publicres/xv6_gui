@@ -31,6 +31,7 @@ OBJS = \
 	guilayout.o\
 	guientity_div.o\
 	guiexp.o\
+	mouse.o\
 
 # Cross-compiling (e.g., on Mac OS X)
 # TOOLPREFIX = i386-jos-elf
