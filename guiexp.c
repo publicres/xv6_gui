@@ -13,12 +13,12 @@ void tryOnce()
 {
     uint i;
 
-    r=div_createDom(0,0,WIDTH_RES,HEIGHT_RES,0xffffffff);
+    r=div_createDom(0,0,WIDTH_RES,HEIGHT_RES,0xffffffff,-1);
     div_changeBgcolor(r,rgba(56,5,39,0));
 
     for (i=0;i<5;i++)
     {
-        hua[i]=div_createDom(438+i*40,500,5,8,r);
+        hua[i]=div_createDom(438+i*40,500,5,8,r,-1);
         div_changeBgcolor(hua[i],rgba(0,0,0,0));
     }
     n=-1;

@@ -61,7 +61,7 @@ uchar drawImg(dom* elem, uint x, uint y, uint w, uint h)
 
     return 1;
 }
-uint img_createDom(uint x, uint y, uint w, uint h, uint parent)
+uint img_createDom(uint x, uint y, uint w, uint h, uint parent, int pid)
 {
     img *t;
     if((t = (img*)kalloc()) == 0)
@@ -83,6 +83,7 @@ uint img_createDom(uint x, uint y, uint w, uint h, uint parent)
     t->isBigData=0;
     t->isRepeat=0;
     t->imgContent=0;
+    t->ds.pid=pid;
 
     if (parent==0xffffffff)
         prepend(del,&t->ds);

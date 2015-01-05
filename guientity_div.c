@@ -46,7 +46,7 @@ uchar drawDiv_trans(dom* elem, uint x, uint y, uint w, uint h)
     }
     return 1;
 }
-uint div_createDom(uint x, uint y, uint w, uint h, uint parent)
+uint div_createDom(uint x, uint y, uint w, uint h, uint parent, int pid)
 {
     div *t;
     if((t = (div*)kalloc()) == 0)
@@ -65,7 +65,8 @@ uint div_createDom(uint x, uint y, uint w, uint h, uint parent)
 
     t->ds.entity=(void*)t;
     t->ds.onRender=drawDiv;
-
+    t->ds.pid=pid;
+    
     if (parent==0xffffffff)
         prepend(del,&t->ds);
     else

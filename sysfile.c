@@ -453,6 +453,7 @@ int sys_createdom(void)
 
     if (argint(0, &domtype)<0)
         return -1;
+
     switch (domtype)
     {
     case GUIENT_DIV:
@@ -461,7 +462,7 @@ int sys_createdom(void)
         if (argptr(2, (void*)&target, 4)<0)
             return -1;
 
-        *target=div_createDom(0,0,0,0,parent);
+        *target=div_createDom(0,0,0,0,parent,proc->pid);
         return 0;
     case GUIENT_IMG:
         if (argint(1, (int*)&parent)<0)
@@ -469,7 +470,7 @@ int sys_createdom(void)
         if (argptr(2, (void*)&target, 4)<0)
             return -1;
 
-        *target=img_createDom(0,0,0,0,parent);
+        *target=img_createDom(0,0,0,0,parent,proc->pid);
         return 0;
     default:
         return -1;

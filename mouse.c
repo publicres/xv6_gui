@@ -83,7 +83,7 @@ void mouseEnable()
 	cprintf("0000");
 	ioapicenable(IRQ_MOUSE, 0);
 
-	mouseIcon = (div *)div_createDom(WIDTH_RES, HEIGHT_RES, 10, 10, (uint)bingolingo);
+	mouseIcon = (div *)div_createDom(WIDTH_RES, HEIGHT_RES, 10, 10, (uint)bingolingo,-1);
 	div_changeBgcolor((uint)mouseIcon, rgba(0,255,0,0));
 	x_position = WIDTH_RES / 2;
 	y_position = HEIGHT_RES / 2;
@@ -131,8 +131,8 @@ void mouseintr()
 		eventGenerate();
 		count = 0;
 	}
-	
-	
+
+
 	release(&mouselock);
 }
 
@@ -160,7 +160,7 @@ void eventGenerate()
 		right_button_pressed = 0;
 		button_flag |= RIGHT_BTN_UP;
 	}
-	
+
 	cprintf("x: %d\r\n", x_position);
 	cprintf("y: %d\r\n", y_position);
 	// cprintf("flag: %d\r\n", button_flag);

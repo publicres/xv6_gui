@@ -34,6 +34,8 @@ typedef struct ori_dom
 
     void* entity;
 
+    int pid;
+
 } dom;
 
 typedef uchar (*pointEvent)(dom*,uint,uint,uint);
