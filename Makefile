@@ -163,6 +163,8 @@ mkfs: mkfs.c fs.h
 # http://www.gnu.org/software/make/manual/html_node/Chained-Rules.html
 .PRECIOUS: %.o
 
+DEFAULTFILES=A\
+
 UPROGS=\
 	_cat\
 	_echo\
@@ -179,10 +181,9 @@ UPROGS=\
 	_usertests\
 	_wc\
 	_zombie\
-	A\
 
-fs.img: mkfs README $(UPROGS)
-	./mkfs fs.img README $(UPROGS)
+fs.img: mkfs README $(UPROGS) $(DEFAULTFILES)
+	./mkfs fs.img README $(UPROGS) $(DEFAULTFILES)
 
 -include *.d
 
