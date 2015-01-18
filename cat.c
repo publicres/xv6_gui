@@ -74,7 +74,8 @@ main(int argc, char *argv[])
     contentStruct pic;
     uint j;
     #define parh(x) (j=x,&j)
-    uint huahua;
+    uint huahua,rec;
+    color32 cs;
     uchar *p=readImg("cursor.matrix",1);
 
         createdom(GUIENT_IMG,0xffffffff,&huahua);
@@ -86,10 +87,43 @@ main(int argc, char *argv[])
         pic.isRepeat=1;
         setattr(GUIENT_IMG,huahua,GUIATTR_IMG_CONTENT,&pic);
 
-//    MouseMsg *msg = (MouseMsg*)malloc(sizeof(MouseMsg));
+        createdom(GUIENT_DIV,0xffffffff,&rec);
+        setattr(GUIENT_DIV,rec,GUIATTR_DIV_X,parh(350));
+        setattr(GUIENT_DIV,rec,GUIATTR_DIV_Y,parh(350));
+        setattr(GUIENT_DIV,rec,GUIATTR_DIV_WIDTH,parh(320));
+        setattr(GUIENT_DIV,rec,GUIATTR_DIV_HEIGHT,parh(320));
+        cs.c.r=cs.c.g=cs.c.b=128;
+        cs.a=128;
+        setattr(GUIENT_DIV,rec,GUIATTR_DIV_BGCOLOR,&cs);
+
+    int *msg = (int*)malloc(100);
+    KBDMsg* km;
+    FocusMsg* fm;
+
     while (1)
     {
-        //getmsgfromqueue(msg);
+        getmsgfromqueue(msg);
+        printf(1,"%d\r\n",*msg);
+        if (*msg==FOCUS_MESSAGE)
+        {
+            fm=(FocusMsg*)msg;
+            if (fm->dom_id==rec)
+            {
+                cs.a=(fm->focus_or_not?0:128);
+                setattr(GUIENT_DIV,rec,GUIATTR_DIV_BGCOLOR,&cs);
+            }
+        }
+        else if (*msg==KEYBOARD_MESSAGE)
+        {
+            km=(KBDMsg*)msg;
+            if (km->dom_id==rec)
+            {
+                cs.c.r=(uchar)km->key_value;
+                cs.c.g=0xff-(uchar)km->key_value;
+                cs.c.b=(uchar)km->key_value;
+                setattr(GUIENT_DIV,rec,GUIATTR_DIV_BGCOLOR,&cs);
+            }
+        }
     }
 //======
 

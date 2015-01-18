@@ -99,19 +99,30 @@ void _cascade_release(dom *elem)
 dom* setFocus(dom* src)
 {
     src->parent->focus=src;
-    faireFocus(src);
+
     return src;
 }
 void setABSFocus(dom* src)
 {
+    if (testFocus(bingolingo)==src)
+        return;
     dom* tsrc=src->parent;
+    FocusMsg* ufmsg=(FocusMsg*)kalloc();
+    ufmsg->msg_type=FOCUS_MESSAGE;
+    ufmsg->focus_or_not=0;
+    passFocusEvent(bingolingo,ufmsg);
+
     while (tsrc!=0)
     {
         tsrc->focus=src;
         tsrc=tsrc->parent;
         src=src->parent;
     }
-    faireFocus(&domRoot);
+
+    ufmsg=(FocusMsg*)kalloc();
+    ufmsg->msg_type=FOCUS_MESSAGE;
+    ufmsg->focus_or_not=1;
+    passFocusEvent(bingolingo,ufmsg);
 }
 
 uint getABSposx(dom* src)
@@ -140,10 +151,28 @@ void reDraw_(dom *src,uint x,uint y,uint w,uint h)
 //===========================================
 void passFocusEvent(dom* now,void* pkg)
 {
-    if (now==0) return;
-    if (now->onFocus==0 || now->onFocus(now,pkg)!=0)
-        if (now->focus!=0)
-            passFocusEvent(now->focus,pkg);
+    if (now==0)
+    {
+        kfree(pkg);
+        return;
+    }
+    if (now->isIntegral || now->focus==0)
+    {
+        if (now->onFocus)
+            now->onFocus(now,pkg);
+        else
+            kfree(pkg);
+    }
+    else
+        passFocusEvent(now->focus,pkg);
+}
+dom* testFocus(dom* now)
+{
+    if (now==0)
+        return 0;
+    if (now->isIntegral || now->focus==0)
+        return now;
+    return testFocus(now->focus);
 }
 int passPointEvent(dom* now,uint x,uint y,uint typ)
 {
@@ -152,7 +181,7 @@ int passPointEvent(dom* now,uint x,uint y,uint typ)
         now=now->frater;
     if (now==0)
         return 0;
-    if (now->isIntegral && !passPointEvent(now->descent,x-now->x,y-now->y,typ))
+    if (now->isIntegral || !passPointEvent(now->descent,x-now->x,y-now->y,typ))
     {
         if (now->onPoint)
         {
@@ -193,11 +222,4 @@ void passRenderEvent(dom* now,uint x,uint y,uint w,uint h)
     }
     if (now->onRender==0 || now->onRender(now,_x-now->x,_y-now->y,_w,_h)!=0)
         passRenderEvent(now->descent,_x-now->x,_y-now->y,_w,_h);
-}
-//===========================================
-void faireFocus(dom *now)
-{
-    focusEventPkg t;
-    t._id=0x00;
-    passFocusEvent(now,&t);
 }

@@ -86,6 +86,7 @@ void dequeue(int pid, void* result)
 	int *tmpptr;
 	MouseMsg* tmp_mouse;
 	KBDMsg* tmp_kbd;
+	FocusMsg* tmp_fcs;
 
 	acquire(&lockflag.lock);
 	loop:
@@ -113,6 +114,13 @@ void dequeue(int pid, void* result)
 			((KBDMsg*)result)->msg_type = tmp_kbd->msg_type;
 			((KBDMsg*)result)->key_value = tmp_kbd->key_value;
 			((KBDMsg*)result)->dom_id = tmp_kbd->dom_id;
+			kfree((char*)(*(p->queue + pre_head)));
+			return;
+		}
+		else if (*tmpptr == FOCUS_MESSAGE)
+		{
+			tmp_fcs = (FocusMsg*)(*(p->queue + pre_head));
+			*(FocusMsg*)result=*tmp_fcs;
 			kfree((char*)(*(p->queue + pre_head)));
 			return;
 		}

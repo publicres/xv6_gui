@@ -62,3 +62,4 @@ void passRenderEvent(dom* now,uint x,uint y,uint w,uint h);
 void passFocusEvent(dom* now,void* pkg);
 int passPointEvent(dom* now,uint x,uint y,uint typ);
 void faireFocus(dom *now);
+dom* testFocus(dom* now);

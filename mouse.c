@@ -100,6 +100,7 @@ void mouseintr()
 	switch (++count)
 	{
 	case 1:
+		//cprintf("flag:%d\r\n",data);
 		left_button_down = (data & LEFT_BTN) ? 1 : 0;
 		right_button_down = (data & RIGHT_BTN) ? 1 : 0;
 		x_sign = (data & X_SIGN) ? 1 : 0;
@@ -108,6 +109,7 @@ void mouseintr()
 	case 2:
 		if (x_sign == 1)
 			data -= 256;
+		//cprintf("dx:%d\r\n",data);
 		x_position += data;
 		x_position = (x_position > WIDTH_RES) ? WIDTH_RES : x_position;
 		x_position = (x_position < 0) ? 0 : x_position;
@@ -115,6 +117,7 @@ void mouseintr()
 	case 3:
 		if (y_sign == 1)
 			data -= 256;
+		//cprintf("dy:%d\r\n",data);
 		y_position -= data;
 		y_position = (y_position > HEIGHT_RES) ? HEIGHT_RES : y_position;
 		y_position = (y_position < 0) ? 0 : y_position;
@@ -161,7 +164,7 @@ void eventGenerate()
 
 	//cprintf("x: %d\r\n", x_position);
 	//cprintf("y: %d\r\n", y_position);
-	// cprintf("flag: %d\r\n", button_flag);
+	//cprintf("flag: %d\r\n", button_flag);
 	//cprintf("------------%d\r\n", num);
 	//num++;
 	img_setXY((uint)mouseIcon, x_position, y_position);

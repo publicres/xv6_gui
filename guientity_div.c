@@ -68,6 +68,7 @@ uint div_createDom(uint x, uint y, uint w, uint h, uint parent, int pid)
     t->ds.onRender=drawDiv;
     t->ds.pid=pid;
     t->ds.onPoint=typicalPointEvent;
+    t->ds.onFocus=typicalFocusEvent;
     t->ds.isIntegral=0;
 
     if (parent==0xffffffff)
