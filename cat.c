@@ -3,6 +3,7 @@
 #include "user.h"
 #include "colordef.h"
 #include "guientity_attrvalue.h"
+#include "message.h"
 
 char buf[512];
 
@@ -62,6 +63,7 @@ int
 main(int argc, char *argv[])
 {
   int fd, i;
+  initprocessqueue();
 
   if(argc <= 1){
     cat(0);
@@ -84,6 +86,11 @@ main(int argc, char *argv[])
         pic.isRepeat=1;
         setattr(GUIENT_IMG,huahua,GUIATTR_IMG_CONTENT,&pic);
 
+//    MouseMsg *msg = (MouseMsg*)malloc(sizeof(MouseMsg));
+    while (1)
+    {
+        //getmsgfromqueue(msg);
+    }
 //======
 
   for(i = 1; i < argc; i++){
@@ -97,5 +104,6 @@ main(int argc, char *argv[])
  //====
 
  //===
+ releaseprocessqueue();
   exit();
 }
