@@ -22,3 +22,9 @@ typedef struct kdb_messge
 	int msg_type;
 	int key_value;
 } KBDMsg;
+
+typedef struct focus_message
+{
+	int msg_type;
+	int focus_or_not;
+} FocusMsg;
