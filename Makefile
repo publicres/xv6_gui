@@ -164,8 +164,8 @@ mkfs: mkfs.c fs.h
 .PRECIOUS: %.o
 
 DEFAULTFILES=\
-	A\
 	cursor.matrix\
+	letters.matrix\
 
 UPROGS=\
 	_cat\

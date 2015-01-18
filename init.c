@@ -56,6 +56,27 @@ void initMouse()
     setattr(GUIENT_IMG,0xfffffffe,GUIATTR_IMG_CONTENT,&pic);
     free(p);
 }
+void initLetters()
+{
+    char* cont="1234567890qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM~!@#$%^&*()_-=+[];',./\\{}|:\"<>?";
+    int fd1 = open("letters.matrix", 0);
+    if (fd1 < 0)
+    {
+        printf(1, "open file error\n");
+        return;
+    }
+    uchar w,h;
+    read(fd1, &w, 1);
+    read(fd1, &h, 1);
+    int size=(uint)w*(uint)h*strlen(cont);
+    uchar *p=malloc(size+2);
+    p[0]=w;
+    p[1]=h;
+    read(fd1, p+2, size);
+    close(fd1);
+    //SYSCALL HERE!
+    free(p);
+}
 
 int
 main(void)
@@ -69,6 +90,7 @@ main(void)
   dup(0);  // stdout
   dup(0);  // stderr
   initMouse();
+  initLetters();
 
   for(;;){
     printf(1, "init: starting sh\n");
