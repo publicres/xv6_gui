@@ -57,9 +57,9 @@ int releaseProcessQueue(int pid)
 
 void enqueue(int pid, void* message)
 {
+	int index = pid % MAX_PROCESS_NUM;
 	if (*(process_message_map + index) == 0)	//when we did not 
 		return;
-	int index = pid % MAX_PROCESS_NUM;
 	MsgQueue* p = *(process_message_map + index);
 	int next_tail = (p->tail + 2 > QUEUE_SIZE)? 0: (p->tail + 1);
 
