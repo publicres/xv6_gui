@@ -100,6 +100,7 @@ void dequeue(int pid, void* result)
 			((MouseMsg*)result)->x = tmp_mouse->x;
 			((MouseMsg*)result)->y = tmp_mouse->y;
 			((MouseMsg*)result)->mouse_event_type = tmp_mouse->mouse_event_type;
+			((MouseMsg*)result)->dom_id = tmp_mouse->dom_id;
 			kfree((char*)(*(p->queue + pre_head)));
 			return;
 		}
@@ -108,6 +109,7 @@ void dequeue(int pid, void* result)
 			tmp_kbd = (KBDMsg*)(*(p->queue + pre_head));
 			((KBDMsg*)result)->msg_type = tmp_kbd->msg_type;
 			((KBDMsg*)result)->key_value = tmp_kbd->key_value;
+			((KBDMsg*)result)->dom_id = tmp_kbd->dom_id;
 			kfree((char*)(*(p->queue + pre_head)));
 			return;
 		}

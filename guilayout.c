@@ -158,6 +158,7 @@ int passPointEvent(dom* now,uint x,uint y,uint typ)
         mm->x = x - now->x;
         mm->y = y - now->y;
         mm->mouse_event_type = typ;
+        mm->dom_id = now->_id;
         //cprintf("\n\nmsg_type=%d, x=%d, y=%d, mouse_event_type=%d\n\n", mm->msg_type, mm->x, mm->y, mm->mouse_event_type);
         enqueue(now->pid, mm);
     }

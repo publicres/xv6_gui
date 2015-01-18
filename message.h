@@ -12,7 +12,7 @@ typedef struct mouse_message
 	uint x;
 	uint y;
 	uint mouse_event_type;
-	//uint dom_id;
+	uint dom_id;
 } MouseMsg;
 
 //A possible form of keyboard message, maybe changed. 
@@ -21,10 +21,12 @@ typedef struct kdb_messge
 {
 	int msg_type;
 	int key_value;
+	uint dom_id;
 } KBDMsg;
 
 typedef struct focus_message
 {
 	int msg_type;
 	int focus_or_not;
+	uint dom_id;
 } FocusMsg;
