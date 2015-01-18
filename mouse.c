@@ -80,7 +80,7 @@ void mouseEnable()
 	outb(0x60, 0x47);
 	initlock(&mouselock,"mouse");
 	picenable(IRQ_MOUSE);
-	cprintf("0000");
+	//cprintf("0000");
 	ioapicenable(IRQ_MOUSE, 0);
 
 	mouseIcon = (div *)div_createDom(WIDTH_RES, HEIGHT_RES, 10, 10, (uint)bingolingo,-1);
@@ -98,7 +98,7 @@ void mouseintr()
 	data = inb(MSDATAP);
 	// if (!(data & MIDDLE_BTN) && (data & CHECK_FLAG) && !(data & X_OVERFLOW) && !(data & Y_OVERFLOW))
 	// 	count = 0;
-	cprintf("%x\r\n", data);
+	//cprintf("%x\r\n", data);
 	switch (++count)
 	{
 	case 1:
@@ -125,7 +125,7 @@ void mouseintr()
 		break;
 	}
 
-	cprintf("count:%d\r\n", count);
+	//cprintf("count:%d\r\n", count);
 	if (count == 3)
 	{
 		eventGenerate();
@@ -161,8 +161,8 @@ void eventGenerate()
 		button_flag |= RIGHT_BTN_UP;
 	}
 
-	cprintf("x: %d\r\n", x_position);
-	cprintf("y: %d\r\n", y_position);
+	//cprintf("x: %d\r\n", x_position);
+	//cprintf("y: %d\r\n", y_position);
 	// cprintf("flag: %d\r\n", button_flag);
 	//cprintf("------------%d\r\n", num);
 	//num++;

@@ -8,6 +8,7 @@
 #include "graphbase.h"
 #include "guilayout.h"
 #include "guiexp.h"
+#include "message_queue.h"
 
 static void startothers(void);
 static void mpmain(void)  __attribute__((noreturn));
@@ -56,6 +57,8 @@ main(void)
     toggleOn();
 	
   mouseEnable();
+
+  initProcessMsgMap();
 
 
   userinit();      // first user process

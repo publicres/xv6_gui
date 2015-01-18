@@ -463,3 +463,16 @@ procdump(void)
     cprintf("\n");
   }
 }
+enum procstate
+getstatusbypid(int pid)
+{
+  struct proc *p;
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+  {
+    if(p->pid == pid)
+    {
+      return p->state;
+    }
+  }
+  return UNUSED;
+}

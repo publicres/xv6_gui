@@ -3,6 +3,7 @@
 #include "user.h"
 #include "colordef.h"
 #include "guientity_attrvalue.h"
+#include "message.h"
 
 char buf[512];
 
@@ -34,9 +35,40 @@ main(int argc, char *argv[])
     uint huahua,j;
     int fd1, n, i1, j1;
     contentStruct pic;
+
     #define parh(x) (j=x,&j)
 
+    if (fork() == 0)
+    {
+        initprocessqueue();
+
+        uint qq;
+        color32 col = rgba(255, 0, 0, 0);
+        createdom(GUIENT_DIV, 0xffffffff, &qq);
+        setattr(GUIENT_DIV, qq, GUIATTR_DIV_X, parh(700));
+        setattr(GUIENT_DIV, qq, GUIATTR_DIV_Y, parh(50));
+        setattr(GUIENT_IMG, qq, GUIATTR_IMG_WIDTH, parh(100));
+        setattr(GUIENT_IMG, qq, GUIATTR_IMG_HEIGHT, parh(100));
+        setattr(GUIENT_DIV, qq, GUIATTR_DIV_BGCOLOR, &col);
+
+        MouseMsg *msg = (MouseMsg*)malloc(sizeof(MouseMsg));
+        while(1)
+        {
+          getmsgfromqueue(msg);
+          int* tmp = (int*)msg;
+          if (*tmp == MOUSE_MESSAGE)
+          {
+            if (((((MouseMsg*)msg)->mouse_event_type) & 0x1) != 0)
+              printf(1, "haha: %d, %d\r\n", ((MouseMsg*)msg)->x, ((MouseMsg*)msg)->y);
+          }
+        }
+    }
+    else{
+
     fd1 = open("A", 0);
+
+    initprocessqueue();
+
     if (fd1 < 0)
     {
         printf(1, "open file error\n");
@@ -63,10 +95,18 @@ main(int argc, char *argv[])
         pic.isRepeat=1;
         setattr(GUIENT_IMG,huahua,GUIATTR_IMG_CONTENT,&pic);
 
-        uint qq;
-        createdom(GUIENT_DIV,huahua,&qq);
-        setattr(GUIENT_DIV,huahua,GUIATTR_DIV_X,parh(50));
-        setattr(GUIENT_DIV,huahua,GUIATTR_DIV_X,parh(50));
+        MouseMsg *msg = (MouseMsg*)malloc(sizeof(MouseMsg));
+        while(1)
+        {
+          getmsgfromqueue(msg);
+          int* tmp = (int*)msg;
+          if (*tmp == MOUSE_MESSAGE)
+          {
+            if (((((MouseMsg*)msg)->mouse_event_type) & 0x1) != 0)
+              printf(1, "%d, %d\n", ((MouseMsg*)msg)->x, ((MouseMsg*)msg)->y);
+          }
+        }
+    }
     }
 //======
 
@@ -81,5 +121,6 @@ main(int argc, char *argv[])
  //====
 
  //===
+  releaseprocessqueue();
   exit();
 }

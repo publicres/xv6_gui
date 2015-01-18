@@ -25,3 +25,7 @@
 #define SYS_releasedom      23
 #define SYS_setattr         24
 #define SYS_getattr         25
+
+#define SYS_initprocessqueue 26
+#define SYS_releaseprocessqueue 27
+#define SYS_getmsgfromqueue	 28

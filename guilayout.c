@@ -3,6 +3,8 @@
 #include "graphbase.h"
 #include "guilayout.h"
 #include "eventpackage.h"
+#include "message_queue.h"
+#include "message.h"
 
 dom domRoot,delRoot;
 dom* bingolingo=0;
@@ -144,13 +146,23 @@ void passFocusEvent(dom* now,void* pkg)
 }
 int passPointEvent(dom* now,uint x,uint y,uint typ)
 {
+    //cprintf("\n\npassPointEvent error?????????????\n\n");
     while (now!=0 && (now->x>x || now->x+now->width<=x || now->y>y || now->y+now->height<=y))
         now=now->frater;
     if (now==0)
         return 0;
-    if (!passPointEvent(now->descent,x-now->x,y-now->y,typ))
-        if (now->onPoint!=0)
-            now->onPoint(now,x-now->x,y-now->y,typ);
+    if (!passPointEvent(now->descent,x-now->x,y-now->y,typ) && now->pid != -1)
+    {
+        MouseMsg* mm = (MouseMsg*)kalloc();
+        mm->msg_type = MOUSE_MESSAGE;
+        mm->x = x - now->x;
+        mm->y = y - now->y;
+        mm->mouse_event_type = typ;
+        //cprintf("\n\nmsg_type=%d, x=%d, y=%d, mouse_event_type=%d\n\n", mm->msg_type, mm->x, mm->y, mm->mouse_event_type);
+        enqueue(now->pid, mm);
+    }
+        /*if (now->onPoint!=0)
+            now->onPoint(now,x-now->x,y-now->y,typ);*/
     return 1;
     // if (now->onPoint==0 || now->onPoint(now,x-now->x,y-now->y,typ)!=0)
     //     passPointEvent(now->descent,x-now->x,y-now->y,typ);

@@ -3,6 +3,9 @@
 #include "types.h"
 #include "user.h"
 #include "fcntl.h"
+// #include "colordef.h"
+// #include "guientity_attrvalue.h"
+// #include "message.h"
 
 // Parsed command representation
 #define EXEC  1
@@ -146,6 +149,16 @@ main(void)
 {
   static char buf[100];
   int fd;
+
+  // uint haha, j;
+
+  // #define parh(x) (j=x,&j)
+
+  // color32 col = rgba(255, 0, 0, 0);
+  // createdom(GUIENT_IMG, 0xffffffff, &haha);
+  // setattr(GUIENT_DIV, haha, GUIATTR_DIV_X, parh(50));
+  // setattr(GUIENT_DIV, haha, GUIATTR_DIV_Y, parh(50));
+  // setattr(GUIENT_DIV, haha, GUIATTR_DIV_BGCOLOR, &col);
   
   // Assumes three file descriptors open.
   while((fd = open("console", O_RDWR)) >= 0){
@@ -154,6 +167,19 @@ main(void)
       break;
     }
   }
+
+  //initprocessqueue();
+
+  // MouseMsg *msg = (MouseMsg*)malloc(sizeof(MouseMsg));
+  // while(1)
+  // {
+  //   getmsgfromqueue(msg);
+  //   int* tmp = (int*)msg;
+  //   if (*tmp == MOUSE_MESSAGE)
+  //   {
+  //     printf(1, "%d, %d\n", ((MouseMsg*)msg)->x, ((MouseMsg*)msg)->y);
+  //   }
+  // }
 
   // Read and run input commands.
   while(getcmd(buf, sizeof(buf)) >= 0){
@@ -169,6 +195,7 @@ main(void)
       runcmd(parsecmd(buf));
     wait();
   }
+  //releaseprocessqueue();
   exit();
 }
 

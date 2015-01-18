@@ -34,6 +34,7 @@ OBJS = \
 	guiexp.o\
 	mouse.o\
 	ex_mem.o\
+	message_queue.o\
 
 # Cross-compiling (e.g., on Mac OS X)
 # TOOLPREFIX = i386-jos-elf

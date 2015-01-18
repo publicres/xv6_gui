@@ -104,6 +104,10 @@ extern int sys_releasedom(void);
 extern int sys_setattr(void);
 extern int sys_getattr(void);
 
+extern int sys_initprocessqueue(void);
+extern int sys_releaseprocessqueue(void);
+extern int sys_getmsgfromqueue(void);
+
 static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
 [SYS_exit]    sys_exit,
@@ -131,6 +135,10 @@ static int (*syscalls[])(void) = {
 [SYS_releasedom]    sys_releasedom,
 [SYS_setattr]       sys_setattr,
 [SYS_getattr]       sys_getattr,
+
+[SYS_initprocessqueue]  sys_initprocessqueue,
+[SYS_releaseprocessqueue]  sys_releaseprocessqueue,
+[SYS_getmsgfromqueue]  sys_getmsgfromqueue,
 };
 
 void
