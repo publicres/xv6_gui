@@ -14,6 +14,14 @@
 #define GUIATTR_IMG_HEIGHT  3
 #define GUIATTR_IMG_CONTENT 4
 #define GUIATTR_IMG_REFRESH 5
+
+#define GUIATTR_CHA_X       0
+#define GUIATTR_CHA_Y       1
+#define GUIATTR_CHA_WIDTH   2
+#define GUIATTR_CHA_HEIGHT  3
+#define GUIATTR_CHA_CH      4
+#define GUIATTR_CHA_COLOR   5
+#define GUIATTR_CHA_REFRESH 6
 typedef struct ori_contentStruct
 {
     void* pics;

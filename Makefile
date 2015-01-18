@@ -164,7 +164,9 @@ mkfs: mkfs.c fs.h
 # http://www.gnu.org/software/make/manual/html_node/Chained-Rules.html
 .PRECIOUS: %.o
 
-DEFAULTFILES=A\
+DEFAULTFILES=\
+	cursor.matrix\
+	letters.matrix\
 
 UPROGS=\
 	_cat\
