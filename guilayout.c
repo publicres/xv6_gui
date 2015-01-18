@@ -151,16 +151,14 @@ int passPointEvent(dom* now,uint x,uint y,uint typ)
         now=now->frater;
     if (now==0)
         return 0;
-    if (!passPointEvent(now->descent,x-now->x,y-now->y,typ) && now->pid != -1)
+    if (!passPointEvent(now->descent,x-now->x,y-now->y,typ))
     {
-        MouseMsg* mm = (MouseMsg*)kalloc();
-        mm->msg_type = MOUSE_MESSAGE;
-        mm->x = x - now->x;
-        mm->y = y - now->y;
-        mm->mouse_event_type = typ;
-        mm->dom_id = now->_id;
-        //cprintf("\n\nmsg_type=%d, x=%d, y=%d, mouse_event_type=%d\n\n", mm->msg_type, mm->x, mm->y, mm->mouse_event_type);
-        enqueue(now->pid, mm);
+        if (now->onPoint)
+        {
+            now->onPoint(now,x-now->x,y-now->y,typ);
+            return 1;
+        }
+        return 0;
     }
         /*if (now->onPoint!=0)
             now->onPoint(now,x-now->x,y-now->y,typ);*/
