@@ -19,3 +19,4 @@ void img_setContent(uint/*img**/ elem, void* cont, uchar isBig, uchar isRep);
 
 uint img_setAttr(uint elem_, int attr, void *val);
 uint img_getAttr(uint elem_, int attr, void *des);
+void img_setXY(uint elem_, int x, int y);

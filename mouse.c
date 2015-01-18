@@ -6,7 +6,7 @@
 #include "mouse.h"
 #include "graphbase.h"
 #include "guilayout.h"
-#include "guientity_div.h"
+#include "guientity_img.h"
 
 static struct spinlock mouselock;
 static int x_position = 0;
@@ -18,7 +18,7 @@ static int right_button_down = 0;
 static int left_button_pressed = 0;
 static int right_button_pressed = 0;
 static int count = 0;
-div* mouseIcon=0;
+img* mouseIcon=0;
 
 void eventGenerate();
 void SetMouseXY();
@@ -80,11 +80,9 @@ void mouseEnable()
 	outb(0x60, 0x47);
 	initlock(&mouselock,"mouse");
 	picenable(IRQ_MOUSE);
-	cprintf("0000");
 	ioapicenable(IRQ_MOUSE, 0);
 
-	mouseIcon = (div *)div_createDom(WIDTH_RES, HEIGHT_RES, 10, 10, (uint)bingolingo,-1);
-	div_changeBgcolor((uint)mouseIcon, rgba(0,255,0,0));
+	mouseIcon = (img*)img_createDom(WIDTH_RES, HEIGHT_RES, 32, 32, (uint)bingolingo,-1);
 	x_position = WIDTH_RES / 2;
 	y_position = HEIGHT_RES / 2;
 }
@@ -98,7 +96,7 @@ void mouseintr()
 	data = inb(MSDATAP);
 	// if (!(data & MIDDLE_BTN) && (data & CHECK_FLAG) && !(data & X_OVERFLOW) && !(data & Y_OVERFLOW))
 	// 	count = 0;
-	cprintf("%x\r\n", data);
+	//cprintf("%x\r\n", data);
 	switch (++count)
 	{
 	case 1:
@@ -125,7 +123,7 @@ void mouseintr()
 		break;
 	}
 
-	cprintf("count:%d\r\n", count);
+	//cprintf("count:%d\r\n", count);
 	if (count == 3)
 	{
 		eventGenerate();
@@ -161,11 +159,11 @@ void eventGenerate()
 		button_flag |= RIGHT_BTN_UP;
 	}
 
-	cprintf("x: %d\r\n", x_position);
-	cprintf("y: %d\r\n", y_position);
+	//cprintf("x: %d\r\n", x_position);
+	//cprintf("y: %d\r\n", y_position);
 	// cprintf("flag: %d\r\n", button_flag);
 	//cprintf("------------%d\r\n", num);
 	//num++;
-	div_setXY((uint)mouseIcon, x_position, y_position);
+	img_setXY((uint)mouseIcon, x_position, y_position);
 	passPointEvent(del, x_position, y_position, button_flag);
 }
