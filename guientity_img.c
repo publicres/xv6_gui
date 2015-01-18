@@ -6,6 +6,7 @@
 #include "guientity_img.h"
 #include "guientity_attrvalue.h"
 
+extern img* mouseIcon;
 //==============================================
 uchar drawImg(dom* elem, uint x, uint y, uint w, uint h)
 {
@@ -61,7 +62,7 @@ uchar drawImg(dom* elem, uint x, uint y, uint w, uint h)
 
     return 1;
 }
-uint img_createDom(uint x, uint y, uint w, uint h, uint parent)
+uint img_createDom(uint x, uint y, uint w, uint h, uint parent, int pid)
 {
     img *t;
     if((t = (img*)kalloc()) == 0)
@@ -83,6 +84,7 @@ uint img_createDom(uint x, uint y, uint w, uint h, uint parent)
     t->isBigData=0;
     t->isRepeat=0;
     t->imgContent=0;
+    t->ds.pid=pid;
 
     if (parent==0xffffffff)
         prepend(del,&t->ds);
@@ -103,7 +105,7 @@ void img_release(uint elem_)
 
 void img_setContent(uint elem, void* cont, uchar isBig, uchar isRep)
 {
-    img* ent=(img*)elem;
+    img* ent=(elem==0xfffffffe)?mouseIcon:(img*)elem;
     if (ent->imgContent!=0)
     {
         if (ent->isBigData==0)
@@ -120,7 +122,7 @@ void img_setContent(uint elem, void* cont, uchar isBig, uchar isRep)
 
 uint img_setAttr(uint elem_, int attr, void *val)
 {
-    img *elem=(img*)elem_;
+    img *elem=(elem_==0xfffffffe)?mouseIcon:(img*)elem_;
     uint i,j;
     contentStruct* p;
     void* q;
@@ -201,4 +203,17 @@ uint img_getAttr(uint elem_, int attr, void *des)
         return -1;
     }
     return 0;
+}
+
+void img_setXY(uint elem_, int x, int y)
+{
+    img *elem=(img*)elem_;
+    uint i,j;
+
+    i=elem->ds.x;
+    j=elem->ds.y;
+    elem->ds.x=x;
+    elem->ds.y=y;
+    reDraw_(elem->ds.parent,i,j,elem->ds.width,elem->ds.height);
+    reDraw(&elem->ds);
 }

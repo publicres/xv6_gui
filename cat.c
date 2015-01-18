@@ -18,6 +18,45 @@ cat(int fd)
     exit();
   }
 }
+uchar *readImg(char *fileName, uchar picMode)   //0:3channel,1:4channel
+{
+    int fd1 = open(fileName, 0);
+    if (fd1 < 0)
+    {
+        printf(1, "open file error\n");
+        return 0;
+    }
+    uchar w,h;
+    read(fd1, &w, 1);
+    read(fd1, &h, 1);
+    int size=(uint)w*(uint)h,i;
+    uchar *p=malloc(size*4+2);
+    uchar *q,*tp,*tq;
+    p[0]=w;
+    p[1]=h;
+    if (picMode==1)
+    {
+        read(fd1, p+2, size*4);
+    }
+    else if (picMode==0)
+    {
+        q=malloc(size*3);
+        read(fd1, q, size*3);
+        tp=p+2;
+        tq=q;
+        for (i=0;i<size;i++)
+        {
+            *(tp++)=*(q++);
+            *(tp++)=*(q++);
+            *(tp++)=*(q++);
+            *(tp++)=0;
+        }
+        free(tq);
+    }
+    close(fd1);
+
+    return p;
+}
 
 int
 main(int argc, char *argv[])
@@ -29,45 +68,22 @@ main(int argc, char *argv[])
     exit();
   }
 //======
-    uchar* buff=(uchar*)malloc(3333 * sizeof(uchar));
-    uchar* buff2=(uchar*)malloc(4444 * sizeof(uchar));
-    uint huahua,j;
-    int fd1, n, i1, j1;
-    contentStruct pic;
-    #define parh(x) (j=x,&j)
 
-    fd1 = open("A", 0);
-    if (fd1 < 0)
-    {
-        printf(1, "open file error\n");
-    }
-    else
-    {
-        n = read(fd1, buff, 3100);
-        buff2[0]=buff2[1]=32;
-        j1=2;
-        for (i1=0;i1<n;i1+=3)
-        {
-            buff2[j1++]=buff[i1+2];
-            buff2[j1++]=buff[i1+1];
-            buff2[j1++]=buff[i1];
-            buff2[j1++]=129;
-        }
+    contentStruct pic;
+    uint j;
+    #define parh(x) (j=x,&j)
+    uint huahua;
+    uchar *p=readImg("cursor.matrix",1);
 
         createdom(GUIENT_IMG,0xffffffff,&huahua);
         setattr(GUIENT_IMG,huahua,GUIATTR_IMG_X,parh(50));
         setattr(GUIENT_IMG,huahua,GUIATTR_IMG_Y,parh(50));
         setattr(GUIENT_IMG,huahua,GUIATTR_IMG_WIDTH,parh(320));
         setattr(GUIENT_IMG,huahua,GUIATTR_IMG_HEIGHT,parh(320));
-        pic.pics=buff2;
+        pic.pics=p;
         pic.isRepeat=1;
         setattr(GUIENT_IMG,huahua,GUIATTR_IMG_CONTENT,&pic);
 
-        uint qq;
-        createdom(GUIENT_DIV,huahua,&qq);
-        setattr(GUIENT_DIV,huahua,GUIATTR_DIV_X,parh(50));
-        setattr(GUIENT_DIV,huahua,GUIATTR_DIV_X,parh(50));
-    }
 //======
 
   for(i = 1; i < argc; i++){

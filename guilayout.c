@@ -26,6 +26,7 @@ void initDom()
     domRoot.frater=0;
     domRoot.descent=0;
     domRoot.entity=0;
+    domRoot.pid=-1;
 
     bingolingo=&domRoot;
     delRoot=domRoot;

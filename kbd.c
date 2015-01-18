@@ -3,6 +3,11 @@
 #include "defs.h"
 #include "kbd.h"
 
+void keyBoardEvent(char number)
+{
+    
+}
+
 int
 kbdgetc(void)
 {
@@ -40,6 +45,11 @@ kbdgetc(void)
     else if('A' <= c && c <= 'Z')
       c += 'a' - 'A';
   }
+    if (c!=0)
+    {
+        cprintf("@Keyboard pressed: %d\n",c);
+
+    }
   return c;
 }
 
