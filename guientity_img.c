@@ -87,6 +87,7 @@ uint img_createDom(uint x, uint y, uint w, uint h, uint parent, int pid)
     t->imgContent=0;
     t->ds.pid=pid;
     t->ds.onPoint=typicalPointEvent;
+    t->ds.isIntegral=0;
 
     if (parent==0xffffffff)
         prepend(del,&t->ds);

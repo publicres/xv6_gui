@@ -29,6 +29,7 @@ void initDom()
     domRoot.descent=0;
     domRoot.entity=0;
     domRoot.pid=-1;
+    domRoot.isIntegral=0;
 
     bingolingo=&domRoot;
     delRoot=domRoot;
@@ -151,7 +152,7 @@ int passPointEvent(dom* now,uint x,uint y,uint typ)
         now=now->frater;
     if (now==0)
         return 0;
-    if (!passPointEvent(now->descent,x-now->x,y-now->y,typ))
+    if (now->isIntegral && !passPointEvent(now->descent,x-now->x,y-now->y,typ))
     {
         if (now->onPoint)
         {

@@ -35,6 +35,7 @@ typedef struct ori_dom
     void* entity;
 
     int pid;
+    uchar isIntegral;
 
 } dom;
 
