@@ -54,6 +54,7 @@ void reDraw(dom *src);
 void reDraw_(dom *src,uint x,uint y,uint w,uint h);
 void outputDom(dom* src, uint lay);
 void _cascade_release(dom *elem);
+void reJoin(dom* src);
 
 dom* bingolingo;
 dom* del;

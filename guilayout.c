@@ -87,6 +87,34 @@ dom* delete(dom* src)
 
     return src;
 }
+void reJoin(dom* src)
+{
+    dom *p=src->parent;
+    uint x=src->x;
+    uint y=src->y;
+    uint w=src->width;
+    uint h=src->height;
+
+    if (p->descent==src)
+    {
+        p->descent=src->frater;
+    }
+    else
+    {
+        dom* q=p->descent;
+        while (q->frater!=src)
+            q=q->frater;
+        q->frater=src->frater;
+    }
+    src->parent=0;
+    src->frater=0;
+
+    src->frater=p->descent;
+    src->parent=p;
+    p->descent=src;
+
+    reDraw_(p,x,y,w,h);
+}
 void _cascade_release(dom *elem)
 {
     if (elem->frater!=0)
