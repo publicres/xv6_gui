@@ -105,6 +105,7 @@ void dequeue(int pid, void* result)
 			((MouseMsg*)result)->y = tmp_mouse->y;
 			((MouseMsg*)result)->mouse_event_type = tmp_mouse->mouse_event_type;
 			((MouseMsg*)result)->dom_id = tmp_mouse->dom_id;
+			((MouseMsg*)result)->enter_or_leave = tmp_mouse->enter_or_leave;
 			kfree((char*)(*(p->queue + pre_head)));
 			return;
 		}

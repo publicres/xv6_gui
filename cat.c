@@ -69,13 +69,14 @@ main(int argc, char *argv[])
     cat(0);
     exit();
   }
-//======
+//======test focus event and keyboard event demo
 
     contentStruct pic;
     uint j;
     #define parh(x) (j=x,&j)
     uint huahua,rec;
     color32 cs;
+
     uchar *p=readImg("cursor.matrix",1);
 
         createdom(GUIENT_IMG,0xffffffff,&huahua);
@@ -127,6 +128,46 @@ main(int argc, char *argv[])
     }
 //======
 
+/*
+//=======test mouse enter and leave event demo
+    uint enter_leave1, enter_leave2;
+    uint j;
+    #define parh(x) (j=x,&j)
+    color32 col_enter = rgba(255, 0, 0, 0);
+    color32 col_leave = rgba(0, 255, 0, 0);
+    createdom(GUIENT_DIV, 0xffffffff, &enter_leave1);
+    createdom(GUIENT_DIV, 0xffffffff, &enter_leave2);
+    setattr(GUIENT_DIV, enter_leave1, GUIATTR_DIV_X, parh(200));
+    setattr(GUIENT_DIV, enter_leave1, GUIATTR_DIV_Y, parh(50));
+    setattr(GUIENT_DIV, enter_leave1, GUIATTR_DIV_WIDTH, parh(100));
+    setattr(GUIENT_DIV, enter_leave1, GUIATTR_DIV_HEIGHT, parh(100));
+    setattr(GUIENT_DIV, enter_leave1, GUIATTR_DIV_BGCOLOR, &col_leave);
+    setattr(GUIENT_DIV, enter_leave2, GUIATTR_DIV_X, parh(300));
+    setattr(GUIENT_DIV, enter_leave2, GUIATTR_DIV_Y, parh(50));
+    setattr(GUIENT_DIV, enter_leave2, GUIATTR_DIV_WIDTH, parh(100));
+    setattr(GUIENT_DIV, enter_leave2, GUIATTR_DIV_HEIGHT, parh(100));
+    setattr(GUIENT_DIV, enter_leave2, GUIATTR_DIV_BGCOLOR, &col_leave);
+
+    int *msg = (int*)malloc(100);
+    MouseMsg* mm;
+    while(1)
+    {
+        getmsgfromqueue(msg);
+        if (*msg == MOUSE_MESSAGE)
+        {
+            mm = (MouseMsg*)msg;
+            if (mm->enter_or_leave == MOUSE_ENTER)
+            {
+                setattr(GUIENT_DIV, mm->dom_id, GUIATTR_DIV_BGCOLOR, &col_enter);
+            }
+            else if (mm->enter_or_leave == MOUSE_LEAVE)
+            {
+                setattr(GUIENT_DIV, mm->dom_id, GUIATTR_DIV_BGCOLOR, &col_leave);
+            }
+        }
+    }
+//========
+*/
   for(i = 1; i < argc; i++){
     if((fd = open(argv[i], 0)) < 0){
       printf(1, "cat: cannot open %s\n", argv[i]);
