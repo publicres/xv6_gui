@@ -69,6 +69,7 @@ main(int argc, char *argv[])
     cat(0);
     exit();
   }
+
 //======test focus event and keyboard event demo
 
     contentStruct pic;

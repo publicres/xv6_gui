@@ -185,6 +185,8 @@ UPROGS=\
 	_usertests\
 	_wc\
 	_zombie\
+	_guifilesystem\
+	_origincat\
 
 fs.img: mkfs README $(UPROGS) $(DEFAULTFILES)
 	./mkfs fs.img README $(UPROGS) $(DEFAULTFILES)
