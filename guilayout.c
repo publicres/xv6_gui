@@ -218,11 +218,7 @@ int passPointEvent(dom* now,uint x,uint y,uint typ)
         }
         return 0;
     }
-        /*if (now->onPoint!=0)
-            now->onPoint(now,x-now->x,y-now->y,typ);*/
     return 1;
-    // if (now->onPoint==0 || now->onPoint(now,x-now->x,y-now->y,typ)!=0)
-    //     passPointEvent(now->descent,x-now->x,y-now->y,typ);
 }
 void passRenderEvent(dom* now,uint x,uint y,uint w,uint h)
 {
