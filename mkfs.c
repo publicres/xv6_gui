@@ -13,10 +13,10 @@
 
 #define static_assert(a, b) do { switch (0) case 0: case (a): ; } while (0)
 
-int nblocks = (995-LOGSIZE);
+int nblocks = (1024*50-41-LOGSIZE);
 int nlog = LOGSIZE;
 int ninodes = 200;
-int size = 1024;
+int size = 1024*50;
 
 int fsfd;
 struct superblock sb;
@@ -124,7 +124,7 @@ main(int argc, char *argv[])
       perror(argv[i]);
       exit(1);
     }
-    
+
     // Skip leading _ in name when writing to file system.
     // The binaries are named _rm, _cat, etc. to keep the
     // build operating system from trying to execute them
