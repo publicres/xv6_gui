@@ -10,6 +10,8 @@
 
 #define MAX_DIRECTORY_LEN 512
 #define FILETYPE 1
+#define FILENUMINAROW 10
+#define SCROLL_DISTANCE 20
 
 typedef struct lsresult
 {
@@ -308,7 +310,7 @@ void render(char** names, int num, uint parent, int* fileinfo)
         int col = i % 10;
         createdom(GUIENT_DIV, parent, &filenodes.nodes[i]);
         setattr(GUIENT_DIV, filenodes.nodes[i], GUIATTR_DIV_X, parh(17 + 100 * col)); //(90+10)
-        setattr(GUIENT_DIV, filenodes.nodes[i], GUIATTR_DIV_Y, parh(70 + 125 * row)); //(115+10)
+        setattr(GUIENT_DIV, filenodes.nodes[i], GUIATTR_DIV_Y, parh(10 + 125 * row)); //(115+10)
         setattr(GUIENT_DIV, filenodes.nodes[i], GUIATTR_DIV_WIDTH, parh(90));
         setattr(GUIENT_DIV, filenodes.nodes[i], GUIATTR_DIV_HEIGHT, parh(115));
         if (fileinfo[i] == FILETYPE) //folder
@@ -427,7 +429,7 @@ void pastebutton_onclick()
     }
 }
 
-void invalidate(uint window)
+void invalidate(uint parent)
 {
     int i;
     free(listresult.filenames);
@@ -445,7 +447,7 @@ void invalidate(uint window)
 
     listresult = ls(".");
     int n = strlen(listresult.filenames) / 14 - 2;
-    render(listresult.parseresult, n, window, listresult.fileinfo + 2); //the first two are . and ..
+    render(listresult.parseresult, n, parent, listresult.fileinfo + 2); //the first two are . and ..
 }
 
 int main(int argc, char *argv[])
@@ -467,6 +469,9 @@ int main(int argc, char *argv[])
             uint closebutton;
         uint toolbar;
             uint gobackbutton;
+            uint upbutton;
+            uint downbutton;
+        uint scrollview;
         uint right_click_onfile;
             uint delete_button;
             uint copy_button;
@@ -518,6 +523,20 @@ int main(int argc, char *argv[])
             setattr(GUIENT_DIV, gobackbutton, GUIATTR_DIV_WIDTH, parh(50));
             setattr(GUIENT_DIV, gobackbutton, GUIATTR_DIV_HEIGHT, parh(30));
             setattr(GUIENT_DIV, gobackbutton, GUIATTR_DIV_BGCOLOR, &button_color);
+
+            createdom(GUIENT_DIV, toolbar, &upbutton);
+            setattr(GUIENT_DIV, upbutton, GUIATTR_DIV_X, parh(75));
+            setattr(GUIENT_DIV, upbutton, GUIATTR_DIV_Y, parh(5));
+            setattr(GUIENT_DIV, upbutton, GUIATTR_DIV_WIDTH, parh(50));
+            setattr(GUIENT_DIV, upbutton, GUIATTR_DIV_HEIGHT, parh(30));
+            setattr(GUIENT_DIV, upbutton, GUIATTR_DIV_BGCOLOR, &button_color);
+
+            createdom(GUIENT_DIV, toolbar, &downbutton);
+            setattr(GUIENT_DIV, downbutton, GUIATTR_DIV_X, parh(145));
+            setattr(GUIENT_DIV, downbutton, GUIATTR_DIV_Y, parh(5));
+            setattr(GUIENT_DIV, downbutton, GUIATTR_DIV_WIDTH, parh(50));
+            setattr(GUIENT_DIV, downbutton, GUIATTR_DIV_HEIGHT, parh(30));
+            setattr(GUIENT_DIV, downbutton, GUIATTR_DIV_BGCOLOR, &button_color);
 
         createdom(GUIENT_DIV, window, &right_click_onfile);
         setattr(GUIENT_DIV, right_click_onfile, GUIATTR_DIV_X, parh(0));
@@ -578,7 +597,14 @@ int main(int argc, char *argv[])
         //=====ls and render the whole directory
         listresult = ls(".");
         int n = strlen(listresult.filenames) / 14 - 2;
-        render(listresult.parseresult, n, window, listresult.fileinfo + 2); //the first two are . and ..
+        int rowno = n / 10 + 1;
+        createdom(GUIENT_DIV, window, &scrollview);
+        setattr(GUIENT_DIV, scrollview, GUIATTR_DIV_X, parh(0));
+        setattr(GUIENT_DIV, scrollview, GUIATTR_DIV_Y, parh(60));
+        setattr(GUIENT_DIV, scrollview, GUIATTR_DIV_WIDTH, parh(1024));
+        setattr(GUIENT_DIV, scrollview, GUIATTR_DIV_HEIGHT, parh(125 * rowno + 10));
+        setattr(GUIENT_DIV, scrollview, GUIATTR_DIV_BGCOLOR, &window_background);
+        render(listresult.parseresult, n, scrollview, listresult.fileinfo + 2); //the first two are . and ..
 
     //==========receive events
     int *msg = (int*)malloc(100);
@@ -591,7 +617,7 @@ int main(int argc, char *argv[])
             mm = (MouseMsg*)msg;
             if ((mm->mouse_event_type & RIGHT_BTN_UP) != 0) //right button up
             {
-                if (mm->dom_id == window)   //right button up on window
+                if (mm->dom_id == window || mm->dom_id == scrollview)   //right button up on window
                 {
                     setattr(GUIENT_DIV, right_click_onwindow, GUIATTR_DIV_Y, parh(668));
                     //printf(1, "I'm in!!!!!!!!\r\n");
@@ -614,7 +640,7 @@ int main(int argc, char *argv[])
                     else if (mm->dom_id == delete_button) //here I used switch but failed
                     {
                         deletebutton_onclick();
-                        invalidate(window);
+                        invalidate(scrollview);
                     }
                     else if (mm->dom_id == copy_button)
                     {
@@ -627,12 +653,26 @@ int main(int argc, char *argv[])
                     else if (mm->dom_id == paste_button)
                     {
                         pastebutton_onclick();
-                        invalidate(window);
+                        invalidate(scrollview);
                     }
                     else if (mm->dom_id == gobackbutton)
                     {
                         changedirectory("..");
-                        invalidate(window);
+                        invalidate(scrollview);
+                    }
+                    else if (mm->dom_id == upbutton)
+                    {
+                        int y;
+                        getattr(GUIENT_DIV, scrollview, GUIATTR_DIV_Y, &y);
+                        y = y - 20;
+                        setattr(GUIENT_DIV, scrollview, GUIATTR_DIV_Y, &y);
+                    }
+                    else if (mm->dom_id == downbutton)
+                    {
+                        int y;
+                        getattr(GUIENT_DIV, scrollview, GUIATTR_DIV_Y, &y);
+                        y = y + 20;
+                        setattr(GUIENT_DIV, scrollview, GUIATTR_DIV_Y, &y);
                     }
                     else    //open folder or file
                     {
@@ -641,7 +681,7 @@ int main(int argc, char *argv[])
                         {
                             changedirectory(listresult.parseresult[nodeno]);
                             printf(1, "refresh!!!\r\n");
-                            invalidate(window);
+                            invalidate(scrollview);
                         }
                     }
                 }
