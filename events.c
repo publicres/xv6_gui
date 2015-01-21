@@ -11,7 +11,7 @@
 uint mouse_within_dom = -1;
 
 //We must judge whether our mouse has moved out of the dom, because the coordinates may out of range
-uchar typicalPointEvent(dom* which ,uint x,uint y,uint msgType)
+uchar typicalPointEvent(dom* which ,int x,int y,uint msgType)
 {
     if (which->pid==-1)
         return 1;

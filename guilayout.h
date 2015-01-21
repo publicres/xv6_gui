@@ -16,16 +16,16 @@ typedef struct ori_dom
 {
     uint _id;       //globally unique, used for identify the dom.
 
-    uint x;         //the x value relative to its parent node.
-    uint y;         //the y value relative to its parent node.
-    uint width;     //ok to exceed the one of parent
-    uint height;    //ok to exceed the one of parent
+    int x;         //the x value relative to its parent node.
+    int y;         //the y value relative to its parent node.
+    int width;     //ok to exceed the one of parent
+    int height;    //ok to exceed the one of parent
 
     struct ori_dom* focus;
     uchar trans;     //Reference: Minecraft. If true, always render the dom behind it.
 
-    uchar (*onPoint)(struct ori_dom*,uint,uint,uint);
-    uchar (*onRender)(struct ori_dom*,uint,uint,uint,uint);
+    uchar (*onPoint)(struct ori_dom*,int,int,uint);
+    uchar (*onRender)(struct ori_dom*,int,int,int,int);
     uchar (*onFocus)(struct ori_dom*,void*);
 
     struct ori_dom* parent;
@@ -39,8 +39,8 @@ typedef struct ori_dom
 
 } dom;
 
-typedef uchar (*pointEvent)(dom*,uint,uint,uint);
-typedef uchar (*drawEvent)(dom*,uint,uint,uint,uint);
+typedef uchar (*pointEvent)(dom*,int,int,uint);
+typedef uchar (*drawEvent)(dom*,int,int,int,int);
 typedef uchar (*focusEvent)(dom*,void*);
 
 void initDom();
@@ -48,10 +48,10 @@ dom* prepend(dom* src, dom* des);
 dom* delete(dom* src);
 dom* setFocus(dom* src);
 void setABSFocus(dom* src);
-uint getABSposx(dom* src);
-uint getABSposy(dom* src);
+int getABSposx(dom* src);
+int getABSposy(dom* src);
 void reDraw(dom *src);
-void reDraw_(dom *src,uint x,uint y,uint w,uint h);
+void reDraw_(dom *src,int x,int y,int w,int h);
 void outputDom(dom* src, uint lay);
 void _cascade_release(dom *elem);
 void reJoin(dom* src);
@@ -59,8 +59,10 @@ void reJoin(dom* src);
 dom* bingolingo;
 dom* del;
 
-void passRenderEvent(dom* now,uint x,uint y,uint w,uint h);
+void passRenderEvent(dom* now,int x,int y,int w,int h);
 void passFocusEvent(dom* now,void* pkg);
-int passPointEvent(dom* now,uint x,uint y,uint typ);
+int passPointEvent(dom* now,int x,int y,uint typ);
 void faireFocus(dom *now);
 dom* testFocus(dom* now);
+
+uint expc;

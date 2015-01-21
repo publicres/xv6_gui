@@ -9,14 +9,14 @@
 
 extern img* mouseIcon;
 //==============================================
-uchar drawImg(dom* elem, uint x, uint y, uint w, uint h)
+uchar drawImg(dom* elem, int x, int y, int w, int h)
 {
-    uint i,j;
+    int i,j;
     uchar picw,pich;
     color32 k;
     img *ent=(img*)(elem->entity);
-    uint xs=getABSposx(elem)+x;
-    uint ys=getABSposy(elem)+y;
+    int xs=getABSposx(elem)+x;
+    int ys=getABSposy(elem)+y;
     uint tmp;
     if (ent->imgContent==0)
         return 1;
@@ -63,7 +63,7 @@ uchar drawImg(dom* elem, uint x, uint y, uint w, uint h)
 
     return 1;
 }
-uint img_createDom(uint x, uint y, uint w, uint h, uint parent, int pid)
+uint img_createDom(int x, int y, int w, int h, uint parent, int pid)
 {
     img *t;
     if((t = (img*)kalloc()) == 0)
@@ -127,21 +127,20 @@ void img_setContent(uint elem, void* cont, uchar isBig, uchar isRep)
 uint img_setAttr(uint elem_, int attr, void *val)
 {
     img *elem=(elem_==0xfffffffe)?mouseIcon:(img*)elem_;
-    uint i,j;
+    int i,j;
     contentStruct* p;
     void* q;
-
     switch (attr)
     {
     case GUIATTR_IMG_X:
         i=elem->ds.x;
-        elem->ds.x=*((uint*)val);
+        elem->ds.x=*((int*)val);
         reDraw_(elem->ds.parent,i,elem->ds.y,elem->ds.width,elem->ds.height);
         reDraw(&elem->ds);
         return 0;
     case GUIATTR_IMG_Y:
         j=elem->ds.y;
-        elem->ds.y=*((uint*)val);
+        elem->ds.y=*((int*)val);
         reDraw_(elem->ds.parent,elem->ds.x,j,elem->ds.width,elem->ds.height);
         reDraw(&elem->ds);
         return 0;

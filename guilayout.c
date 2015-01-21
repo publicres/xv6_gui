@@ -9,14 +9,15 @@
 dom domRoot,delRoot;
 dom* bingolingo=0;
 dom* del=0;
+uint expc=10;
 
 typedef struct ori_DrawFrame
 {
     dom* obj;
-    uint x;
-    uint y;
-    uint w;
-    uint h;
+    int x;
+    int y;
+    int w;
+    int h;
     uint step;
 } drawFrame;
 
@@ -71,10 +72,10 @@ void outputDom(dom* src, uint lay)
 dom* delete(dom* src)
 {
     dom *p=src->parent;
-    uint x=src->x;
-    uint y=src->y;
-    uint w=src->width;
-    uint h=src->height;
+    int x=src->x;
+    int y=src->y;
+    int w=src->width;
+    int h=src->height;
 
     if (p->descent==src)
     {
@@ -99,10 +100,10 @@ dom* delete(dom* src)
 void reJoin(dom* src)
 {
     dom *p=src->parent;
-    uint x=src->x;
-    uint y=src->y;
-    uint w=src->width;
-    uint h=src->height;
+    int x=src->x;
+    int y=src->y;
+    int w=src->width;
+    int h=src->height;
 
     if (p->descent==src)
     {
@@ -177,12 +178,12 @@ void setABSFocus(dom* src)
     passFocusEvent(bingolingo,ufmsg);
 }
 
-uint getABSposx(dom* src)
+int getABSposx(dom* src)
 {
     if (src==0) return 0;
     return src->x+getABSposx(src->parent);
 }
-uint getABSposy(dom* src)
+int getABSposy(dom* src)
 {
     if (src==0) return 0;
     return src->y+getABSposy(src->parent);
@@ -195,7 +196,7 @@ void reDraw(dom *src)
 {
     reDraw_(src,0,0,src->width,src->height);
 }
-void reDraw_(dom *src,uint x,uint y,uint w,uint h)
+void reDraw_(dom *src,int x,int y,int w,int h)
 {
     passRenderEvent(bingolingo,getABSposx(src)+x,getABSposy(src)+y,w,h);
     sync(getABSposx(src)+x,getABSposy(src)+y,w,h);
@@ -226,7 +227,7 @@ dom* testFocus(dom* now)
         return now;
     return testFocus(now->focus);
 }
-int passPointEvent(dom* now,uint x,uint y,uint typ)
+int passPointEvent(dom* now,int x,int y,uint typ)
 {
 
     while (now!=0 && (now->x>x || now->x+now->width<=x || now->y>y || now->y+now->height<=y))
@@ -245,7 +246,7 @@ int passPointEvent(dom* now,uint x,uint y,uint typ)
     return 1;
 }
 
-void stash(drawFrame* evq, uint* st, dom* now,uint x,uint y,uint w,uint h)
+void stash(drawFrame* evq, uint* st, dom* now,int x,int y,int w,int h)
 {
     (*st)++;
     (evq+(*st))->obj=now;
@@ -255,11 +256,13 @@ void stash(drawFrame* evq, uint* st, dom* now,uint x,uint y,uint w,uint h)
     (evq+(*st))->h=h;
     (evq+(*st))->step=0;
 }
-void passRenderEvent(dom* now,uint x,uint y,uint w,uint h)
+void passRenderEvent(dom* now,int x,int y,int w,int h)
 {
     drawFrame* evq = (drawFrame*)kalloc();
     uint st=0;
-    uint _x,_y,_w,_h;
+    int _w,_h;
+    int _x,_y;
+
     stash(evq,&st,now,x,y,w,h);
     while (st>0)
     {
@@ -279,7 +282,9 @@ void passRenderEvent(dom* now,uint x,uint y,uint w,uint h)
                 continue;
             }
             while (now!=0 && (x+w<=now->x || x>=now->x+now->width || y+h<=now->y || y>=now->y+now->height))
+            {
                 now=now->frater;
+            }
             if (now==0)
             {
                 st--;
