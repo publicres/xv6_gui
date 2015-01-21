@@ -5,6 +5,8 @@
 #include "eventpackage.h"
 #include "message_queue.h"
 #include "message.h"
+#include "mmu.h"
+#include "ex_mem.h"
 
 dom domRoot,delRoot;
 dom* bingolingo=0;
@@ -19,6 +21,7 @@ typedef struct ori_DrawFrame
     int w;
     int h;
     uint step;
+    struct ori_DrawFrame* prev;
 } drawFrame;
 
 void initDom()
@@ -199,7 +202,7 @@ void reDraw(dom *src)
 void reDraw_(dom *src,int x,int y,int w,int h)
 {
     passRenderEvent(bingolingo,getABSposx(src)+x,getABSposy(src)+y,w,h);
-    sync(getABSposx(src)+x,getABSposy(src)+y,w,h);
+    sync(max(getABSposx(src)+x,0),max(getABSposy(src)+y,0),w,h);
 }
 //===========================================
 void passFocusEvent(dom* now,void* pkg)
@@ -246,39 +249,57 @@ int passPointEvent(dom* now,int x,int y,uint typ)
     return 1;
 }
 
-void stash(drawFrame* evq, uint* st, dom* now,int x,int y,int w,int h)
+drawFrame* stash(drawFrame* evq, dom* now,int x,int y,int w,int h)
 {
-    (*st)++;
-    (evq+(*st))->obj=now;
-    (evq+(*st))->x=x;
-    (evq+(*st))->y=y;
-    (evq+(*st))->w=w;
-    (evq+(*st))->h=h;
-    (evq+(*st))->step=0;
+    drawFrame* newE;
+    if (evq==0 || ((uint)evq)%PGSIZE+2*sizeof(drawFrame)>=PGSIZE)
+    {
+        newE=(drawFrame*)kalloc();
+    }
+    else
+        newE=evq+1;
+
+    newE->prev=evq;
+    newE->obj=now;
+    newE->x=x;
+    newE->y=y;
+    newE->w=w;
+    newE->h=h;
+    newE->step=0;
+
+    return newE;
+}
+drawFrame* checkout(drawFrame* evq)
+{
+    drawFrame* newE=evq->prev;
+    if (((uint)evq)%PGSIZE==0)
+    {
+        kfree((char*)evq);
+    }
+    return newE;
 }
 void passRenderEvent(dom* now,int x,int y,int w,int h)
 {
-    drawFrame* evq = (drawFrame*)kalloc();
-    uint st=0;
+    drawFrame* evq = 0;
     int _w,_h;
     int _x,_y;
 
-    stash(evq,&st,now,x,y,w,h);
-    while (st>0)
+    evq=stash(evq,now,x,y,w,h);
+    while (evq!=0)
     {
         //checkout
-        x=(evq+(st))->x;
-        y=(evq+(st))->y;
-        w=(evq+(st))->w;
-        h=(evq+(st))->h;
-        now=(evq+(st))->obj;
+        x=evq->x;
+        y=evq->y;
+        w=evq->w;
+        h=evq->h;
+        now=evq->obj;
         //=====
-        if ((evq+(st))->step==0)
+        if (evq->step==0)
         {
-            (evq+(st))->step=1;
+            evq->step=1;
             if (w<=0 || h<=0)
             {
-                st--;
+                evq=checkout(evq);
                 continue;
             }
             while (now!=0 && (x+w<=now->x || x>=now->x+now->width || y+h<=now->y || y>=now->y+now->height))
@@ -287,38 +308,37 @@ void passRenderEvent(dom* now,int x,int y,int w,int h)
             }
             if (now==0)
             {
-                st--;
+                evq=checkout(evq);
                 continue;
             }
             _x=max(x,now->x);
             _y=max(y,now->y);
             _w=min(x+w,now->x+now->width)-_x;
             _h=min(y+h,now->y+now->height)-_y;
-            (evq+(st))->x=_x;
-            (evq+(st))->y=_y;
-            (evq+(st))->w=_w;
-            (evq+(st))->h=_h;
-            (evq+(st))->obj=now;
+            evq->x=_x;
+            evq->y=_y;
+            evq->w=_w;
+            evq->h=_h;
+            evq->obj=now;
             if (now->trans!=0)
             {
-                stash(evq,&st,now->frater,x,y,w,h);
+                evq=stash(evq,now->frater,x,y,w,h);
             }
             else
             {
-                stash(evq,&st,now->frater,x,y,_x-x,h);
-                stash(evq,&st,now->frater,_x+_w,y,x+w-_x-_w,h);
-                stash(evq,&st,now->frater,_x,y,_w,_y-y);
-                stash(evq,&st,now->frater,_x,_y+_h,_w,y+h-_y-_h);
+                evq=stash(evq,now->frater,x,y,_x-x,h);
+                evq=stash(evq,now->frater,_x+_w,y,x+w-_x-_w,h);
+                evq=stash(evq,now->frater,_x,y,_w,_y-y);
+                evq=stash(evq,now->frater,_x,_y+_h,_w,y+h-_y-_h);
             }
         }
         else
         {
-            st--;
+            evq=checkout(evq);
             if (now->onRender==0 || now->onRender(now,x-now->x,y-now->y,w,h)!=0)
             {
-                stash(evq,&st,now->descent,x-now->x,y-now->y,w,h);
+                evq=stash(evq,now->descent,x-now->x,y-now->y,w,h);
             }
         }
     }
-    kfree((char*)evq);
 }
