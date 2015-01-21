@@ -31,6 +31,8 @@ struct {
 
 void initDom()
 {
+    initlock(&glock.lock, "glock");
+
     domRoot._id=(uint)(&domRoot);
     domRoot.x=domRoot.y=0;
     domRoot.width=WIDTH_RES;
