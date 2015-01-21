@@ -31,6 +31,8 @@ OBJS = \
 	guilayout.o\
 	guientity_div.o\
 	guientity_img.o\
+	guientity_cha.o\
+	guientity_txt.o\
 	guiexp.o\
 	mouse.o\
 	ex_mem.o\

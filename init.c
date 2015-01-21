@@ -60,21 +60,37 @@ void initLetters()
 {
     char* cont="1234567890qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM~!@#$%^&*()_-=+[];',./\\{}|:\"<>?";
     int fd1 = open("letters.matrix", 0);
+    uchar w,h;
+    uchar *p;
+    int size,num,i,j;
+
     if (fd1 < 0)
     {
         printf(1, "open file error\n");
         return;
     }
-    uchar w,h;
     read(fd1, &w, 1);
     read(fd1, &h, 1);
-    int size=(uint)w*(uint)h*strlen(cont);
-    uchar *p=malloc(size+2);
-    p[0]=w;
-    p[1]=h;
-    read(fd1, p+2, size);
+    num=strlen(cont);
+    size=(1+(uint)w*(uint)h)*num;
+    p=malloc(size+4);
+    size=(uint)w*(uint)h;
+
+    p[0]=0;
+    p[1]=w;
+    p[2]=h;
+    p[3]=(uchar)strlen(cont);
+    j=4;
+    for (i=0;i<num;i++)
+    {
+        p[j]=(uchar)cont[i];
+        read(fd1, p+j+1, size);
+        j=j+1+size;
+    }
     close(fd1);
     //SYSCALL HERE!
+    uint x=0;
+    setattr(GUIENT_TXT,x,GUIATTR_TXT_FONT,p);
     free(p);
 }
 
