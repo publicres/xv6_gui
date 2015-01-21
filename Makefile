@@ -36,6 +36,8 @@ OBJS = \
 	guiexp.o\
 	mouse.o\
 	ex_mem.o\
+	message_queue.o\
+	events.o\
 
 # Cross-compiling (e.g., on Mac OS X)
 # TOOLPREFIX = i386-jos-elf
@@ -185,6 +187,8 @@ UPROGS=\
 	_usertests\
 	_wc\
 	_zombie\
+	_guifilesystem\
+	_origincat\
 
 fs.img: mkfs README $(UPROGS) $(DEFAULTFILES)
 	./mkfs fs.img README $(UPROGS) $(DEFAULTFILES)

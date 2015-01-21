@@ -3,11 +3,22 @@
 #include "graphbase.h"
 #include "guilayout.h"
 #include "eventpackage.h"
+#include "message_queue.h"
+#include "message.h"
 
 dom domRoot,delRoot;
 dom* bingolingo=0;
 dom* del=0;
 
+typedef struct ori_DrawFrame
+{
+    dom* obj;
+    uint x;
+    uint y;
+    uint w;
+    uint h;
+    uint step;
+} drawFrame;
 
 void initDom()
 {
@@ -27,6 +38,7 @@ void initDom()
     domRoot.descent=0;
     domRoot.entity=0;
     domRoot.pid=-1;
+    domRoot.isIntegral=0;
 
     bingolingo=&domRoot;
     delRoot=domRoot;
@@ -84,31 +96,85 @@ dom* delete(dom* src)
 
     return src;
 }
+void reJoin(dom* src)
+{
+    dom *p=src->parent;
+    uint x=src->x;
+    uint y=src->y;
+    uint w=src->width;
+    uint h=src->height;
+
+    if (p->descent==src)
+    {
+        p->descent=src->frater;
+    }
+    else
+    {
+        dom* q=p->descent;
+        while (q->frater!=src)
+            q=q->frater;
+        q->frater=src->frater;
+    }
+    src->parent=0;
+    src->frater=0;
+
+    src->frater=p->descent;
+    src->parent=p;
+    p->descent=src;
+
+    reDraw_(p,x,y,w,h);
+}
 void _cascade_release(dom *elem)
 {
-    if (elem->frater!=0)
-        _cascade_release(elem->frater);
-    if (elem->descent!=0)
-        _cascade_release(elem->descent);
-    kfree((char*)(elem->entity));
+    dom** q = (dom**)kalloc();
+    uint st=1;
+    *(q+1)=elem;
+    while (st>0)
+    {
+        elem=*(q+st);
+        st--;
+        if (elem->frater!=0)
+        {
+            st++;
+            *(q+st)=elem->frater;
+        }
+        if (elem->descent!=0)
+        {
+            st++;
+            *(q+st)=elem->descent;
+        }
+        kfree((char*)(elem->entity));
+    }
+    kfree((char*)q);
 }
 
 dom* setFocus(dom* src)
 {
     src->parent->focus=src;
-    faireFocus(src);
+
     return src;
 }
 void setABSFocus(dom* src)
 {
+    if (testFocus(bingolingo)==src)
+        return;
     dom* tsrc=src->parent;
+    FocusMsg* ufmsg=(FocusMsg*)kalloc();
+    ufmsg->msg_type=FOCUS_MESSAGE;
+    ufmsg->focus_or_not=0;
+    passFocusEvent(bingolingo,ufmsg);
+
     while (tsrc!=0)
     {
         tsrc->focus=src;
         tsrc=tsrc->parent;
         src=src->parent;
     }
-    faireFocus(&domRoot);
+
+    ufmsg=(FocusMsg*)kalloc();
+    ufmsg->msg_type=FOCUS_MESSAGE;
+    ufmsg->focus_or_not=1;
+    passFocusEvent(bingolingo,ufmsg);
 }
 
 uint getABSposx(dom* src)
@@ -137,55 +203,117 @@ void reDraw_(dom *src,uint x,uint y,uint w,uint h)
 //===========================================
 void passFocusEvent(dom* now,void* pkg)
 {
-    if (now==0) return;
-    if (now->onFocus==0 || now->onFocus(now,pkg)!=0)
-        if (now->focus!=0)
-            passFocusEvent(now->focus,pkg);
+    if (now==0)
+    {
+        kfree(pkg);
+        return;
+    }
+    if (now->isIntegral || now->focus==0)
+    {
+        if (now->onFocus)
+            now->onFocus(now,pkg);
+        else
+            kfree(pkg);
+    }
+    else
+        passFocusEvent(now->focus,pkg);
+}
+dom* testFocus(dom* now)
+{
+    if (now==0)
+        return 0;
+    if (now->isIntegral || now->focus==0)
+        return now;
+    return testFocus(now->focus);
 }
 int passPointEvent(dom* now,uint x,uint y,uint typ)
 {
+
     while (now!=0 && (now->x>x || now->x+now->width<=x || now->y>y || now->y+now->height<=y))
         now=now->frater;
     if (now==0)
         return 0;
-    if (!passPointEvent(now->descent,x-now->x,y-now->y,typ))
-        if (now->onPoint!=0)
+    if (now->isIntegral || !passPointEvent(now->descent,x-now->x,y-now->y,typ))
+    {
+        if (now->onPoint)
+        {
             now->onPoint(now,x-now->x,y-now->y,typ);
+            return 1;
+        }
+        return 0;
+    }
     return 1;
-    // if (now->onPoint==0 || now->onPoint(now,x-now->x,y-now->y,typ)!=0)
-    //     passPointEvent(now->descent,x-now->x,y-now->y,typ);
+}
+
+void stash(drawFrame* evq, uint* st, dom* now,uint x,uint y,uint w,uint h)
+{
+    (*st)++;
+    (evq+(*st))->obj=now;
+    (evq+(*st))->x=x;
+    (evq+(*st))->y=y;
+    (evq+(*st))->w=w;
+    (evq+(*st))->h=h;
+    (evq+(*st))->step=0;
 }
 void passRenderEvent(dom* now,uint x,uint y,uint w,uint h)
 {
-    if (w<=0 || h<=0)
-        return;
-    while (now!=0 && (x+w<=now->x || x>=now->x+now->width || y+h<=now->y || y>=now->y+now->height))
-        now=now->frater;
-    if (now==0)
-        return;
+    drawFrame* evq = (drawFrame*)kalloc();
+    uint st=0;
     uint _x,_y,_w,_h;
-    _x=max(x,now->x);
-    _y=max(y,now->y);
-    _w=min(x+w,now->x+now->width)-_x;
-    _h=min(y+h,now->y+now->height)-_y;
-    if (now->trans!=0)
+    stash(evq,&st,now,x,y,w,h);
+    while (st>0)
     {
-        passRenderEvent(now->frater,x,y,w,h);
+        //checkout
+        x=(evq+(st))->x;
+        y=(evq+(st))->y;
+        w=(evq+(st))->w;
+        h=(evq+(st))->h;
+        now=(evq+(st))->obj;
+        //=====
+        if ((evq+(st))->step==0)
+        {
+            (evq+(st))->step=1;
+            if (w<=0 || h<=0)
+            {
+                st--;
+                continue;
+            }
+            while (now!=0 && (x+w<=now->x || x>=now->x+now->width || y+h<=now->y || y>=now->y+now->height))
+                now=now->frater;
+            if (now==0)
+            {
+                st--;
+                continue;
+            }
+            _x=max(x,now->x);
+            _y=max(y,now->y);
+            _w=min(x+w,now->x+now->width)-_x;
+            _h=min(y+h,now->y+now->height)-_y;
+            (evq+(st))->x=_x;
+            (evq+(st))->y=_y;
+            (evq+(st))->w=_w;
+            (evq+(st))->h=_h;
+            (evq+(st))->obj=now;
+            if (now->trans!=0)
+            {
+                stash(evq,&st,now->frater,x,y,w,h);
+            }
+            else
+            {
+                stash(evq,&st,now->frater,x,y,_x-x,h);
+                stash(evq,&st,now->frater,_x+_w,y,x+w-_x-_w,h);
+                stash(evq,&st,now->frater,_x,y,_w,_y-y);
+                stash(evq,&st,now->frater,_x,_y+_h,_w,y+h-_y-_h);
+            }
+        }
+        else
+        {
+            st--;
+            if (now->onRender==0 || now->onRender(now,x-now->x,y-now->y,w,h)!=0)
+            {
+                stash(evq,&st,now->descent,x-now->x,y-now->y,w,h);
+            }
+        }
     }
-    else
-    {
-        passRenderEvent(now->frater,x,y,_x-x,h);
-        passRenderEvent(now->frater,_x+_w,y,x+w-_x-_w,h);
-        passRenderEvent(now->frater,_x,y,_w,_y-y);
-        passRenderEvent(now->frater,_x,_y+_h,_w,y+h-_y-_h);
-    }
-    if (now->onRender==0 || now->onRender(now,_x-now->x,_y-now->y,_w,_h)!=0)
-        passRenderEvent(now->descent,_x-now->x,_y-now->y,_w,_h);
-}
-//===========================================
-void faireFocus(dom *now)
-{
-    focusEventPkg t;
-    t._id=0x00;
-    passFocusEvent(now,&t);
+    kfree((char*)evq);
 }

@@ -4,6 +4,7 @@
 #include "guilayout.h"
 #include "guientity_div.h"
 #include "guientity_attrvalue.h"
+#include "events.h"
 
 //==============================================
 uchar drawDiv_trans(dom* elem, uint x, uint y, uint w, uint h);
@@ -66,7 +67,10 @@ uint div_createDom(uint x, uint y, uint w, uint h, uint parent, int pid)
     t->ds.entity=(void*)t;
     t->ds.onRender=drawDiv;
     t->ds.pid=pid;
-    
+    t->ds.onPoint=typicalPointEvent;
+    t->ds.onFocus=typicalFocusEvent;
+    t->ds.isIntegral=0;
+
     if (parent==0xffffffff)
         prepend(del,&t->ds);
     else

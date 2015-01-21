@@ -17,6 +17,7 @@
 #include "guilayout.h"
 #include "guientity.h"
 #include "guientity_attrvalue.h"
+#include "message_queue.h"
 
 // Fetch the nth word-sized system call argument as a file descriptor
 // and return both the descriptor and the corresponding struct file.
@@ -86,8 +87,9 @@ sys_write(void)
   int n;
   char *p;
 
-  if(argfd(0, 0, &f) < 0 || argint(2, &n) < 0 || argptr(1, &p, n) < 0)
+  if(argfd(0, 0, &f) < 0 || argint(2, &n) < 0 || argptr(1, &p, n) < 0){
     return -1;
+  }
   return filewrite(f, p, n);
 }
 
@@ -571,5 +573,36 @@ int sys_getattr(void)
         return -1;
     }
 
+    return 0;
+}
+int sys_initprocessqueue(void)
+{
+    /*int pid;
+    if (argint(0, &pid) < 0)
+        return -1;*/
+    return initProcessQueue(proc->pid);
+    return 0;
+}
+int sys_releaseprocessqueue(void)
+{
+    /*int processid;
+
+    if (argint(0, &processid) < 0)
+        return -1;*/
+      
+    releaseProcessQueue(proc->pid);
+    return 0;
+}
+int sys_getmsgfromqueue(void)
+{
+    /*int processid;
+
+    if (argint(0, &processid) < 0)
+        return -1;*/
+    void* r;
+    if (argptr(0, (void*)&r, 4) < 0)
+        return -1;
+
+    dequeue(proc->pid, r);
     return 0;
 }

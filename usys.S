@@ -34,3 +34,7 @@ SYSCALL(createdom)
 SYSCALL(releasedom)
 SYSCALL(setattr)
 SYSCALL(getattr)
+
+SYSCALL(initprocessqueue)
+SYSCALL(releaseprocessqueue)
+SYSCALL(getmsgfromqueue)

@@ -2,10 +2,15 @@
 #include "x86.h"
 #include "defs.h"
 #include "kbd.h"
+#include "guilayout.h"
+#include "message.h"
 
 void keyBoardEvent(char number)
 {
-    
+    KBDMsg* kmsg=(KBDMsg*)kalloc();
+    kmsg->msg_type=KEYBOARD_MESSAGE;
+    kmsg->key_value=number;
+    passFocusEvent(bingolingo,kmsg);
 }
 
 int
@@ -47,8 +52,7 @@ kbdgetc(void)
   }
     if (c!=0)
     {
-        cprintf("@Keyboard pressed: %d\n",c);
-
+        keyBoardEvent(c);
     }
   return c;
 }

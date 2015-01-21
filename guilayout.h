@@ -35,6 +35,7 @@ typedef struct ori_dom
     void* entity;
 
     int pid;
+    uchar isIntegral;
 
 } dom;
 
@@ -53,6 +54,7 @@ void reDraw(dom *src);
 void reDraw_(dom *src,uint x,uint y,uint w,uint h);
 void outputDom(dom* src, uint lay);
 void _cascade_release(dom *elem);
+void reJoin(dom* src);
 
 dom* bingolingo;
 dom* del;
@@ -61,3 +63,4 @@ void passRenderEvent(dom* now,uint x,uint y,uint w,uint h);
 void passFocusEvent(dom* now,void* pkg);
 int passPointEvent(dom* now,uint x,uint y,uint typ);
 void faireFocus(dom *now);
+dom* testFocus(dom* now);

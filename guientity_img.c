@@ -5,6 +5,7 @@
 #include "ex_mem.h"
 #include "guientity_img.h"
 #include "guientity_attrvalue.h"
+#include "events.h"
 
 extern img* mouseIcon;
 //==============================================
@@ -85,6 +86,9 @@ uint img_createDom(uint x, uint y, uint w, uint h, uint parent, int pid)
     t->isRepeat=0;
     t->imgContent=0;
     t->ds.pid=pid;
+    t->ds.onPoint=typicalPointEvent;
+    t->ds.onFocus=typicalFocusEvent;
+    t->ds.isIntegral=0;
 
     if (parent==0xffffffff)
         prepend(del,&t->ds);

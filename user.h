@@ -29,6 +29,11 @@ int releasedom(int,uint);
 int setattr(int,uint,int,void*);
 int getattr(int,uint,int,void*);
 
+int initprocessqueue();
+int releaseprocessqueue();
+int getmsgfromqueue(void*);
+
+
 // ulib.c
 int stat(char*, struct stat*);
 char* strcpy(char*, char*);

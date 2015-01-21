@@ -118,8 +118,10 @@ filewrite(struct file *f, char *addr, int n)
 {
   int r;
 
-  if(f->writable == 0)
+  if(f->writable == 0){
+    //cprintf("\n\n\ncan not write!!!!!!!!\n\n\n");
     return -1;
+  }
   if(f->type == FD_PIPE)
     return pipewrite(f->pipe, addr, n);
   if(f->type == FD_INODE){
@@ -149,6 +151,8 @@ filewrite(struct file *f, char *addr, int n)
         panic("short filewrite");
       i += r;
     }
+    if (i != n)
+      cprintf("\n\n\nchu cuo la!!!!!!!!!!!!!!!!\n\n\n");
     return i == n ? n : -1;
   }
   panic("filewrite");
