@@ -21,7 +21,7 @@ void txt_initLock()
     memset(fontArray,0,sizeof(uchar*)*128*FONT_NUM);
 }
 
-uint txt_createDom(uint x, uint y, uint w, uint h, uint parent, int pid)
+uint txt_createDom(int x, int y, uint w, uint h, uint parent, int pid)
 {
     txt *t;
     int i;
@@ -178,7 +178,7 @@ uint txt_setStr(uint elem_, char* str_)
         cha_release((uint)p);
         p=q;
     }
-    
+
     pp=elem->blockHead;
     while (pp!=0){
         qq=(void*)(*((uint*)pp));
@@ -488,7 +488,7 @@ uint txt_insert(uint elem_, char val)
     }
     elem->tail=nextPos;
     cha_setContentNotRedraw((uint)nextPos, elem->chImgArray[(uint)val], val);
-    
+
     elem->cursor=nextPos;
     minX=elem->cursor->data.ds.x;
     minY=elem->cursor->data.ds.y;
@@ -542,7 +542,7 @@ uint txt_insert(uint elem_, char val)
     }
 
     reDraw_(&elem->ds,minX,minY,maxX-minX,maxY-minY);
-    
+
     return 0;
 }
 
@@ -561,7 +561,7 @@ uint txt_bckspc(uint elem_, char* des)
     *des=elem->cursor->data.ch;
     nextPos=elem->cursor;
     txt_decCursor(elem_);
-    
+
     cha_release((uint)&nextPos->data);
     if (nextPos==elem->head && nextPos->next==0)
         elem->head=0;
@@ -577,7 +577,7 @@ uint txt_bckspc(uint elem_, char* des)
         nextPos->prev->next=nextPos->next;
         nextPos->next->prev=nextPos->prev;
     }
-    
+
     nextPos=elem->cursor;
     if (nextPos!=0)
     {
@@ -646,7 +646,7 @@ uint txt_bckspc(uint elem_, char* des)
         }
     }
     reDraw_(&elem->ds,minX,minY,maxX-minX,maxY-minY);
-    
+
     return 0;
 }
 
@@ -880,10 +880,10 @@ uint txt_getAttr(uint elem_, int attr, void *des)
     switch (attr)
     {
     case GUIATTR_TXT_X:
-        *((uint*)des) = elem->ds.x;
+        *((int*)des) = elem->ds.x;
         break;
     case GUIATTR_TXT_Y:
-        *((uint*)des) = elem->ds.y;
+        *((int*)des) = elem->ds.y;
         break;
     case GUIATTR_TXT_WIDTH:
         *((uint*)des) = elem->ds.width;
