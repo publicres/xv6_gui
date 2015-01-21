@@ -9,7 +9,9 @@
 #include "mouse.h"
 
 #define MAX_DIRECTORY_LEN 512
-#define FILETYPE 1
+#define FOLDERTYPE 1
+#define NOTYPE 0
+#define FILETYPE 2
 #define FILENUMINAROW 10
 #define SCROLL_DISTANCE 20
 
@@ -33,6 +35,7 @@ char* current_path;
 char* last_copied_path;
 char* last_moved_path;
 LSResult listresult;
+int file_type_to_be_operate = NOTYPE;
 
 uint j;
 #define parh(x) (j=x,&j)
@@ -159,6 +162,75 @@ LSResult ls(char *path)
   return r;
 }
 
+//try to rename by directly modifying directory file, but when write to the directory file, it met
+//a problem, I think it may because the directory file may don't have the permission to write,
+//we can think about it later........
+int rename_modify_directory_file(char* originname, char* nowname)
+{
+    #define DIRECTORY_SIZE_BUF_NUM 4096
+    int fd;
+    int fw;
+    //struct dirent de;
+    struct stat st;
+    char* buff = (char*)malloc(DIRECTORY_SIZE_BUF_NUM * sizeof(char));
+    memset(buff, '\0', DIRECTORY_SIZE_BUF_NUM);
+    int flag = 0;
+
+    if((fd = open(current_path, O_RDONLY)) < 0)
+    {
+        printf(2, "rename: can't open the current folder!!!\r\n");
+        return -1;
+    }
+    if (fstat(fd, &st) < 0)
+    {
+        printf(2, "rename: cannot stat the current folder!!!\r\n");
+        close(fd);
+        return -1;
+    }
+    int size = read(fd, buff, DIRECTORY_SIZE_BUF_NUM);
+    int n = size / sizeof(struct dirent);
+    struct dirent* dp = (struct dirent*)buff;
+    close(fd);
+    int i;
+    for (i = 0; i < n; i++)
+    {
+        if ((*(dp + i)).inum == 0)
+            continue;
+        if (strcmp((*(dp + i)).name, originname) == 0)
+        {
+            int k;
+            flag = 1;
+            for (k = 0; k < DIRSIZ && nowname[k] != '\0'; k++)
+            {
+                (*(dp + i)).name[k] = nowname[k];
+            }
+        }
+    }
+    if (flag == 1)
+    {
+        if((fw = open(current_path, O_WRONLY)) < 0)
+        {
+            printf(2, "rename: meet some problem when open the directory file to write into!!!\r\n");
+            free(buff);
+            return -1;
+        }
+        if (write(fw, buff, size) == -1)
+        {
+            printf(2, "write to the directory file error!!!!\r\n");
+            free(buff);
+            close(fw);
+            return -1;
+        }
+        free(buff);
+        close(fw);
+        printf(2, "rename success!!!!\r\n");
+        return 0;
+    }
+    free(buff);
+    printf(2, "The file you want to rename does not exists!!!\r\n");
+    return -1;
+}
+
 int copyfile(char* srcpath, char* destpath)
 {
     int file_src, file_dest;
@@ -253,8 +325,9 @@ int changedirectory(char* path)
         {
             if (!(strlen(current_path) == 1 && current_path[0] == '/'))
             {
-                current_path[n - 1] = '\0';
-                for (i = n - 2; i > 0; i--)
+                int tmpn = strlen(current_path);
+                current_path[tmpn - 1] = '\0';
+                for (i = tmpn - 2; i > 0; i--)
                 {
                     if (current_path[i] != '/')
                         current_path[i] = '\0';
@@ -265,14 +338,17 @@ int changedirectory(char* path)
         }
         else
         {
-            strcpy(current_path + n, path);
-            current_path[strlen(current_path)] = '/';
+            int tmpn = strlen(current_path);
+            strcpy(current_path + tmpn, path);
+            tmpn = strlen(current_path);
+            current_path[tmpn] = '/';
+            current_path[tmpn + 1] = '\0';
         }
         return 0;
     }
 }
 
-int removefolderorfile(char* path)
+int removefile(char* path)
 {
     if (unlink(path) < 0)
     {
@@ -281,7 +357,67 @@ int removefolderorfile(char* path)
     }
     else
     {
-        printf(2, "remove success!!!\r\n");
+        printf(2, "remove file success!!!\r\n");
+        return 0;
+    }
+}
+
+int removefolder(char* path)
+{
+    LSResult lsr = ls(path);
+    int n = strlen(lsr.filenames) / 14 - 2;
+    int r;
+    int pathlen = strlen(path);
+    char* savedpath = (char*)malloc((pathlen + 2) * sizeof(char));
+    memset(savedpath, '\0', pathlen + 2);
+    strcpy(savedpath, path);
+    savedpath[pathlen] = '/';
+    savedpath[pathlen + 1] = '\0';
+    char* tmppath = (char*)malloc(MAX_DIRECTORY_LEN);
+    if (n > 0)  //there are files or folders in this folder
+    {
+        int i;
+        for (i = 0; i < n; i++)
+        {
+            memset(tmppath, '\0', MAX_DIRECTORY_LEN);
+            strcpy(tmppath, savedpath);
+            strcpy(tmppath + strlen(tmppath), lsr.parseresult[i]);
+            if (lsr.fileinfo[i+2] == FOLDERTYPE)
+            {
+                r = removefolder(tmppath);
+                if (r == -1)
+                {
+                    printf(2, "There are something wrong when recursively remove folder!!\r\n");
+                    free(tmppath);
+                    free(savedpath);
+                    return -1;
+                }
+            }
+            else
+            {
+                r = removefile(tmppath);
+                if (r == -1)
+                {
+                    printf(2, "There are something wrong when recursively remove file!!\r\n");
+                    free(tmppath);
+                    free(savedpath);
+                    return -1;
+                }
+            }
+        }
+    }
+    if (unlink(path) < 0)
+    {
+        printf(2, "There are something wrong when delete the empty folder!!!\r\n");
+        free(tmppath);
+        free(savedpath);
+        return -1;
+    }
+    else
+    {
+        printf(2, "remove folder success!!!\r\n");
+        free(tmppath);
+        free(savedpath);
         return 0;
     }
 }
@@ -290,9 +426,117 @@ int movefile(char* srcpath, char* destpath)
 {
     if (copyfile(srcpath, destpath) == -1)
         return -1;
-    if (removefolderorfile(srcpath) == -1)
+    if (removefile(srcpath) == -1)
         return -1;
     return 0;
+}
+
+//copyfolder("/A/B", "/C/D")   -> /C/D(B->D)
+int copyfolder(char* srcpath, char* destpath)
+{
+    int fds;
+    if((fds = open(srcpath, O_RDONLY)) < 0)
+    {
+        printf(2, "The folder you want to copy does not exist!!!!\r\n");
+        return -1;
+    }
+    close(fds);
+    int fdd;
+    if ((fdd = open(destpath, O_RDONLY)) >= 0)
+    {
+        printf(2, "The destination has already had a folder with the same name!!!\r\n");
+        close(fdd);
+        return -1;
+    }
+    if (createnewfolder(destpath) < 0)
+    {
+        printf(2, "copyfolder: cannot create the new folder!!!!\r\n");
+        return -1;
+    }
+    LSResult srccontent = ls(srcpath);
+    int n = strlen(srccontent.filenames) / 14 - 2;
+    int i;
+    char* tmpsrc, *tmpdest;
+    tmpsrc = (char*)malloc(MAX_DIRECTORY_LEN);
+    tmpdest = (char*)malloc(MAX_DIRECTORY_LEN);
+    int srclen = strlen(srcpath);
+    char* savedsrc = (char*)malloc((srclen + 2) * sizeof(char));
+    memset(savedsrc, '\0', srclen + 2);
+    strcpy(savedsrc, srcpath);
+    savedsrc[srclen] = '/';
+    savedsrc[srclen+1] = '\0';
+    int destlen = strlen(destpath);
+    char* saveddest = (char*)malloc((destlen + 2) * sizeof(char));
+    memset(saveddest, '\0', destlen + 2);
+    strcpy(saveddest, destpath);
+    saveddest[destlen] = '/';
+    saveddest[destlen+1] = '\0';
+    for (i = 0; i < n; i++)
+    {
+        memset(tmpsrc, '\0', MAX_DIRECTORY_LEN);
+        memset(tmpdest, '\0', MAX_DIRECTORY_LEN);
+        strcpy(tmpsrc, savedsrc);
+        strcpy(tmpdest, saveddest);
+        strcpy(tmpsrc + strlen(tmpsrc), srccontent.parseresult[i]);
+        strcpy(tmpdest + strlen(tmpdest), srccontent.parseresult[i]);
+        if (srccontent.fileinfo[i+2] == FOLDERTYPE)
+        {
+            if (copyfolder(tmpsrc, tmpdest) < 0)
+            {
+                printf(2, "copyfolder: We meet some problem when recursively copy folder!!!\r\n");
+                free(tmpsrc);
+                free(tmpdest);
+                free(savedsrc);
+                free(saveddest);
+                return -1;
+            }
+        }
+        else
+        {
+            if (copyfile(tmpsrc, tmpdest) < 0)
+            {
+                printf(2, "copyfolder: We meet some problem when recursively copy file!!!\r\n");
+                free(tmpsrc);
+                free(tmpdest);
+                free(savedsrc);
+                free(saveddest);
+                return -1;
+            }
+        }
+    }
+    free(tmpsrc);
+    free(tmpdest);
+    free(savedsrc);
+    free(saveddest);
+    printf(2, "copyfolder: copy folder success!!!\r\n");
+    return 0;
+}
+
+int movefolder(char* srcpath, char* destpath)
+{
+    if (copyfolder(srcpath, destpath) == -1)
+    {
+        printf(2, "movefolder: There are something wrong when we copyfolder folder!!!\r\n");
+        return -1;
+    }
+    if (removefolder(srcpath) == -1)
+    {
+        printf(2, "movefolder: There are something wrong when we delete the folder!!!\r\n");
+        return -1;
+    }
+    printf(2, "movefolder success!!!\r\n");
+    return 0;
+}
+
+//in this case, the parameter passed to here is pure filename, it don't need the concrete path
+int renamefile(char* originname, char* nowname)
+{
+    int r = movefile(originname, nowname);
+    if (r < 0)
+        printf(2, "rename fail!!!\r\n");
+    else
+        printf(2, "rename success!!!\r\n");
+    return r;
 }
 
 void render(char** names, int num, uint parent, int* fileinfo)
@@ -313,7 +557,7 @@ void render(char** names, int num, uint parent, int* fileinfo)
         setattr(GUIENT_DIV, filenodes.nodes[i], GUIATTR_DIV_Y, parh(10 + 125 * row)); //(115+10)
         setattr(GUIENT_DIV, filenodes.nodes[i], GUIATTR_DIV_WIDTH, parh(90));
         setattr(GUIENT_DIV, filenodes.nodes[i], GUIATTR_DIV_HEIGHT, parh(115));
-        if (fileinfo[i] == FILETYPE) //folder
+        if (fileinfo[i] == FOLDERTYPE) //folder
             setattr(GUIENT_DIV, filenodes.nodes[i], GUIATTR_DIV_BGCOLOR, &folder_color);
         else    //file
             setattr(GUIENT_DIV, filenodes.nodes[i], GUIATTR_DIV_BGCOLOR, &file_color);
@@ -336,8 +580,16 @@ void deletebutton_onclick()
 {
     //we can add something like a dialog to remind user that their operation did not succeed later
     //printf(1, "%d\r\n", last_right_clicked_fileno);
-    removefolderorfile(listresult.parseresult[last_right_clicked_fileno]);
+    if (file_type_to_be_operate == FILETYPE)
+    {
+        removefile(listresult.parseresult[last_right_clicked_fileno]);
+    }
+    else
+    {
+        removefolder(listresult.parseresult[last_right_clicked_fileno]);
+    }
     last_right_clicked_fileno = -1;
+    file_type_to_be_operate = NOTYPE;
 }
 
 void copybutton_onclick()
@@ -364,6 +616,7 @@ int handlepaste()
     int lmp = strlen(last_moved_path);
     if (lcp == 0 && lmp == 0)
     {
+        file_type_to_be_operate = NOTYPE;
         return -1;
     }
     else if (lcp != 0)
@@ -387,7 +640,15 @@ int handlepaste()
         memset(tmp, '\0', MAX_DIRECTORY_LEN);
         strcpy(tmp, current_path);
         strcpy(tmp + strlen(tmp), tmp2);
-        return copyfile(last_copied_path, tmp);
+        int pasteresult = -1;
+        if (file_type_to_be_operate == FOLDERTYPE) 
+            pasteresult = copyfolder(last_copied_path, tmp); 
+        else if (file_type_to_be_operate == FILETYPE)
+            pasteresult = copyfile(last_copied_path, tmp);
+        free(tmp);
+        free(tmp2);
+        file_type_to_be_operate = NOTYPE;
+        return pasteresult;
     }
     else if (lmp != 0)
     {
@@ -410,8 +671,16 @@ int handlepaste()
         memset(tmp, '\0', MAX_DIRECTORY_LEN);
         strcpy(tmp, current_path);
         strcpy(tmp + strlen(tmp), tmp2);
-        printf(1, "%s\r\n", tmp);
-        return movefile(last_moved_path, tmp);
+        int pasteresult = -1;
+        printf(1, "haha: %s   %s\n", last_moved_path, tmp);
+        if (file_type_to_be_operate == FOLDERTYPE) 
+            pasteresult = movefolder(last_moved_path, tmp); 
+        else if (file_type_to_be_operate == FILETYPE)
+            pasteresult = movefile(last_moved_path, tmp);
+        free(tmp);
+        free(tmp2);
+        file_type_to_be_operate = NOTYPE;
+        return pasteresult;
     }
     return -1;
 }
@@ -445,7 +714,7 @@ void invalidate(uint parent)
     free(filenodes.nodes);
     filenodes.num = 0;
 
-    listresult = ls(".");
+    listresult = ls(current_path);
     int n = strlen(listresult.filenames) / 14 - 2;
     render(listresult.parseresult, n, parent, listresult.fileinfo + 2); //the first two are . and ..
 }
@@ -462,6 +731,18 @@ int main(int argc, char *argv[])
     last_moved_path = (char*)malloc(MAX_DIRECTORY_LEN * sizeof(char));
     memset(last_moved_path, '\0', MAX_DIRECTORY_LEN);
     current_path[0] = '/';
+
+    /*createnewfolder("A");
+    createnewfolder("B");
+    movefile("/README", "/A/README");
+    memset(last_copied_path, '\0', MAX_DIRECTORY_LEN);
+    memset(last_moved_path, '\0', MAX_DIRECTORY_LEN);
+    last_moved_path[0] = '/';
+    last_moved_path[1] = 'A';
+    file_type_to_be_operate = FOLDERTYPE;
+    changedirectory("/B");
+    pastebutton_onclick();
+    exit();*/
 
     //===========create window
     uint window;
@@ -626,7 +907,10 @@ int main(int argc, char *argv[])
                 {
                     last_right_clicked_fileno = FindRightClickOnFile(mm->dom_id, filenodes.num);
                     if (last_right_clicked_fileno != -1)
+                    {
                         setattr(GUIENT_DIV, right_click_onfile, GUIATTR_DIV_Y, parh(668));
+                        file_type_to_be_operate = (listresult.fileinfo[last_right_clicked_fileno + 2] == FOLDERTYPE)? FOLDERTYPE: FILETYPE;
+                    }
                 }
             }
             else if (mm->mouse_event_type != 0)
@@ -677,10 +961,15 @@ int main(int argc, char *argv[])
                     else    //open folder or file
                     {
                         int nodeno = FindRightClickOnFile(mm->dom_id, filenodes.num);
-                        if (nodeno != -1 && listresult.fileinfo[nodeno + 2] == FILETYPE)
+                        if (nodeno != -1 && listresult.fileinfo[nodeno + 2] == FOLDERTYPE)
                         {
+                            /*char* d = (char*)malloc(MAX_DIRECTORY_LEN);
+                            memset(d, '\0', MAX_DIRECTORY_LEN);
+                            strcpy(d, current_path);
+                            int len = strlen(current_path);
+                            d[len] = '/';
+                            strcpy(d + strlen(d), );*/
                             changedirectory(listresult.parseresult[nodeno]);
-                            printf(1, "refresh!!!\r\n");
                             invalidate(scrollview);
                         }
                     }
@@ -693,6 +982,9 @@ int main(int argc, char *argv[])
 
 
     //=======release window
+    free(last_moved_path);
+    free(last_copied_path);
+    free(current_path);
     releasedom(GUIENT_DIV, window);
 
     releaseprocessqueue();
