@@ -8,6 +8,7 @@
 #define GUIATTR_DIV_HEIGHT  3
 #define GUIATTR_DIV_BGCOLOR 4
 #define GUIATTR_DIV_REFRESH 5
+#define GUIATTR_DIV_INTEG   6
 
 #define GUIATTR_IMG_X       0
 #define GUIATTR_IMG_Y       1
@@ -24,7 +25,7 @@
 #define GUIATTR_CHA_COLOR   5
 #define GUIATTR_CHA_REFRESH 6
 
-#define GUIATTR_TXT_X       1 
+#define GUIATTR_TXT_X       1
 #define GUIATTR_TXT_Y       2
 #define GUIATTR_TXT_INCX    3
 #define GUIATTR_TXT_INCY    4

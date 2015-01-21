@@ -20,7 +20,7 @@ uchar *readImg(char *fileName, uchar picMode)   //0:3channel,1:4channel
     read(fd1, &w, 1);
     read(fd1, &h, 1);
     int size=(uint)w*(uint)h,i;
-    uchar *p=malloc(size*4+2);
+    uchar *p=malloc(size*4+12);
     uchar *q,*tp,*tq;
     p[0]=w;
     p[1]=h;
@@ -30,7 +30,7 @@ uchar *readImg(char *fileName, uchar picMode)   //0:3channel,1:4channel
     }
     else if (picMode==0)
     {
-        q=malloc(size*3);
+        q=malloc(size*3+4);
         read(fd1, q, size*3);
         tp=p+2;
         tq=q;
@@ -73,7 +73,7 @@ void initLetters()
     read(fd1, &h, 1);
     num=strlen(cont);
     size=(1+(uint)w*(uint)h)*num;
-    p=malloc(size+4);
+    p=malloc(size+10);
     size=(uint)w*(uint)h;
 
     p[0]=0;
@@ -116,7 +116,11 @@ main(void)
       exit();
     }
     if(pid == 0){
+#ifdef I_WANNA_GUI
+      exec("indexpage", argv);
+#else
       exec("sh", argv);
+#endif
       printf(1, "init: exec sh failed\n");
       exit();
     }

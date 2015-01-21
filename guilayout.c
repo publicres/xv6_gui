@@ -7,6 +7,7 @@
 #include "message.h"
 #include "mmu.h"
 #include "ex_mem.h"
+#include "spinlock.h"
 
 dom domRoot,delRoot;
 dom* bingolingo=0;
@@ -23,6 +24,10 @@ typedef struct ori_DrawFrame
     uint step;
     struct ori_DrawFrame* prev;
 } drawFrame;
+
+struct {
+  struct spinlock lock;
+} glock;
 
 void initDom()
 {
@@ -201,8 +206,12 @@ void reDraw(dom *src)
 }
 void reDraw_(dom *src,int x,int y,int w,int h)
 {
+    acquire(&glock.lock);
+
     passRenderEvent(bingolingo,getABSposx(src)+x,getABSposy(src)+y,w,h);
     sync(max(getABSposx(src)+x,0),max(getABSposy(src)+y,0),w,h);
+
+    release(&glock.lock);
 }
 //===========================================
 void passFocusEvent(dom* now,void* pkg)

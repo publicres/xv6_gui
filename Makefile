@@ -170,6 +170,16 @@ mkfs: mkfs.c fs.h
 DEFAULTFILES=\
 	cursor.matrix\
 	letters.matrix\
+	alarm.matrix\
+	bubble2.matrix\
+	bug.matrix\
+	cog.matrix\
+	filetext2.matrix\
+	headphones.matrix\
+	image.matrix\
+	search.matrix\
+	switch.matrix\
+	users.matrix\
 
 UPROGS=\
 	_cat\
@@ -189,6 +199,7 @@ UPROGS=\
 	_zombie\
 	_guifilesystem\
 	_origincat\
+	_indexpage\
 
 fs.img: mkfs README $(UPROGS) $(DEFAULTFILES)
 	./mkfs fs.img README $(UPROGS) $(DEFAULTFILES)

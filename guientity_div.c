@@ -149,6 +149,9 @@ uint div_setAttr(uint elem_, int attr, void *val)
     case GUIATTR_DIV_REFRESH:
         reDraw(elem->ds.parent);
         return 0;
+    case GUIATTR_DIV_INTEG:
+        elem->ds.isIntegral=1-elem->ds.isIntegral;
+        return 0;
     default:
         return -1;
     }
