@@ -90,6 +90,9 @@ void            end_op();
 void            mouseEnable(void);
 void            mouseintr(void);
 
+// guientity_txt.c
+void            txt_initLock();
+
 // mp.c
 extern int      ismp;
 int             mpbcpu(void);

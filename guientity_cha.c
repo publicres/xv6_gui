@@ -32,13 +32,13 @@ uchar drawCha(dom* elem, uint x, uint y, uint w, uint h)
             if (k==0)
                 setPixelColor(xs+i,ys+j,cl);
             else if (k<255)
-                setPixelColor(xs+i,ys+j,mingle(getPixelColor(xs+i,ys+j),rgb(cl.r,cl.g,cl.b,k)));
+                setPixelColor(xs+i,ys+j,mingle(getPixelColor(xs+i,ys+j),rgba(cl.r,cl.g,cl.b,k)));
         }
     }
 
     return 1;
 }
-uint cha_createDom(cha* chaPtr, uint x, uint y, uint w, uint h, uint parent)
+uint cha_createDom(cha* chaPtr, uint x, uint y, uint w, uint h, uint parent, int pid)
 {
     memset((uchar*)(&(chaPtr->ds)),0,sizeof(dom));
     chaPtr->ds.x=x;
@@ -50,15 +50,36 @@ uint cha_createDom(cha* chaPtr, uint x, uint y, uint w, uint h, uint parent)
 
     chaPtr->ds.entity=(void*)chaPtr;
     chaPtr->ds.onRender=drawCha;
+    chaPtr->ds.pid=pid;
 
     chaPtr->chaContent=0;
-    chaPtr->chColor=rgb(0,0,0);
+    chaPtr->chColor=rgb(0,255,0);
     chaPtr->ch=0;
 
     if (parent==0xffffffff)
         prepend(del,&chaPtr->ds);
     else
         prepend((dom*)parent,&chaPtr->ds);
+
+    return (uint)chaPtr;
+}
+uint cha_createDomOrphan(cha* chaPtr, uint x, uint y, uint w, uint h, int pid)
+{
+    memset((uchar*)(&(chaPtr->ds)),0,sizeof(dom));
+    chaPtr->ds.x=x;
+    chaPtr->ds.y=y;
+    chaPtr->ds.width=w;
+    chaPtr->ds.height=h;
+    chaPtr->ds._id=(uint)chaPtr;
+    chaPtr->ds.trans=255;
+
+    chaPtr->ds.entity=(void*)chaPtr;
+    chaPtr->ds.onRender=drawCha;
+    chaPtr->ds.pid=pid;
+
+    chaPtr->chaContent=0;
+    chaPtr->chColor=rgb(0,255,0);
+    chaPtr->ch=0;
 
     return (uint)chaPtr;
 }
@@ -76,13 +97,12 @@ uint cha_setColor(uint elem_, color24 color)
 void cha_release(uint elem_)
 {
     cha* elem=(cha*)elem_;
-    cha_setContent(elem_,0);
+    cha_setContent(elem_,0,0);
     if (elem->ds.parent!=0)
         delete(&elem->ds);
-    _cascade_release(&elem->ds);
 }
 
-void cha_setContent(uint elem, void* cont, uchar ch)
+void cha_setContent(uint elem, void* cont, char ch)
 {
     cha* ent=(cha*)elem;
 
@@ -92,12 +112,18 @@ void cha_setContent(uint elem, void* cont, uchar ch)
     reDraw(&ent->ds);
 }
 
+void cha_setContentNotRedraw(uint elem, void* cont, char ch)
+{
+    cha* ent=(cha*)elem;
+
+    ent->chaContent=cont;
+    ent->ch=ch;
+}
+
 uint cha_setAttr(uint elem_, int attr, void *val)
 {
     cha *elem=(cha*)elem_;
     uint i,j;
-    contentStruct* p;
-    void* q;
 
     switch (attr)
     {
