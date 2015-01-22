@@ -393,6 +393,57 @@ void switchTo(int tid)
         buildTaskBar();
     }
 }
+void callByName(char* actName, char *arg)
+{
+    int i;
+    uint pd;
+    tile* th;
+    char *demoARGC[3];
+    uint tp,id;
+    char cb[13];
+    char acb[13];
+
+    for (i=0;i<ntile;i++)
+    {
+        if (strcmp(actName,(ts+i)->execName)==0) //HAVE NOT TEST YET !
+        {
+            th=ts+i;
+            if (th->openpid==0)
+            {
+                createdom(GUIENT_DIV,bgc,&(th->openanc));
+                setattr(GUIENT_DIV,th->openanc,GUIATTR_DIV_X,parh(0));
+                setattr(GUIENT_DIV,th->openanc,GUIATTR_DIV_Y,parh(0));
+                setattr(GUIENT_DIV,th->openanc,GUIATTR_DIV_WIDTH,parh(1024));
+                setattr(GUIENT_DIV,th->openanc,GUIATTR_DIV_HEIGHT,parh(768));
+
+                id=0;
+                tp=th->openanc;
+                while (tp>0)
+                {
+                    cb[++id]=tp%10+'0';
+                    tp/=10;
+                }
+                for (tp=1;tp<=id;tp++)
+                    acb[id-tp]=cb[tp];
+                acb[id]=0;
+
+                demoARGC[2]=0;
+                demoARGC[1]=arg;
+                demoARGC[0]=acb;
+                //printf(0,"%s 0x%x\n",bgStr,bgc);
+
+                if ((pd=fork())==0)
+                {
+                    exec(th->execName,demoARGC);
+                    //NO RETURN!
+                }
+                th->openpid=pd;
+            }
+            switchTo(i);
+            return;
+        }
+    }
+}
 //==================event=========================
 //================================================
 void OnMouseIn(uint domID)
@@ -490,6 +541,7 @@ int main(int argc, char *argv[])
     int pd;
     MouseMsg* km;
     FocusMsg* fm;
+    CallMsg* cm;
     while (1)
     {
         if ((pd=asynwait())>0)
@@ -510,6 +562,11 @@ int main(int argc, char *argv[])
             fm=(FocusMsg*)msg;
             if (fm->focus_or_not==0)
                 OnBlur(km->dom_id);
+        }
+        else if (*msg==CALL_MESSAGE)
+        {
+            cm=(CallMsg*)msg;
+            callByName(cm->call_process_name,cm->file_path);
         }
     }
 }
