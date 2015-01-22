@@ -195,7 +195,7 @@ void setupGUI()
     setattr(GUIENT_DIV,superhome,GUIATTR_DIV_HEIGHT,parh(15));
 
     createdom(GUIENT_DIV,0xffffffff,&slider);
-    setattr(GUIENT_DIV,slider,GUIATTR_DIV_X,parh(0));
+    setattr(GUIENT_DIV,slider,GUIATTR_DIV_X,parh(-200));
     setattr(GUIENT_DIV,slider,GUIATTR_DIV_Y,parh(0));
     setattr(GUIENT_DIV,slider,GUIATTR_DIV_WIDTH,parh(200));
     setattr(GUIENT_DIV,slider,GUIATTR_DIV_HEIGHT,parh(768));
@@ -318,9 +318,35 @@ void setupProgram(int tid)
 {
     uint pd;
     tile* th=ts+tid;
+    char *demoARGC[2];
+    uint tp,id;
+    char cb[13];
+    char acb[13];
+
+    createdom(GUIENT_DIV,bgc,&(th->openanc));
+    setattr(GUIENT_DIV,th->openanc,GUIATTR_DIV_X,parh(0));
+    setattr(GUIENT_DIV,th->openanc,GUIATTR_DIV_Y,parh(0));
+    setattr(GUIENT_DIV,th->openanc,GUIATTR_DIV_WIDTH,parh(1024));
+    setattr(GUIENT_DIV,th->openanc,GUIATTR_DIV_HEIGHT,parh(768));
+
+    id=0;
+    tp=th->openanc;
+    while (tp>0)
+    {
+        cb[++id]=tp%10+'0';
+        tp/=10;
+    }
+    for (tp=1;tp<=id;tp++)
+        acb[id-tp]=cb[tp];
+    acb[id]=0;
+
+    demoARGC[1]=0;
+    demoARGC[0]=acb;
+    //printf(0,"%s 0x%x\n",bgStr,bgc);
+
     if ((pd=fork())==0)
     {
-        //exec(th->execName);
+        exec(th->execName,demoARGC);
         //NO RETURN!
     }
     th->openpid=pd;
@@ -330,10 +356,12 @@ void switchTo(int tid)
     tile* th=ts+tid;
     if (th->opentile>0)
     {
-
+        setattr(GUIENT_DIV,th->openanc,GUIATTR_DIV_TOPPIFY,0);
     }
     else
     {
+        if (th->openpid==0)
+            setupProgram(tid);
         addTaskBar(tid);
         buildTaskBar();
     }
