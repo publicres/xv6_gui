@@ -197,6 +197,7 @@ DEFAULTFILES=\
 	newfolder.mx\
 	newfile.mx\
 	paste.mx\
+	guide.txt\
 
 UPROGS=\
 	_cat\
@@ -218,7 +219,11 @@ UPROGS=\
 	_origincat\
 	_fileEditor\
 	_indexpage\
+<<<<<<< HEAD
 	_fshandlekbd\
+=======
+	_aboutus\
+>>>>>>> 4978f3daf403aace9404dc0f055c7811f59d4e33
 
 fs.img: mkfs README $(UPROGS) $(DEFAULTFILES)
 	./mkfs fs.img README $(UPROGS) $(DEFAULTFILES)

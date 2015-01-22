@@ -99,6 +99,7 @@ tile* initTiles()
     (p+1)->x=407; (p+1)->y=224; (p+1)->w=210; (p+1)->h=100; (p+1)->bgcolor=rgba(43,127,237,0);
     (p+1)->px=80; (p+1)->py=17; (p+1)->picname="filetext2.mx";
     (p+1)->text="Text";
+    (p+0)->execName="fileEditor";
 
     (p+2)->x=627; (p+2)->y=224; (p+2)->w=210; (p+2)->h=100; (p+2)->bgcolor=rgba(184,28,67,0);
     (p+2)->px=80; (p+2)->py=17; (p+2)->picname="image.mx";
@@ -111,6 +112,7 @@ tile* initTiles()
     (p+4)->x=407; (p+4)->y=334; (p+4)->w=210; (p+4)->h=100; (p+4)->bgcolor=rgba(0,156,0,0);
     (p+4)->px=80; (p+4)->py=17; (p+4)->picname="users.mx";
     (p+4)->text="About";
+    (p+4)->execName="aboutus";
 
     (p+5)->x=627; (p+5)->y=334; (p+5)->w=100; (p+5)->h=100; (p+5)->bgcolor=rgba(42,127,237,0);
     (p+5)->px=25; (p+5)->py=17; (p+5)->picname="hp.mx";
@@ -314,6 +316,24 @@ void delTaskBar(int tid)
 }
 //==================procswitch====================
 //================================================
+void expireProgram(int pid)
+{
+    int i;
+    for (i=0;i<ntile;i++)
+    {
+        if ((ts+i)->opentile>0 && (ts+i)->openpid==pid)
+        {
+            releasedom(GUIENT_DIV,(ts+i)->openanc);
+            delTaskBar(i);
+            (ts+i)->openpid=
+                (ts+i)->opentile=
+                (ts+i)->openinnertile=
+                (ts+i)->openpictile=
+                (ts+i)->openanc=0;
+            return;
+        }
+    }
+}
 void setupProgram(int tid)
 {
     uint pd;
@@ -443,11 +463,16 @@ void OnClick(uint domID)
 {
     int i;
     for (i=0;i<ntile;i++)
-        if ((ts+i)->tid==domID)
+        if ((ts+i)->tid==domID || (ts+i)->opentile==domID)
         {
             switchTo(i);
             return;
         }
+    if (domID==home)
+    {
+        setattr(GUIENT_DIV,maincont,GUIATTR_DIV_TOPPIFY,0);
+        return;
+    }
 }
 //==================main=========================
 //================================================
@@ -455,10 +480,13 @@ int main(int argc, char *argv[])
 {
     initAll();
     int *msg = (int*)malloc(100);
+    int pd;
     MouseMsg* km;
     FocusMsg* fm;
     while (1)
     {
+        if ((pd=asynwait())>0)
+            expireProgram(pd);
         getmsgfromqueue(msg);
         if (*msg==MOUSE_MESSAGE)
         {
@@ -467,7 +495,7 @@ int main(int argc, char *argv[])
                 OnMouseIn(km->dom_id);
             else if (km->enter_or_leave==MOUSE_LEAVE)
                 OnMouseOut(km->dom_id);
-            else if (km->mouse_event_type & LEFT_BTN_UP)
+            else if (km->mouse_event_type & LEFT_BTN_DN)
                 OnClick(km->dom_id);
         }
         else if (*msg==FOCUS_MESSAGE)
