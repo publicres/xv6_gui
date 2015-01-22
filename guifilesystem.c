@@ -987,6 +987,17 @@ void createWarningWindow(char* warning, uint parent)
     return "";
 }*/
 
+uint cvtS2U(char* str)
+{
+    uint ret=0;
+    while (*str!=0)
+    {
+        ret=ret*10+(*str-'0');
+        str++;
+    }
+    return ret;
+}
+
 int main(int argc, char *argv[])
 {
     initprocessqueue();
@@ -1000,6 +1011,8 @@ int main(int argc, char *argv[])
     memset(last_moved_path, '\0', MAX_DIRECTORY_LEN);
     current_path[0] = '/';
 
+    windowparent = cvtS2U(argv[0]);
+
     /*createnewfolder("A");
     createnewfolder("B");
     movefile("/README", "/A/README");
@@ -1011,12 +1024,12 @@ int main(int argc, char *argv[])
     changedirectory("/B");
     pastebutton_onclick();
     exit();*/
-    char* a[3];
+
+    /*char* a[3];
     a[0] = "fshandlekbd";
     a[1] = "README";
     a[2] = "/";
-    exec("fshandlekbd", a);
-    wait();
+    exec("fshandlekbd", a);*/
 
     //===========create window
     uint window;
