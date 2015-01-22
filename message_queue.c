@@ -7,6 +7,7 @@
 #include "memlayout.h"
 #include "mmu.h"
 #include "proc.h"
+#include "guilayout.h"
 
 struct
 {
@@ -128,4 +129,13 @@ void dequeue(int pid, void* result)
 	}
 	sleep(&lockflag.msg, &lockflag.lock);
 	goto loop;
+}
+
+void informHomeToOpenFile(char* process_name, char* file_name)
+{
+	CallMsg* cm = (CallMsg*)kalloc();
+	cm->msg_type = CALL_MESSAGE;
+	cm->call_process_name = process_name;
+	cm->file_path = file_name;
+	enqueue(del->descent->pid, cm);
 }

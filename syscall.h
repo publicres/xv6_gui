@@ -31,3 +31,5 @@
 #define SYS_getmsgfromqueue	 28
 
 #define SYS_asynwait    29
+
+#define SYS_informhometoopenfile  30

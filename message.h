@@ -6,6 +6,7 @@
 #define MOUSE_MESSAGE 0
 #define KEYBOARD_MESSAGE 1
 #define FOCUS_MESSAGE 2
+#define CALL_MESSAGE 3
 
 #define MOUSE_ENTER 1
 #define MOUSE_LEAVE -1
@@ -37,3 +38,10 @@ typedef struct focus_message
 	uint dom_id;
 	int focus_or_not;
 } FocusMsg;
+
+typedef struct call_message
+{
+	int msg_type;
+	char* call_process_name;
+	char* file_path;
+}CallMsg;

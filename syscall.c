@@ -110,6 +110,8 @@ extern int sys_getmsgfromqueue(void);
 
 extern int sys_asynwait(void);
 
+extern int sys_informhometoopenfile(void);
+
 static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
 [SYS_exit]    sys_exit,
@@ -143,6 +145,8 @@ static int (*syscalls[])(void) = {
 [SYS_getmsgfromqueue]  sys_getmsgfromqueue,
 
 [SYS_asynwait]    sys_asynwait,
+
+[SYS_informhometoopenfile] sys_informhometoopenfile,
 };
 
 void

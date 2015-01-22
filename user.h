@@ -35,6 +35,8 @@ int getmsgfromqueue(void*);
 
 int asynwait(void);
 
+int informhometoopenfile(char*, char*);
+
 
 // ulib.c
 int stat(char*, struct stat*);

@@ -40,3 +40,5 @@ SYSCALL(releaseprocessqueue)
 SYSCALL(getmsgfromqueue)
 
 SYSCALL(asynwait)
+
+SYSCALL(informhometoopenfile)

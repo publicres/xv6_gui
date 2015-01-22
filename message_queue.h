@@ -31,3 +31,4 @@ int initProcessQueue(int pid);
 int releaseProcessQueue(int pid);
 void enqueue(int pid, void* message);
 void dequeue(int pid, void* result);
+void informHomeToOpenFile(char* process_name, char* file_name);
