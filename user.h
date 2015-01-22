@@ -50,4 +50,4 @@ void* malloc(uint);
 void free(void*);
 int atoi(const char*);
 
-//#define I_WANNA_GUI
+#define I_WANNA_GUI

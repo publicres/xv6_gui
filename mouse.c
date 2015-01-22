@@ -18,6 +18,8 @@ static int right_button_down = 0;
 static int left_button_pressed = 0;
 static int right_button_pressed = 0;
 static int count = 0;
+static int recovery = -1;
+
 img* mouseIcon=0;
 
 void eventGenerate();
@@ -94,8 +96,14 @@ void mouseintr()
 	acquire(&mouselock);
 
 	data = inb(MSDATAP);
-	// if (!(data & MIDDLE_BTN) && (data & CHECK_FLAG) && !(data & X_OVERFLOW) && !(data & Y_OVERFLOW))
-	// 	count = 0;
+	if (recovery == 0 && (data & 255) == 0)
+		recovery = 1;
+	else if (recovery == 1 && (data & 255) == 0)
+		recovery = 2;
+	else if ((data & 255) == 12)
+		recovery = 0;
+	else
+		recovery = -1;
 	//cprintf("%x\r\n", data);
 	switch (++count)
 	{
@@ -127,7 +135,12 @@ void mouseintr()
 	}
 
 	//cprintf("count:%d\r\n", count);
-	if (count == 3)
+	if (recovery == 2)
+	{
+		count = 0;
+		recovery = -1;
+	}
+	else if (count == 3)
 	{
 		eventGenerate();
 		count = 0;

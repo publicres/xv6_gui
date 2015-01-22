@@ -18,6 +18,17 @@ char* s;
 uchar uc;
 #define paru(x) (uc=x,&uc)
 
+uint cvtS2U(char* str)
+{
+    uint ret=0;
+    while (*str!=0)
+    {
+        ret=ret*10+(*str-'0');
+        str++;
+    }
+    return ret;
+}
+
 void releaseTxtDom()
 {
     int i;
@@ -129,6 +140,9 @@ int main(int argc, char *argv[])
         printf(1, "fileEditor: cannot open %s\r\n", argv[1]);
         exit();
     }
+
+    if (strcmp("fileEditor", argv[0]) != 0)
+        windowParent = cvtS2U(argv[0]);
 
     initprocessqueue();
     //===========create window
