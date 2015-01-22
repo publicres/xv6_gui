@@ -62,10 +62,21 @@ uchar *readImg(char *fileName, uchar picMode)   //0:3channel,1:4channel
 int main(int argc, char *argv[])
 {
     int fd;
-
+    char* fnm;
+    printf(1,"111/%d/", argc);
     if(argc != 2){
-    	printf(1, "picviewer: only allows 1 argument\r\n");
-    	exit();
+        if(argc == 1 && strcmp("picviewer", argv[0]))
+        {
+            fnm = "bitmap.mx";
+        }
+        else{
+            printf(1, "picviewer: only allows 1 argument\r\n");
+            exit();
+        }
+    }
+    else
+    {
+        fnm = argv[1];
     }
 
     if((fd = open(argv[1], 0)) < 0){
@@ -154,7 +165,7 @@ int main(int argc, char *argv[])
         setattr(GUIENT_DIV, contentPicFrame, GUIATTR_DIV_BGCOLOR, &contentPicFrame_color);
     
     contentStruct pic;
-    uchar *p = readImg(argv[1],1);
+    uchar *p = readImg(fnm,1);
     uint w, h, pic_x, pic_y;
     w = p[0];
     h = p[1];
