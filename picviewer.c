@@ -58,6 +58,16 @@ uchar *readImg(char *fileName, uchar picMode)   //0:3channel,1:4channel
     return p;
 }
 
+uint cvtS2U(char* str)
+{
+    uint ret=0;
+    while (*str!=0)
+    {
+        ret=ret*10+(*str-'0');
+        str++;
+    }
+    return ret;
+}
 
 int main(int argc, char *argv[])
 {
@@ -78,6 +88,9 @@ int main(int argc, char *argv[])
     {
         fnm = argv[1];
     }
+
+    if (strcmp("picviewer", argv[0]) != 0)
+        windowParent = cvtS2U(argv[0]);
 
     if((fd = open(argv[1], 0)) < 0){
     	printf(1, "picviewer:cannot open %s\r\n", argv[1]);
