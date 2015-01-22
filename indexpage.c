@@ -37,6 +37,8 @@ typedef struct ori_tile
     uint xid;
     uint pid;
 
+    uint openid;
+
 } tile;
 tile* ts;
 

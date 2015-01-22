@@ -33,6 +33,8 @@ int initprocessqueue();
 int releaseprocessqueue();
 int getmsgfromqueue(void*);
 
+int asynwait(void);
+
 
 // ulib.c
 int stat(char*, struct stat*);

@@ -123,6 +123,7 @@ void            sched(void);
 void            sleep(void*, struct spinlock*);
 void            userinit(void);
 int             wait(void);
+int             asynwait(void);
 void            wakeup(void*);
 void            yield(void);
 enum procstate	getstatusbypid(int);
