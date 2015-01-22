@@ -170,74 +170,6 @@ LSResult ls(char *path)
   return r;
 }
 
-//try to rename by directly modifying directory file, but when write to the directory file, it met
-//a problem, I think it may because the directory file may don't have the permission to write,
-//we can think about it later........
-int rename_modify_directory_file(char* originname, char* nowname)
-{
-    #define DIRECTORY_SIZE_BUF_NUM 4096
-    int fd;
-    int fw;
-    //struct dirent de;
-    struct stat st;
-    char* buff = (char*)malloc(DIRECTORY_SIZE_BUF_NUM * sizeof(char));
-    memset(buff, '\0', DIRECTORY_SIZE_BUF_NUM);
-    int flag = 0;
-
-    if((fd = open(current_path, O_RDONLY)) < 0)
-    {
-        printf(2, "rename: can't open the current folder!!!\r\n");
-        return -1;
-    }
-    if (fstat(fd, &st) < 0)
-    {
-        printf(2, "rename: cannot stat the current folder!!!\r\n");
-        close(fd);
-        return -1;
-    }
-    int size = read(fd, buff, DIRECTORY_SIZE_BUF_NUM);
-    int n = size / sizeof(struct dirent);
-    struct dirent* dp = (struct dirent*)buff;
-    close(fd);
-    int i;
-    for (i = 0; i < n; i++)
-    {
-        if ((*(dp + i)).inum == 0)
-            continue;
-        if (strcmp((*(dp + i)).name, originname) == 0)
-        {
-            int k;
-            flag = 1;
-            for (k = 0; k < DIRSIZ && nowname[k] != '\0'; k++)
-            {
-                (*(dp + i)).name[k] = nowname[k];
-            }
-        }
-    }
-    if (flag == 1)
-    {
-        if((fw = open(current_path, O_WRONLY)) < 0)
-        {
-            printf(2, "rename: meet some problem when open the directory file to write into!!!\r\n");
-            free(buff);
-            return -1;
-        }
-        if (write(fw, buff, size) == -1)
-        {
-            printf(2, "write to the directory file error!!!!\r\n");
-            free(buff);
-            close(fw);
-            return -1;
-        }
-        free(buff);
-        close(fw);
-        printf(2, "rename success!!!!\r\n");
-        return 0;
-    }
-    free(buff);
-    printf(2, "The file you want to rename does not exists!!!\r\n");
-    return -1;
-}
 
 int copyfile(char* srcpath, char* destpath)
 {
@@ -925,6 +857,136 @@ void createWarningWindow(char* warning, uint parent)
     free(dmsg);
 }
 
+/*char* createInputNameDialog(char* defaultstring, uint parent)
+{
+    uint dialog;
+        uint dialog_titlebar;
+            uint dialog_title_textview;
+            uint dialog_closebutton;
+                uint dialog_closeicon;
+        uint warning_textview;
+        uint okbutton;
+            uint oktext;
+        uint cancelbutton;
+            uint canceltext;
+
+
+    color32 dialog_background = rgba(255, 255, 255, 0);
+    color32 dialog_titlebar_color = rgba(210, 174, 142, 0);
+    color32 warning_textcolor = rgba(0, 0, 0, 0);
+    color32 okbutton_color = rgba(0, 255, 0, 0);
+    color32 cancelbutton_color = rgba(255, 0, 0, 0);
+    color32 dialog_closebutton_color = rgba(200, 80, 81, 0);
+
+    char* ok = "OK";
+    char* title_text = "input name:";
+    char* cancel = "Cancel";
+
+
+    createdom(GUIENT_DIV, parent, &dialog);
+    setattr(GUIENT_DIV, dialog, GUIATTR_DIV_X, parh(300));
+    setattr(GUIENT_DIV, dialog, GUIATTR_DIV_Y, parh(250));
+    setattr(GUIENT_DIV, dialog, GUIATTR_DIV_WIDTH, parh(500));
+    setattr(GUIENT_DIV, dialog, GUIATTR_DIV_HEIGHT, parh(155));
+    setattr(GUIENT_DIV, dialog, GUIATTR_DIV_BGCOLOR, &dialog_background);
+
+        createdom(GUIENT_DIV, dialog, &dialog_titlebar);
+        setattr(GUIENT_DIV, dialog_titlebar, GUIATTR_DIV_X, parh(0));
+        setattr(GUIENT_DIV, dialog_titlebar, GUIATTR_DIV_Y, parh(0));
+        setattr(GUIENT_DIV, dialog_titlebar, GUIATTR_DIV_WIDTH, parh(500));
+        setattr(GUIENT_DIV, dialog_titlebar, GUIATTR_DIV_HEIGHT, parh(35));
+        setattr(GUIENT_DIV, dialog_titlebar, GUIATTR_DIV_BGCOLOR, &dialog_titlebar_color);
+
+            createdom(GUIENT_TXT, dialog_titlebar, &dialog_title_textview);
+            setattr(GUIENT_TXT, dialog_title_textview, GUIATTR_TXT_X, parh(167));
+            setattr(GUIENT_TXT, dialog_title_textview, GUIATTR_TXT_Y, parh(5));
+            setattr(GUIENT_TXT, dialog_title_textview, GUIATTR_TXT_WIDTH, parh(165));
+            setattr(GUIENT_TXT, dialog_title_textview, GUIATTR_TXT_HEIGHT, parh(24));
+            setattr(GUIENT_TXT, dialog_title_textview, GUIATTR_TXT_STR, title_text);
+            setattr(GUIENT_TXT, dialog_title_textview, GUIATTR_TXT_COLOR, &warning_textcolor);
+
+            createdom(GUIENT_DIV, dialog_titlebar, &dialog_closebutton);
+            setattr(GUIENT_DIV, dialog_closebutton, GUIATTR_DIV_X, parh(449));
+            setattr(GUIENT_DIV, dialog_closebutton, GUIATTR_DIV_Y, parh(0));
+            setattr(GUIENT_DIV, dialog_closebutton, GUIATTR_DIV_WIDTH, parh(51));
+            setattr(GUIENT_DIV, dialog_closebutton, GUIATTR_DIV_HEIGHT, parh(30));
+            setattr(GUIENT_DIV, dialog_closebutton, GUIATTR_DIV_BGCOLOR, &dialog_closebutton_color);
+            setattr(GUIENT_DIV, dialog_closebutton, GUIATTR_DIV_INTEG, parh(1));
+
+                createdom(GUIENT_IMG, dialog_closebutton, &dialog_closeicon);
+                setattr(GUIENT_IMG, dialog_closeicon, GUIATTR_IMG_X, parh(18));
+                setattr(GUIENT_IMG, dialog_closeicon, GUIATTR_IMG_Y, parh(7));
+                setattr(GUIENT_IMG, dialog_closeicon, GUIATTR_IMG_WIDTH, parh(17));
+                setattr(GUIENT_IMG, dialog_closeicon, GUIATTR_IMG_HEIGHT, parh(17));
+                setattr(GUIENT_IMG, dialog_closeicon, GUIATTR_IMG_CONTENT, &close_icon_content);
+
+        createdom(GUIENT_TXT, dialog, &warning_textview);
+        setattr(GUIENT_TXT, warning_textview, GUIATTR_TXT_X, parh(10));
+        setattr(GUIENT_TXT, warning_textview, GUIATTR_TXT_Y, parh(45));
+        setattr(GUIENT_TXT, warning_textview, GUIATTR_TXT_WIDTH, parh(480));
+        setattr(GUIENT_TXT, warning_textview, GUIATTR_TXT_HEIGHT, parh(72));
+        setattr(GUIENT_TXT, warning_textview, GUIATTR_TXT_STR, defaultstring);
+        setattr(GUIENT_TXT, warning_textview, GUIATTR_TXT_COLOR, &warning_textcolor);
+
+        createdom(GUIENT_DIV, dialog, &okbutton);
+        setattr(GUIENT_DIV, okbutton, GUIATTR_DIV_X, parh(120));
+        setattr(GUIENT_DIV, okbutton, GUIATTR_DIV_Y, parh(125));
+        setattr(GUIENT_DIV, okbutton, GUIATTR_DIV_WIDTH, parh(70));
+        setattr(GUIENT_DIV, okbutton, GUIATTR_DIV_HEIGHT, parh(24));
+        setattr(GUIENT_DIV, okbutton, GUIATTR_DIV_BGCOLOR, &okbutton_color);
+        setattr(GUIENT_DIV, okbutton, GUIATTR_DIV_INTEG, parh(1));
+
+            createdom(GUIENT_TXT, okbutton, &oktext);
+            setattr(GUIENT_TXT, oktext, GUIATTR_TXT_X, parh(20));
+            setattr(GUIENT_TXT, oktext, GUIATTR_TXT_Y, parh(0));
+            setattr(GUIENT_TXT, oktext, GUIATTR_TXT_WIDTH, parh(30));
+            setattr(GUIENT_TXT, oktext, GUIATTR_TXT_HEIGHT, parh(24));
+            setattr(GUIENT_TXT, oktext, GUIATTR_TXT_STR, ok);
+            setattr(GUIENT_TXT, oktext, GUIATTR_TXT_COLOR, &warning_textcolor);
+
+        createdom(GUIENT_DIV, dialog, &cancelbutton);
+        setattr(GUIENT_DIV, cancelbutton, GUIATTR_DIV_X, parh(310));
+        setattr(GUIENT_DIV, cancelbutton, GUIATTR_DIV_Y, parh(125));
+        setattr(GUIENT_DIV, cancelbutton, GUIATTR_DIV_WIDTH, parh(70));
+        setattr(GUIENT_DIV, cancelbutton, GUIATTR_DIV_HEIGHT, parh(24));
+        setattr(GUIENT_DIV, cancelbutton, GUIATTR_DIV_BGCOLOR, &cancelbutton_color);
+        setattr(GUIENT_DIV, cancelbutton, GUIATTR_DIV_INTEG, parh(1));
+
+            createdom(GUIENT_TXT, cancelbutton, &canceltext);
+            setattr(GUIENT_TXT, canceltext, GUIATTR_TXT_X, parh(20));
+            setattr(GUIENT_TXT, canceltext, GUIATTR_TXT_Y, parh(0));
+            setattr(GUIENT_TXT, canceltext, GUIATTR_TXT_WIDTH, parh(30));
+            setattr(GUIENT_TXT, canceltext, GUIATTR_TXT_HEIGHT, parh(24));
+            setattr(GUIENT_TXT, canceltext, GUIATTR_TXT_STR, cancel);
+            setattr(GUIENT_TXT, canceltext, GUIATTR_TXT_COLOR, &warning_textcolor);
+
+    //message handler
+    int *dmsg = (int*)malloc(100);
+    MouseMsg* dmm;
+    while(1)
+    {
+        getmsgfromqueue(dmsg);
+        if (*dmsg == MOUSE_MESSAGE)
+        {
+            dmm = (MouseMsg*)dmsg;
+            if ((dmm->mouse_event_type & LEFT_BTN_UP) != 0)
+            {
+                if (dmm->dom_id == dialog_closebutton || dmm->dom_id == okbutton)
+                    break;
+            }
+        }
+    }
+
+    //============release
+    releasedom(GUIENT_IMG, dialog_closeicon);
+    releasedom(GUIENT_TXT, warning_textview);
+    releasedom(GUIENT_TXT, oktext);
+    releasedom(GUIENT_DIV, dialog);
+
+    free(dmsg);
+    return "";
+}*/
+
 int main(int argc, char *argv[])
 {
     initprocessqueue();
@@ -949,6 +1011,12 @@ int main(int argc, char *argv[])
     changedirectory("/B");
     pastebutton_onclick();
     exit();*/
+    char* a[3];
+    a[0] = "fshandlekbd";
+    a[1] = "README";
+    a[2] = "/";
+    exec("fshandlekbd", a);
+    wait();
 
     //===========create window
     uint window;
