@@ -219,8 +219,8 @@ UPROGS=\
 	_origincat\
 	_fileEditor\
 	_indexpage\
-	_fshandlekbd\
 	_aboutus\
+	_picviewer\
 
 fs.img: mkfs README $(UPROGS) $(DEFAULTFILES)
 	./mkfs fs.img README $(UPROGS) $(DEFAULTFILES)
