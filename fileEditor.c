@@ -380,7 +380,6 @@ int main(int argc, char *argv[])
 
     str = readFileTxt(fd);
     close(fd);
-    str = "123";
     setattr(GUIENT_TXT, contentTxt, GUIATTR_TXT_STR, pars(str));
     setattr(GUIENT_TXT, contentTxt, GUIATTR_TXT_INCCURS, pars(str));
 
@@ -461,9 +460,9 @@ int main(int argc, char *argv[])
             if (affirming == 1)
                 continue;
             km = (KBDMsg*)msg;
-            if (km->key_value == (char)26)
+            if ((uchar)km->key_value == 0xE4)
                 setattr(GUIENT_TXT, contentTxt, GUIATTR_TXT_DECCURS, parh(0));
-            else if (km->key_value == (char)27)
+            else if ((uchar)km->key_value == 0xE5)
                 setattr(GUIENT_TXT, contentTxt, GUIATTR_TXT_INCCURS, parh(0));
             else if (km->key_value == (char)8)
             {
@@ -475,7 +474,7 @@ int main(int argc, char *argv[])
                     setattr(GUIENT_TXT, saveTxt, GUIATTR_TXT_COLOR, &unsaved_color);
                 }
             }
-            else if (km->key_value == (char)127)
+            else if ((uchar)km->key_value == 0xE9)
             {
                 dc = 0;
                 getattr(GUIENT_TXT, contentTxt, GUIATTR_TXT_DELETE, &dc);
