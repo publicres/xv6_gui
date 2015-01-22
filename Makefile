@@ -189,6 +189,7 @@ UPROGS=\
 	_zombie\
 	_guifilesystem\
 	_origincat\
+	_fileEditor\
 
 fs.img: mkfs README $(UPROGS) $(DEFAULTFILES)
 	./mkfs fs.img README $(UPROGS) $(DEFAULTFILES)
