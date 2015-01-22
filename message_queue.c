@@ -88,6 +88,7 @@ void dequeue(int pid, void* result)
 	MouseMsg* tmp_mouse;
 	KBDMsg* tmp_kbd;
 	FocusMsg* tmp_fcs;
+	CallMsg* tmp_call;
 
 	acquire(&lockflag.lock);
 	loop:
@@ -126,6 +127,13 @@ void dequeue(int pid, void* result)
 			kfree((char*)(*(p->queue + pre_head)));
 			return;
 		}
+		else if (*tmpptr == CALL_MESSAGE)
+		{
+			tmp_call = (CallMsg*)(*(p->queue + pre_head));
+			*((CallMsg*)result) = *tmp_call;
+			kfree((char*)(*(p->queue + pre_head)));
+			return;
+		}
 	}
 	sleep(&lockflag.msg, &lockflag.lock);
 	goto loop;
@@ -134,8 +142,18 @@ void dequeue(int pid, void* result)
 void informHomeToOpenFile(char* process_name, char* file_name)
 {
 	CallMsg* cm = (CallMsg*)kalloc();
+	int i;
 	cm->msg_type = CALL_MESSAGE;
-	cm->call_process_name = process_name;
-	cm->file_path = file_name;
+	for (i = 0; process_name[i] != '\0'; i++)
+	{
+		(cm->call_process_name)[i] = process_name[i];
+	}
+	(cm->call_process_name)[i] = '\0';
+	
+	for (i = 0; file_name[i] != '\0'; i++)
+	{
+		(cm->file_path)[i] = file_name[i];
+	}
+	(cm->file_path)[i] = '\0';
 	enqueue(del->descent->pid, cm);
 }
