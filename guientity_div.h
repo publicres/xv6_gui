@@ -11,7 +11,7 @@ typedef struct ori_div
     color32 bgColor;
 } div;
 
-uint/*div**/ div_createDom(uint x, uint y, uint w, uint h, uint/*dom**/ parent, int pid);
+uint/*div**/ div_createDom(int x, int y, int w, int h, uint/*dom**/ parent, int pid);
 uint/*div**/ div_changeBgcolor(uint/*div**/ elem, color32 color);
 void div_release(uint/*div**/ elem);
 

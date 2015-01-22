@@ -73,7 +73,7 @@ main(int argc, char *argv[])
 //======test focus event and keyboard event demo
 
     contentStruct pic;
-    uint j;
+    int j;
     #define parh(x) (j=x,&j)
     uint huahua,rec;
     color32 cs;
@@ -81,7 +81,7 @@ main(int argc, char *argv[])
     uchar *p=readImg("cursor.matrix",1);
 
         createdom(GUIENT_IMG,0xffffffff,&huahua);
-        setattr(GUIENT_IMG,huahua,GUIATTR_IMG_X,parh(50));
+        setattr(GUIENT_IMG,huahua,GUIATTR_IMG_X,parh(-50));
         setattr(GUIENT_IMG,huahua,GUIATTR_IMG_Y,parh(50));
         setattr(GUIENT_IMG,huahua,GUIATTR_IMG_WIDTH,parh(320));
         setattr(GUIENT_IMG,huahua,GUIATTR_IMG_HEIGHT,parh(320));

@@ -13,8 +13,8 @@ typedef struct ori_cha
     char ch;
 } cha;
 
-uint/*cha**/ cha_createDom(cha* chaPtr, uint x, uint y, uint w, uint h, uint/*dom**/ parent, int pid);
-uint/*cha**/ cha_createDomOrphan(cha* chaPtr, uint x, uint y, uint w, uint h, int pid);
+uint/*cha**/ cha_createDom(cha* chaPtr, int x, int y, int w, int h, uint/*dom**/ parent, int pid);
+uint/*cha**/ cha_createDomOrphan(cha* chaPtr, int x, int y, int w, int h, int pid);
 uint/*cha**/ cha_setColor(uint/*cha**/ elem, color24 color);
 void cha_release(uint/*cha**/ elem);
 void cha_setContent(uint/*cha**/ elem, void* cont, char ch);

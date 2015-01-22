@@ -7,14 +7,14 @@
 #include "events.h"
 
 //==============================================
-uchar drawDiv_trans(dom* elem, uint x, uint y, uint w, uint h);
+uchar drawDiv_trans(dom* elem, int x, int y, int w, int h);
 
-uchar drawDiv(dom* elem, uint x, uint y, uint w, uint h)
+uchar drawDiv(dom* elem, int x, int y, int w, int h)
 {
-    uint i,j;
+    int i,j;
     div *ent=(div*)(elem->entity);
-    uint xs;
-    uint ys;
+    int xs;
+    int ys;
 
     if (ent->bgColor.a>0)
     {
@@ -33,12 +33,12 @@ uchar drawDiv(dom* elem, uint x, uint y, uint w, uint h)
     }
     return 1;
 }
-uchar drawDiv_trans(dom* elem, uint x, uint y, uint w, uint h)
+uchar drawDiv_trans(dom* elem, int x, int y, int w, int h)
 {
-    uint i,j;
+    int i,j;
     div *ent=(div*)(elem->entity);
-    uint xs=getABSposx(elem)+x;
-    uint ys=getABSposy(elem)+y;
+    int xs=getABSposx(elem)+x;
+    int ys=getABSposy(elem)+y;
 
     for (j=0;j<h;j++)
     {
@@ -47,7 +47,7 @@ uchar drawDiv_trans(dom* elem, uint x, uint y, uint w, uint h)
     }
     return 1;
 }
-uint div_createDom(uint x, uint y, uint w, uint h, uint parent, int pid)
+uint div_createDom(int x, int y, int w, int h, uint parent, int pid)
 {
     div *t;
     if((t = (div*)kalloc()) == 0)
@@ -100,7 +100,7 @@ uint div_changeBgcolor(uint elem_, color32 color)
 void div_setXY(uint elem_, int x, int y)
 {
     div *elem=(div*)elem_;
-    uint i,j;
+    int i,j;
 
     i=elem->ds.x;
     j=elem->ds.y;
@@ -113,19 +113,19 @@ void div_setXY(uint elem_, int x, int y)
 uint div_setAttr(uint elem_, int attr, void *val)
 {
     div *elem=(div*)elem_;
-    uint i,j;
+    int i,j;
 
     switch (attr)
     {
     case GUIATTR_DIV_X:
         i=elem->ds.x;
-        elem->ds.x=*((uint*)val);
+        elem->ds.x=*((int*)val);
         reDraw_(elem->ds.parent,i,elem->ds.y,elem->ds.width,elem->ds.height);
         reDraw(&elem->ds);
         return 0;
     case GUIATTR_DIV_Y:
         j=elem->ds.y;
-        elem->ds.y=*((uint*)val);
+        elem->ds.y=*((int*)val);
         reDraw_(elem->ds.parent,elem->ds.x,j,elem->ds.width,elem->ds.height);
         reDraw(&elem->ds);
         return 0;
@@ -149,9 +149,12 @@ uint div_setAttr(uint elem_, int attr, void *val)
     case GUIATTR_DIV_REFRESH:
         reDraw(elem->ds.parent);
         return 0;
-    case GUIATTR_DIV_INTEGRL:
-        elem->ds.isIntegral=*(uchar*)val;
+    case GUIATTR_DIV_INTEG:
+        elem->ds.isIntegral=1-elem->ds.isIntegral;
         return 0;
+	case GUIATTR_DIV_INTEGRL:
+        elem->ds.isIntegral=*(uchar*)val;
+		return 0;
     default:
         return -1;
     }

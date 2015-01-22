@@ -13,7 +13,7 @@ typedef struct ori_img
     uchar isRepeat;
 } img;
 
-uint/*img**/ img_createDom(uint x, uint y, uint w, uint h, uint/*dom**/ parent, int pid);
+uint/*img**/ img_createDom(int x, int y, int w, int h, uint/*dom**/ parent, int pid);
 void img_release(uint/*img**/ elem);
 void img_setContent(uint/*img**/ elem, void* cont, uchar isBig, uchar isRep);
 

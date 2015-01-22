@@ -29,7 +29,7 @@ typedef struct ori_txt
 } txt;
 
 void txt_initLock();
-uint/*txt**/ txt_createDom(uint x, uint y, uint w, uint h, uint/*dom**/ parent, int pid);
+uint/*txt**/ txt_createDom(int x, int y, uint w, uint h, uint/*dom**/ parent, int pid);
 void txt_release(uint/*txt**/ elem_);
 uint txt_setStr(uint/*txt**/ elem_, char* str_);
 
