@@ -158,6 +158,9 @@ uint div_setAttr(uint elem_, int attr, void *val)
 	case GUIATTR_DIV_INTEGRL:
         elem->ds.isIntegral=*(uchar*)val;
 		return 0;
+    case GUIATTR_DIV_FOCUS:
+        setABSFocus(&elem->ds);
+        return 0;
     default:
         return -1;
     }

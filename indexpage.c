@@ -6,7 +6,7 @@
 #include "mouse.h"
 
 int parher;
-uint superhome;
+uint superhome,home,hometext,homepic;
 uint slider;
 uint bgc;
 uint maincont;
@@ -37,8 +37,12 @@ typedef struct ori_tile
     uint xid;
     uint pid;
 
-    uint openid;
-
+    uint openpid;
+    uint opentile;
+    uint openinnertile;
+    uint openpictile;
+    uint openanc;
+    char* execName;
 } tile;
 tile* ts;
 
@@ -90,6 +94,7 @@ tile* initTiles()
     (p+0)->x=187; (p+0)->y=224; (p+0)->w=210; (p+0)->h=100; (p+0)->bgcolor=rgba(217,81,43,0);
     (p+0)->px=80; (p+0)->py=17; (p+0)->picname="search.mx";
     (p+0)->text="File";
+    (p+0)->execName="guifilesystem";
 
     (p+1)->x=407; (p+1)->y=224; (p+1)->w=210; (p+1)->h=100; (p+1)->bgcolor=rgba(43,127,237,0);
     (p+1)->px=80; (p+1)->py=17; (p+1)->picname="filetext2.mx";
@@ -131,9 +136,11 @@ tile* initTiles()
     {
         (p+i)->tx=5;
         (p+i)->ty=73;
-        (p+i)->pw=64;
-        (p+i)->ph=64;
+        (p+i)->pw=56;
+        (p+i)->ph=50;
         (p+i)->pic=readImg((p+i)->picname,1);
+        (p+i)->openpid=0;
+        (p+i)->opentile=0;
     }
 
     for (i=0;i<ntile;i++)
@@ -154,6 +161,7 @@ tile* initTiles()
         tcs.isRepeat=0;
         tcs.pics=(p+i)->pic;
         setattr(GUIENT_IMG,(p+i)->pid,GUIATTR_IMG_CONTENT,&tcs);
+        free(tcs.pics);
 
         createdom(GUIENT_TXT,(p+i)->tid,&((p+i)->xid));
         setattr(GUIENT_TXT,(p+i)->xid,GUIATTR_TXT_X,&((p+i)->tx));
@@ -170,6 +178,7 @@ void setupGUI()
 {
     color32 cl;
     uchar ca[10];
+    contentStruct tcs;
 
     createdom(GUIENT_DIV,0xffffffff,&bgc);
     setattr(GUIENT_DIV,bgc,GUIATTR_DIV_X,parh(0));
@@ -186,13 +195,37 @@ void setupGUI()
     setattr(GUIENT_DIV,superhome,GUIATTR_DIV_HEIGHT,parh(15));
 
     createdom(GUIENT_DIV,0xffffffff,&slider);
-    setattr(GUIENT_DIV,slider,GUIATTR_DIV_X,parh(-300));
+    setattr(GUIENT_DIV,slider,GUIATTR_DIV_X,parh(0));
     setattr(GUIENT_DIV,slider,GUIATTR_DIV_Y,parh(0));
     setattr(GUIENT_DIV,slider,GUIATTR_DIV_WIDTH,parh(200));
     setattr(GUIENT_DIV,slider,GUIATTR_DIV_HEIGHT,parh(768));
     cl=rgba(0,0,0,55);
     setattr(GUIENT_DIV,slider,GUIATTR_DIV_BGCOLOR,&cl);
 
+    createdom(GUIENT_DIV,slider,&home);
+    setattr(GUIENT_DIV,home,GUIATTR_DIV_X,parh(0));
+    setattr(GUIENT_DIV,home,GUIATTR_DIV_Y,parh(698));
+    setattr(GUIENT_DIV,home,GUIATTR_DIV_WIDTH,parh(200));
+    setattr(GUIENT_DIV,home,GUIATTR_DIV_HEIGHT,parh(70));
+    setattr(GUIENT_DIV,home,GUIATTR_DIV_INTEG,0);
+
+    createdom(GUIENT_TXT,home,&hometext);
+    setattr(GUIENT_TXT,hometext,GUIATTR_TXT_X,parh(70));
+    setattr(GUIENT_TXT,hometext,GUIATTR_TXT_Y,parh(12));
+    setattr(GUIENT_TXT,hometext,GUIATTR_TXT_WIDTH,parh(200));
+    setattr(GUIENT_TXT,hometext,GUIATTR_TXT_HEIGHT,parh(50));
+    setattr(GUIENT_TXT,hometext,GUIATTR_TXT_STR,"Back to \nHOME");
+    ca[0]=ca[1]=ca[2]=0xA0;
+    setattr(GUIENT_TXT,hometext,GUIATTR_TXT_COLOR,ca);
+
+    createdom(GUIENT_IMG,home,&homepic);
+    setattr(GUIENT_IMG,homepic,GUIATTR_IMG_X,parh(14));
+    setattr(GUIENT_IMG,homepic,GUIATTR_IMG_Y,parh(14));
+    setattr(GUIENT_IMG,homepic,GUIATTR_IMG_WIDTH,parh(42));
+    setattr(GUIENT_IMG,homepic,GUIATTR_IMG_HEIGHT,parh(42));
+    tcs.isRepeat=0;
+    tcs.pics=readImg("home.mx",1);
+    setattr(GUIENT_IMG,homepic,GUIATTR_IMG_CONTENT,&tcs);
 
     createdom(GUIENT_DIV,bgc,&maincont);
     setattr(GUIENT_DIV,maincont,GUIATTR_DIV_X,parh(0));
@@ -223,40 +256,168 @@ void killAll()
     releaseprocessqueue();
     exit();
 }
+//==================taskbar=======================
+//================================================
+void buildTaskBar()
+{
+    uint i,j=0;
+    for (i=0;i<ntile;i++)
+    {
+        if ((ts+i)->opentile>0)
+        {
+            setattr(GUIENT_DIV,(ts+i)->opentile,GUIATTR_DIV_Y,parh((100*j)));
+            j++;
+        }
+        if (100*j+100>=698)
+            break;
+    }
+}
+void addTaskBar(int tid)
+{
+    tile* th=ts+tid;
+    contentStruct tcs;
+
+    createdom(GUIENT_DIV,slider,&(th->opentile));
+    setattr(GUIENT_DIV,th->opentile,GUIATTR_DIV_X,parh(0));
+    setattr(GUIENT_DIV,th->opentile,GUIATTR_DIV_Y,parh(0));
+    setattr(GUIENT_DIV,th->opentile,GUIATTR_DIV_WIDTH,parh(200));
+    setattr(GUIENT_DIV,th->opentile,GUIATTR_DIV_HEIGHT,parh(100));
+    setattr(GUIENT_DIV,th->opentile,GUIATTR_DIV_INTEG,0);
+
+    createdom(GUIENT_DIV,th->opentile,&(th->openinnertile));
+    setattr(GUIENT_DIV,th->openinnertile,GUIATTR_DIV_X,parh(10));
+    setattr(GUIENT_DIV,th->openinnertile,GUIATTR_DIV_Y,parh(5));
+    setattr(GUIENT_DIV,th->openinnertile,GUIATTR_DIV_WIDTH,parh(180));
+    setattr(GUIENT_DIV,th->openinnertile,GUIATTR_DIV_HEIGHT,parh(90));
+    setattr(GUIENT_DIV,th->openinnertile,GUIATTR_DIV_BGCOLOR,&(th->bgcolor));
+
+    createdom(GUIENT_IMG,th->openinnertile,&(th->openpictile));
+    setattr(GUIENT_IMG,th->openpictile,GUIATTR_IMG_X,parh(65));
+    setattr(GUIENT_IMG,th->openpictile,GUIATTR_IMG_Y,parh(20));
+    setattr(GUIENT_IMG,th->openpictile,GUIATTR_IMG_WIDTH,parh(56));
+    setattr(GUIENT_IMG,th->openpictile,GUIATTR_IMG_HEIGHT,parh(50));
+    tcs.isRepeat=0;
+    tcs.pics=th->pic;
+    setattr(GUIENT_IMG,th->openpictile,GUIATTR_IMG_CONTENT,&tcs);
+
+    buildTaskBar();
+}
+void delTaskBar(int tid)
+{
+    tile* th=ts+tid;
+
+    releasedom(GUIENT_IMG,th->openpictile);
+    releasedom(GUIENT_DIV,th->opentile);
+    th->opentile=0;
+
+    buildTaskBar();
+}
+//==================procswitch====================
+//================================================
+void setupProgram(int tid)
+{
+    uint pd;
+    tile* th=ts+tid;
+    if ((pd=fork())==0)
+    {
+        //exec(th->execName);
+        //NO RETURN!
+    }
+    th->openpid=pd;
+}
+void switchTo(int tid)
+{
+    tile* th=ts+tid;
+    if (th->opentile>0)
+    {
+
+    }
+    else
+    {
+        addTaskBar(tid);
+        buildTaskBar();
+    }
+}
 //==================event=========================
 //================================================
 void OnMouseIn(uint domID)
 {
     uint i;
-    color24 p;
+    color32 p;
     if (domID==superhome)
     {
+        setattr(GUIENT_DIV,slider,GUIATTR_DIV_FOCUS,0);
         setattr(GUIENT_DIV,slider,GUIATTR_DIV_X,parh(0));
         return;
     }
+    if (domID==home)
+    {
+        p.a=0;
+        p.c.r=p.c.g=p.c.b=0x80;
+        setattr(GUIENT_DIV,home,GUIATTR_DIV_BGCOLOR,&p);
+        return;
+    }
     for (i=0;i<ntile;i++)
+    {
         if ((ts+i)->tid==domID)
         {
-            p=((ts+i)->bgcolor.c);
-            p.r=p.r<225?p.r+30:0xff;
-            p.g=p.g<225?p.g+30:0xff;
-            p.b=p.b<225?p.b+30:0xff;
+            p.c=((ts+i)->bgcolor.c);
+            p.a=0;
+            p.c.r=p.c.r<225?p.c.r+30:0xff;
+            p.c.g=p.c.g<225?p.c.g+30:0xff;
+            p.c.b=p.c.b<225?p.c.b+30:0xff;
             setattr(GUIENT_DIV,(ts+i)->tid,GUIATTR_DIV_BGCOLOR,&p);
             return;
         }
+        if ((ts+i)->opentile==domID)
+        {
+            p=rgba(255,255,0,20);
+            setattr(GUIENT_DIV,(ts+i)->opentile,GUIATTR_DIV_BGCOLOR,&p);
+            return;
+        }
+    }
 }
 void OnMouseOut(uint domID)
 {
     uint i;
+    color32 p;
+    if (domID==home)
+    {
+        p.a=255;
+        p.c.r=p.c.g=p.c.b=0x80;
+        setattr(GUIENT_DIV,home,GUIATTR_DIV_BGCOLOR,&p);
+        return;
+    }
+    for (i=0;i<ntile;i++)
+    {
+        if ((ts+i)->tid==domID)
+        {
+            setattr(GUIENT_DIV,(ts+i)->tid,GUIATTR_DIV_BGCOLOR,&((ts+i)->bgcolor));
+            return;
+        }
+        if ((ts+i)->opentile==domID)
+        {
+            p=rgba(0,0,0,255);
+            setattr(GUIENT_DIV,(ts+i)->opentile,GUIATTR_DIV_BGCOLOR,&p);
+            return;
+        }
+    }
+}
+void OnBlur(uint domID)
+{
     if (domID==slider)
     {
         setattr(GUIENT_DIV,slider,GUIATTR_DIV_X,parh(-200));
         return;
     }
+}
+void OnClick(uint domID)
+{
+    int i;
     for (i=0;i<ntile;i++)
         if ((ts+i)->tid==domID)
         {
-            setattr(GUIENT_DIV,(ts+i)->tid,GUIATTR_DIV_BGCOLOR,&((ts+i)->bgcolor));
+            switchTo(i);
             return;
         }
 }
@@ -267,6 +428,7 @@ int main(int argc, char *argv[])
     initAll();
     int *msg = (int*)malloc(100);
     MouseMsg* km;
+    FocusMsg* fm;
     while (1)
     {
         getmsgfromqueue(msg);
@@ -277,6 +439,14 @@ int main(int argc, char *argv[])
                 OnMouseIn(km->dom_id);
             else if (km->enter_or_leave==MOUSE_LEAVE)
                 OnMouseOut(km->dom_id);
+            else if (km->mouse_event_type & LEFT_BTN_UP)
+                OnClick(km->dom_id);
+        }
+        else if (*msg==FOCUS_MESSAGE)
+        {
+            fm=(FocusMsg*)msg;
+            if (fm->focus_or_not==0)
+                OnBlur(km->dom_id);
         }
     }
 }

@@ -174,6 +174,7 @@ DEFAULTFILES=\
 	bubble2.mx\
 	bug.mx\
 	cog.mx\
+	home.mx\
 	filetext2.mx\
 	hp.mx\
 	image.mx\
