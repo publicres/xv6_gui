@@ -9,6 +9,7 @@
 #define GUIATTR_DIV_BGCOLOR 4
 #define GUIATTR_DIV_REFRESH 5
 #define GUIATTR_DIV_INTEG   6
+#define GUIATTR_DIV_TOPPIFY 7
 
 #define GUIATTR_IMG_X       0
 #define GUIATTR_IMG_Y       1

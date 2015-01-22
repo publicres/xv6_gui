@@ -36,6 +36,7 @@ typedef struct ori_tile
     uint tid;
     uint xid;
     uint pid;
+
 } tile;
 tile* ts;
 
@@ -127,7 +128,7 @@ tile* initTiles()
     for (i=0;i<ntile;i++)
     {
         (p+i)->tx=5;
-        (p+i)->ty=70;
+        (p+i)->ty=73;
         (p+i)->pw=64;
         (p+i)->ph=64;
         (p+i)->pic=readImg((p+i)->picname,1);
@@ -187,7 +188,7 @@ void setupGUI()
     setattr(GUIENT_DIV,slider,GUIATTR_DIV_Y,parh(0));
     setattr(GUIENT_DIV,slider,GUIATTR_DIV_WIDTH,parh(200));
     setattr(GUIENT_DIV,slider,GUIATTR_DIV_HEIGHT,parh(768));
-    cl=rgba(0,0,0,95);
+    cl=rgba(0,0,0,55);
     setattr(GUIENT_DIV,slider,GUIATTR_DIV_BGCOLOR,&cl);
 
 
@@ -226,6 +227,11 @@ void OnMouseIn(uint domID)
 {
     uint i;
     color24 p;
+    if (domID==superhome)
+    {
+        setattr(GUIENT_DIV,slider,GUIATTR_DIV_X,parh(0));
+        return;
+    }
     for (i=0;i<ntile;i++)
         if ((ts+i)->tid==domID)
         {
@@ -240,6 +246,11 @@ void OnMouseIn(uint domID)
 void OnMouseOut(uint domID)
 {
     uint i;
+    if (domID==slider)
+    {
+        setattr(GUIENT_DIV,slider,GUIATTR_DIV_X,parh(-200));
+        return;
+    }
     for (i=0;i<ntile;i++)
         if ((ts+i)->tid==domID)
         {
