@@ -132,7 +132,6 @@ int main(int argc, char *argv[])
     char* str;
     char* fnm;
 
-    printf(1,"111/%d/",argc);
     if(argc != 2){
         if (argc==1 && strcmp("fileEditor", argv[0]))
         {

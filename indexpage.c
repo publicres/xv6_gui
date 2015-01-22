@@ -104,10 +104,12 @@ tile* initTiles()
     (p+2)->x=627; (p+2)->y=224; (p+2)->w=210; (p+2)->h=100; (p+2)->bgcolor=rgba(184,28,67,0);
     (p+2)->px=80; (p+2)->py=17; (p+2)->picname="image.mx";
     (p+2)->text="Image";
+    (p+2)->execName="undefined";
 
     (p+3)->x=187; (p+3)->y=334; (p+3)->w=210; (p+3)->h=100; (p+3)->bgcolor=rgba(95,60,186,0);
     (p+3)->px=80; (p+3)->py=17; (p+3)->picname="bug.mx";
     (p+3)->text="Minesweeper";
+    (p+3)->execName="undefined";
 
     (p+4)->x=407; (p+4)->y=334; (p+4)->w=210; (p+4)->h=100; (p+4)->bgcolor=rgba(0,156,0,0);
     (p+4)->px=80; (p+4)->py=17; (p+4)->picname="users.mx";
@@ -117,22 +119,27 @@ tile* initTiles()
     (p+5)->x=627; (p+5)->y=334; (p+5)->w=100; (p+5)->h=100; (p+5)->bgcolor=rgba(42,127,237,0);
     (p+5)->px=25; (p+5)->py=17; (p+5)->picname="hp.mx";
     (p+5)->text="Music";
+    (p+5)->execName="undefined";
 
     (p+6)->x=737; (p+6)->y=334; (p+6)->w=100; (p+6)->h=100; (p+6)->bgcolor=rgba(95,60,186,0);
     (p+6)->px=25; (p+6)->py=17; (p+6)->picname="cog.mx";
     (p+6)->text="Set";
+    (p+6)->execName="undefined";
 
     (p+7)->x=187; (p+7)->y=444; (p+7)->w=210; (p+7)->h=100; (p+7)->bgcolor=rgba(43,127,237,0);
     (p+7)->px=80; (p+7)->py=17; (p+7)->picname="bubble2.mx";
     (p+7)->text="ReadMe";
+    (p+7)->execName="readmegui";
 
     (p+8)->x=407; (p+8)->y=444; (p+8)->w=100; (p+8)->h=100; (p+8)->bgcolor=rgba(184,28,67,0);
     (p+8)->px=25; (p+8)->py=17; (p+8)->picname="alarm.mx";
     (p+8)->text="Clock";
+    (p+8)->execName="undefined";
 
     (p+9)->x=517; (p+9)->y=444; (p+9)->w=100; (p+9)->h=100; (p+9)->bgcolor=rgba(155,37,163,0);
     (p+9)->px=25; (p+9)->py=17; (p+9)->picname="switch.mx";
     (p+9)->text="Shut";
+    (p+9)->execName="undefined";
 
     for (i=0;i<ntile;i++)
     {
@@ -386,6 +393,57 @@ void switchTo(int tid)
         buildTaskBar();
     }
 }
+void callByName(char* actName, char *arg)
+{
+    int i;
+    uint pd;
+    tile* th;
+    char *demoARGC[3];
+    uint tp,id;
+    char cb[13];
+    char acb[13];
+
+    for (i=0;i<ntile;i++)
+    {
+        if (strcmp(actName,(ts+i)->execName)==0) //HAVE NOT TEST YET !
+        {
+            th=ts+i;
+            if (th->openpid==0)
+            {
+                createdom(GUIENT_DIV,bgc,&(th->openanc));
+                setattr(GUIENT_DIV,th->openanc,GUIATTR_DIV_X,parh(0));
+                setattr(GUIENT_DIV,th->openanc,GUIATTR_DIV_Y,parh(0));
+                setattr(GUIENT_DIV,th->openanc,GUIATTR_DIV_WIDTH,parh(1024));
+                setattr(GUIENT_DIV,th->openanc,GUIATTR_DIV_HEIGHT,parh(768));
+
+                id=0;
+                tp=th->openanc;
+                while (tp>0)
+                {
+                    cb[++id]=tp%10+'0';
+                    tp/=10;
+                }
+                for (tp=1;tp<=id;tp++)
+                    acb[id-tp]=cb[tp];
+                acb[id]=0;
+
+                demoARGC[2]=0;
+                demoARGC[1]=arg;
+                demoARGC[0]=acb;
+                //printf(0,"%s 0x%x\n",bgStr,bgc);
+
+                if ((pd=fork())==0)
+                {
+                    exec(th->execName,demoARGC);
+                    //NO RETURN!
+                }
+                th->openpid=pd;
+            }
+            switchTo(i);
+            return;
+        }
+    }
+}
 //==================event=========================
 //================================================
 void OnMouseIn(uint domID)
@@ -483,6 +541,7 @@ int main(int argc, char *argv[])
     int pd;
     MouseMsg* km;
     FocusMsg* fm;
+    CallMsg* cm;
     while (1)
     {
         if ((pd=asynwait())>0)
@@ -503,6 +562,11 @@ int main(int argc, char *argv[])
             fm=(FocusMsg*)msg;
             if (fm->focus_or_not==0)
                 OnBlur(km->dom_id);
+        }
+        else if (*msg==CALL_MESSAGE)
+        {
+            cm=(CallMsg*)msg;
+            callByName(cm->call_process_name,cm->file_path);
         }
     }
 }
