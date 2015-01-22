@@ -479,7 +479,47 @@ int renamefile(char* originname, char* nowname)
     return r;
 }
 
-char* createInputNameDialog(char* defaultstring, uint parent)
+uchar *readImg(char *fileName, uchar picMode)   //0:3channel,1:4channel
+{
+    int fd1 = open(fileName, 0);
+    if (fd1 < 0)
+    {
+        printf(1, "open file error\n");
+        return 0;
+    }
+    uchar w,h;
+    read(fd1, &w, 1);
+    read(fd1, &h, 1);
+    int size=(uint)w*(uint)h,i;
+    uchar *p=malloc(size*4+10);
+    uchar *q,*tp,*tq;
+    p[0]=w;
+    p[1]=h;
+    if (picMode==1)
+    {
+        read(fd1, p+2, size*4);
+    }
+    else if (picMode==0)
+    {
+        q=malloc(size*3+4);
+        read(fd1, q, size*3);
+        tp=p+2;
+        tq=q;
+        for (i=0;i<size;i++)
+        {
+            *(tp++)=*(q++);
+            *(tp++)=*(q++);
+            *(tp++)=*(q++);
+            *(tp++)=0;
+        }
+        free(tq);
+    }
+    close(fd1);
+
+    return p;
+}
+
+void createInputNameDialog(char* defaultstring, uint parent)
 {
     uint dialog;
         uint dialog_titlebar;
@@ -575,9 +615,9 @@ char* createInputNameDialog(char* defaultstring, uint parent)
         setattr(GUIENT_DIV, cancelbutton, GUIATTR_DIV_INTEG, parh(1));
 
             createdom(GUIENT_TXT, cancelbutton, &canceltext);
-            setattr(GUIENT_TXT, canceltext, GUIATTR_TXT_X, parh(20));
+            setattr(GUIENT_TXT, canceltext, GUIATTR_TXT_X, parh(0));
             setattr(GUIENT_TXT, canceltext, GUIATTR_TXT_Y, parh(0));
-            setattr(GUIENT_TXT, canceltext, GUIATTR_TXT_WIDTH, parh(30));
+            setattr(GUIENT_TXT, canceltext, GUIATTR_TXT_WIDTH, parh(70));
             setattr(GUIENT_TXT, canceltext, GUIATTR_TXT_HEIGHT, parh(24));
             setattr(GUIENT_TXT, canceltext, GUIATTR_TXT_STR, cancel);
             setattr(GUIENT_TXT, canceltext, GUIATTR_TXT_COLOR, &warning_textcolor);
@@ -606,10 +646,9 @@ char* createInputNameDialog(char* defaultstring, uint parent)
     releasedom(GUIENT_DIV, dialog);
 
     free(dmsg);
-    return "";
 }
 
-//parameter: default name, current folder
+//parameter: default name, current folder, window parent
 int main(int argc, char *argv[])
 {
     if (argc <= 1)
@@ -617,9 +656,29 @@ int main(int argc, char *argv[])
         printf(2, "parameter num wrong!!!\r\n");
         exit();
     }
-    else
-    {
-        renamefile(argv[1], "HH");
-    }
+    initprocessqueue();
+
+    char* defaultname = argv[1];
+    current_path = argv[2];
+
+    uint safe_area;
+
+    color32 safe_area_color = rgba(0, 0, 0, 255);
+
+    close_icon_content.pics = readImg("close.mx", 1);
+    close_icon_content.isRepeat = 0;
+
+    createdom(GUIENT_DIV, windowparent, &safe_area);
+    setattr(GUIENT_DIV, safe_area, GUIATTR_DIV_X, parh(0));
+    setattr(GUIENT_DIV, safe_area, GUIATTR_DIV_Y, parh(0));
+    setattr(GUIENT_DIV, safe_area, GUIATTR_DIV_WIDTH, parh(1024));
+    setattr(GUIENT_DIV, safe_area, GUIATTR_DIV_HEIGHT, parh(768));
+    setattr(GUIENT_DIV, safe_area, GUIATTR_DIV_BGCOLOR, &safe_area_color);
+
+    createInputNameDialog(defaultname, safe_area);
+
+    releasedom(GUIENT_DIV, safe_area);
+
+    releaseprocessqueue();
     exit();
 }
