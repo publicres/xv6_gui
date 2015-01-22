@@ -189,6 +189,14 @@ DEFAULTFILES=\
 	file.mx\
 	bitmap.mx\
 	text.mx\
+	openfile.mx\
+	delete.mx\
+	copy.mx\
+	scissors.mx\
+	rename.mx\
+	newfolder.mx\
+	newfile.mx\
+	paste.mx\
 
 UPROGS=\
 	_cat\
