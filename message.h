@@ -42,6 +42,6 @@ typedef struct focus_message
 typedef struct call_message
 {
 	int msg_type;
-	char* call_process_name;
-	char* file_path;
+	char call_process_name[40];
+	char file_path[40];
 }CallMsg;
