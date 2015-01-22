@@ -131,6 +131,7 @@ int main(int argc, char *argv[])
     int fd;
     char* str;
 
+    printf(1,"111/%d/",argc);
     if(argc != 2){
         printf(1, "fileEditor: only allows 1 argument\r\n");
         exit();
