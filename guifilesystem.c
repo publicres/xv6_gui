@@ -12,8 +12,8 @@
 #define FOLDERTYPE 1
 #define NOTYPE 0
 #define FILETYPE 2
-#define FILENUMINAROW 10
-#define SCROLL_DISTANCE 20
+#define FILENUMINAROW 7
+#define SCROLL_DISTANCE 50
 
 typedef struct lsresult
 {
@@ -25,6 +25,8 @@ typedef struct lsresult
 typedef struct guifilenodes
 {
     uint* nodes;
+    uint* icons;
+    uint* titles;
     int num;
 }FileNodes;
 
@@ -36,6 +38,10 @@ char* last_copied_path;
 char* last_moved_path;
 LSResult listresult;
 int file_type_to_be_operate = NOTYPE;
+contentStruct folder_type_content;
+contentStruct bitmap_type_content;
+contentStruct file_type_content;
+contentStruct text_type_content;
 
 uint j;
 #define parh(x) (j=x,&j)
@@ -543,25 +549,76 @@ void render(char** names, int num, uint parent, int* fileinfo)
 {
     int i;
     filenodes.nodes = (uint*)malloc(num * sizeof(uint));
+    filenodes.icons = (uint*)malloc(num * sizeof(uint));
+    filenodes.titles = (uint*)malloc(num * sizeof(uint));
     filenodes.num = num;
-    color32 folder_color = rgba(0, 255, 255, 0);
-    color32 file_color = rgba(255, 0, 255, 0);
+    color32 name_color = rgba(0, 0, 0, 0);
     memset(filenodes.nodes, 0, num * sizeof(uint));
     for (i = 0; i < num; i++)
     {
         //printf(1, "%s\r\n", names[i]);
-        int row = i / 10;
-        int col = i % 10;
-        createdom(GUIENT_DIV, parent, &filenodes.nodes[i]);
-        setattr(GUIENT_DIV, filenodes.nodes[i], GUIATTR_DIV_X, parh(17 + 100 * col)); //(90+10)
-        setattr(GUIENT_DIV, filenodes.nodes[i], GUIATTR_DIV_Y, parh(10 + 125 * row)); //(115+10)
-        setattr(GUIENT_DIV, filenodes.nodes[i], GUIATTR_DIV_WIDTH, parh(90));
-        setattr(GUIENT_DIV, filenodes.nodes[i], GUIATTR_DIV_HEIGHT, parh(115));
-        if (fileinfo[i] == FOLDERTYPE) //folder
-            setattr(GUIENT_DIV, filenodes.nodes[i], GUIATTR_DIV_BGCOLOR, &folder_color);
-        else    //file
-            setattr(GUIENT_DIV, filenodes.nodes[i], GUIATTR_DIV_BGCOLOR, &file_color);
+        int row = i / FILENUMINAROW;
+        int col = i % FILENUMINAROW;
 
+        createdom(GUIENT_DIV, parent, &filenodes.nodes[i]);
+        setattr(GUIENT_DIV, filenodes.nodes[i], GUIATTR_DIV_X, parh(28 + 140 * col));
+        setattr(GUIENT_DIV, filenodes.nodes[i], GUIATTR_DIV_Y, parh(10 + 190 * row));
+        setattr(GUIENT_DIV, filenodes.nodes[i], GUIATTR_DIV_WIDTH, parh(130));
+        setattr(GUIENT_DIV, filenodes.nodes[i], GUIATTR_DIV_HEIGHT, parh(180));
+        setattr(GUIENT_DIV, filenodes.nodes[i], GUIATTR_DIV_INTEG, parh(1));
+
+            createdom(GUIENT_IMG, filenodes.nodes[i], &filenodes.icons[i]);
+            setattr(GUIENT_IMG, filenodes.icons[i], GUIATTR_IMG_X, parh(1));
+            setattr(GUIENT_IMG, filenodes.icons[i], GUIATTR_IMG_Y, parh(2));
+            setattr(GUIENT_IMG, filenodes.icons[i], GUIATTR_IMG_WIDTH, parh(128));
+            setattr(GUIENT_IMG, filenodes.icons[i], GUIATTR_IMG_HEIGHT, parh(128));
+            if (fileinfo[i] == FOLDERTYPE)
+            {
+                setattr(GUIENT_IMG, filenodes.icons[i], GUIATTR_IMG_CONTENT, &folder_type_content);
+            }
+            else if (strcmp("README", names[i]) == 0)
+            {
+                setattr(GUIENT_IMG, filenodes.icons[i], GUIATTR_IMG_CONTENT, &text_type_content);
+            }
+            else
+            {
+                int t;
+                for (t = strlen(names[i]) - 1; t >= 0; t--)
+                {
+                    if (names[i][t] == '.')
+                        break;
+                }
+                if (t < 0)
+                {
+                    setattr(GUIENT_IMG, filenodes.icons[i], GUIATTR_IMG_CONTENT, &file_type_content);
+                }
+                else
+                {
+                    if (strcmp(names[i] + t + 1, "txt") == 0)
+                    {
+                        //printf(1, "txt!!!!!!!\r\n");
+                        setattr(GUIENT_IMG, filenodes.icons[i], GUIATTR_IMG_CONTENT, &text_type_content);
+                    }
+                    else if (strcmp(names[i] + t + 1, "matrix") || strcmp(names[i] + t + 1, "mx") == 0)
+                    {
+                        //printf(1, "bitmap!!\r\n");
+                        setattr(GUIENT_IMG, filenodes.icons[i], GUIATTR_IMG_CONTENT, &bitmap_type_content);
+                    }
+                    else
+                    {
+                        //printf(1, "file!!!!\r\n");
+                        setattr(GUIENT_IMG, filenodes.icons[i], GUIATTR_IMG_CONTENT, &file_type_content);
+                    }
+                }
+            }
+
+            createdom(GUIENT_TXT, filenodes.nodes[i], &filenodes.titles[i]);
+            setattr(GUIENT_TXT, filenodes.titles[i], GUIATTR_TXT_X, parh(5));
+            setattr(GUIENT_TXT, filenodes.titles[i], GUIATTR_TXT_Y, parh(132));
+            setattr(GUIENT_TXT, filenodes.titles[i], GUIATTR_TXT_WIDTH, parh(120));
+            setattr(GUIENT_TXT, filenodes.titles[i], GUIATTR_TXT_HEIGHT, parh(48));
+            setattr(GUIENT_TXT, filenodes.titles[i], GUIATTR_TXT_STR, names[i]);
+            setattr(GUIENT_TXT, filenodes.titles[i], GUIATTR_TXT_COLOR, &name_color);
     }
 }
 
@@ -698,6 +755,19 @@ void pastebutton_onclick()
     }
 }
 
+void releasefilenodes()
+{
+    int i;
+    for (i = 0; i < filenodes.num; i++)
+    {
+        releasedom(GUIENT_TXT, filenodes.titles[i]);
+        releasedom(GUIENT_IMG, filenodes.icons[i]);
+        releasedom(GUIENT_DIV, filenodes.nodes[i]);
+    }
+    free(filenodes.nodes);
+    filenodes.num = 0;
+}
+
 void invalidate(uint parent)
 {
     int i;
@@ -707,16 +777,51 @@ void invalidate(uint parent)
     free(listresult.parseresult);
     free(listresult.fileinfo);
 
-    for (i = 0; i < filenodes.num; i++)
-    {
-        releasedom(GUIENT_DIV, filenodes.nodes[i]);
-    }
-    free(filenodes.nodes);
-    filenodes.num = 0;
+    releasefilenodes();
 
     listresult = ls(current_path);
     int n = strlen(listresult.filenames) / 14 - 2;
     render(listresult.parseresult, n, parent, listresult.fileinfo + 2); //the first two are . and ..
+}
+
+uchar *readImg(char *fileName, uchar picMode)   //0:3channel,1:4channel
+{
+    int fd1 = open(fileName, 0);
+    if (fd1 < 0)
+    {
+        printf(1, "open file error\n");
+        return 0;
+    }
+    uchar w,h;
+    read(fd1, &w, 1);
+    read(fd1, &h, 1);
+    int size=(uint)w*(uint)h,i;
+    uchar *p=malloc(size*4+10);
+    uchar *q,*tp,*tq;
+    p[0]=w;
+    p[1]=h;
+    if (picMode==1)
+    {
+        read(fd1, p+2, size*4);
+    }
+    else if (picMode==0)
+    {
+        q=malloc(size*3+4);
+        read(fd1, q, size*3);
+        tp=p+2;
+        tq=q;
+        for (i=0;i<size;i++)
+        {
+            *(tp++)=*(q++);
+            *(tp++)=*(q++);
+            *(tp++)=*(q++);
+            *(tp++)=0;
+        }
+        free(tq);
+    }
+    close(fd1);
+
+    return p;
 }
 
 int main(int argc, char *argv[])
@@ -747,11 +852,17 @@ int main(int argc, char *argv[])
     //===========create window
     uint window;
         uint titlebar;
+            uint window_title;
             uint closebutton;
+                uint close_icon;
+
         uint toolbar;
             uint gobackbutton;
             uint upbutton;
             uint downbutton;
+
+        uint separator;
+
         uint scrollview;
         uint right_click_onfile;
             uint delete_button;
@@ -761,13 +872,39 @@ int main(int argc, char *argv[])
             uint new_folder_button;
             uint new_file_button;
             uint paste_button;
+
+
     color32 window_background = rgba(255, 255, 255, 0);
-    color32 titlebar_color = rgba(0, 0, 255, 100);
-    color32 closebutton_color = rgba(255, 0, 0, 0);
+    color32 titlebar_color = rgba(210, 174, 142, 0);
+    color32 closebutton_color = rgba(200, 80, 81, 0);
     color32 right_click_onfile_color = rgba(170, 170, 170, 50);
     color32 right_click_onwindow_color = rgba(250, 250, 0, 50);
     color32 button_color = rgba(0, 0, 0, 0);
-    color32 toolbar_color = rgba(32, 125, 234, 50);
+    color32 separator_color = rgba(169, 160, 137, 0);
+    color32 window_title_color = rgba(0, 0, 0, 0);
+
+    char* window_title_text = "File Explorer";
+
+    contentStruct close_icon_content;
+    close_icon_content.pics = readImg("close.mx", 1);
+    close_icon_content.isRepeat = 0;
+    contentStruct gobackbutton_content;
+    gobackbutton_content.pics = readImg("goback.mx", 1);
+    gobackbutton_content.isRepeat = 0;
+    contentStruct upbutton_content;
+    upbutton_content.pics = readImg("up.mx", 1);
+    upbutton_content.isRepeat = 0;
+    contentStruct downbutton_content;
+    downbutton_content.pics = readImg("down.mx", 1);
+    downbutton_content.isRepeat = 0;
+    folder_type_content.pics = readImg("folder.mx", 1);
+    folder_type_content.isRepeat = 0;
+    bitmap_type_content.pics = readImg("bitmap.mx", 1);
+    bitmap_type_content.isRepeat = 0;
+    file_type_content.pics = readImg("file.mx", 0);
+    file_type_content.isRepeat = 0;
+    text_type_content.pics = readImg("text.mx", 1);
+    text_type_content.isRepeat = 0;
     
 
     createdom(GUIENT_DIV, windowparent, &window);
@@ -777,47 +914,82 @@ int main(int argc, char *argv[])
     setattr(GUIENT_DIV, window, GUIATTR_DIV_HEIGHT, parh(768));
     setattr(GUIENT_DIV, window, GUIATTR_DIV_BGCOLOR, &window_background);
 
+        //=====ls and render the whole directory
+        listresult = ls(".");
+        int n = strlen(listresult.filenames) / 14 - 2;
+        int rowno = n / FILENUMINAROW + 1;
+        createdom(GUIENT_DIV, window, &scrollview);
+        setattr(GUIENT_DIV, scrollview, GUIATTR_DIV_X, parh(0));
+        setattr(GUIENT_DIV, scrollview, GUIATTR_DIV_Y, parh(95));
+        setattr(GUIENT_DIV, scrollview, GUIATTR_DIV_WIDTH, parh(1024));
+        setattr(GUIENT_DIV, scrollview, GUIATTR_DIV_HEIGHT, parh(190 * rowno + 10));
+        setattr(GUIENT_DIV, scrollview, GUIATTR_DIV_BGCOLOR, &window_background);
+        render(listresult.parseresult, n, scrollview, listresult.fileinfo + 2); //the first two are . and ..
+
         createdom(GUIENT_DIV, window, &titlebar);
         setattr(GUIENT_DIV, titlebar, GUIATTR_DIV_X, parh(0));
         setattr(GUIENT_DIV, titlebar, GUIATTR_DIV_Y, parh(0));
         setattr(GUIENT_DIV, titlebar, GUIATTR_DIV_WIDTH, parh(1024));
-        setattr(GUIENT_DIV, titlebar, GUIATTR_DIV_HEIGHT, parh(20));
+        setattr(GUIENT_DIV, titlebar, GUIATTR_DIV_HEIGHT, parh(35));
         setattr(GUIENT_DIV, titlebar, GUIATTR_DIV_BGCOLOR, &titlebar_color);
 
+            createdom(GUIENT_TXT, titlebar, &window_title);
+            setattr(GUIENT_TXT, window_title, GUIATTR_TXT_X, parh(440));
+            setattr(GUIENT_TXT, window_title, GUIATTR_TXT_Y, parh(3));
+            setattr(GUIENT_TXT, window_title, GUIATTR_TXT_WIDTH, parh(200));
+            setattr(GUIENT_TXT, window_title, GUIATTR_TXT_HEIGHT, parh(24));
+            setattr(GUIENT_TXT, window_title, GUIATTR_TXT_STR, window_title_text);
+            setattr(GUIENT_TXT, window_title, GUIATTR_TXT_COLOR, &window_title_color);
+
             createdom(GUIENT_DIV, titlebar, &closebutton);
-            setattr(GUIENT_DIV, closebutton, GUIATTR_DIV_X, parh(1004));
+            setattr(GUIENT_DIV, closebutton, GUIATTR_DIV_X, parh(973));
             setattr(GUIENT_DIV, closebutton, GUIATTR_DIV_Y, parh(0));
-            setattr(GUIENT_DIV, closebutton, GUIATTR_DIV_WIDTH, parh(20));
-            setattr(GUIENT_DIV, closebutton, GUIATTR_DIV_HEIGHT, parh(20));
+            setattr(GUIENT_DIV, closebutton, GUIATTR_DIV_WIDTH, parh(51));
+            setattr(GUIENT_DIV, closebutton, GUIATTR_DIV_HEIGHT, parh(30));
             setattr(GUIENT_DIV, closebutton, GUIATTR_DIV_BGCOLOR, &closebutton_color);
+            setattr(GUIENT_DIV, closebutton, GUIATTR_DIV_INTEG, parh(1));
+
+                createdom(GUIENT_IMG, closebutton, &close_icon);
+                setattr(GUIENT_IMG, close_icon, GUIATTR_IMG_X, parh(18));
+                setattr(GUIENT_IMG, close_icon, GUIATTR_IMG_Y, parh(7));
+                setattr(GUIENT_IMG, close_icon, GUIATTR_IMG_WIDTH, parh(17));
+                setattr(GUIENT_IMG, close_icon, GUIATTR_IMG_HEIGHT, parh(17));
+                setattr(GUIENT_IMG, close_icon, GUIATTR_IMG_CONTENT, &close_icon_content);
 
         createdom(GUIENT_DIV, window, &toolbar);
         setattr(GUIENT_DIV, toolbar, GUIATTR_DIV_X, parh(0));
-        setattr(GUIENT_DIV, toolbar, GUIATTR_DIV_Y, parh(20));
+        setattr(GUIENT_DIV, toolbar, GUIATTR_DIV_Y, parh(35));
         setattr(GUIENT_DIV, toolbar, GUIATTR_DIV_WIDTH, parh(1024));
-        setattr(GUIENT_DIV, toolbar, GUIATTR_DIV_HEIGHT, parh(40));
-        setattr(GUIENT_DIV, toolbar, GUIATTR_DIV_BGCOLOR, &toolbar_color);
+        setattr(GUIENT_DIV, toolbar, GUIATTR_DIV_HEIGHT, parh(55));
+        setattr(GUIENT_DIV, toolbar, GUIATTR_DIV_BGCOLOR, &window_background);
 
-            createdom(GUIENT_DIV, toolbar, &gobackbutton);
-            setattr(GUIENT_DIV, gobackbutton, GUIATTR_DIV_X, parh(5));
-            setattr(GUIENT_DIV, gobackbutton, GUIATTR_DIV_Y, parh(5));
-            setattr(GUIENT_DIV, gobackbutton, GUIATTR_DIV_WIDTH, parh(50));
-            setattr(GUIENT_DIV, gobackbutton, GUIATTR_DIV_HEIGHT, parh(30));
-            setattr(GUIENT_DIV, gobackbutton, GUIATTR_DIV_BGCOLOR, &button_color);
+            createdom(GUIENT_IMG, toolbar, &gobackbutton);
+            setattr(GUIENT_IMG, gobackbutton, GUIATTR_IMG_X, parh(17));
+            setattr(GUIENT_IMG, gobackbutton, GUIATTR_IMG_Y, parh(17));
+            setattr(GUIENT_IMG, gobackbutton, GUIATTR_IMG_WIDTH, parh(30));
+            setattr(GUIENT_IMG, gobackbutton, GUIATTR_IMG_HEIGHT, parh(30));
+            setattr(GUIENT_IMG, gobackbutton, GUIATTR_IMG_CONTENT, &gobackbutton_content);
+    
+            createdom(GUIENT_IMG, toolbar, &upbutton);
+            setattr(GUIENT_IMG, upbutton, GUIATTR_IMG_X, parh(872));
+            setattr(GUIENT_IMG, upbutton, GUIATTR_IMG_Y, parh(17));
+            setattr(GUIENT_IMG, upbutton, GUIATTR_IMG_WIDTH, parh(32));
+            setattr(GUIENT_IMG, upbutton, GUIATTR_IMG_HEIGHT, parh(32));
+            setattr(GUIENT_IMG, upbutton, GUIATTR_IMG_CONTENT, &upbutton_content);
+    
+            createdom(GUIENT_IMG, toolbar, &downbutton);
+            setattr(GUIENT_IMG, downbutton, GUIATTR_IMG_X, parh(934));
+            setattr(GUIENT_IMG, downbutton, GUIATTR_IMG_Y, parh(17));
+            setattr(GUIENT_IMG, downbutton, GUIATTR_IMG_WIDTH, parh(32));
+            setattr(GUIENT_IMG, downbutton, GUIATTR_IMG_HEIGHT, parh(32));
+            setattr(GUIENT_IMG, downbutton, GUIATTR_IMG_CONTENT, &downbutton_content);
 
-            createdom(GUIENT_DIV, toolbar, &upbutton);
-            setattr(GUIENT_DIV, upbutton, GUIATTR_DIV_X, parh(75));
-            setattr(GUIENT_DIV, upbutton, GUIATTR_DIV_Y, parh(5));
-            setattr(GUIENT_DIV, upbutton, GUIATTR_DIV_WIDTH, parh(50));
-            setattr(GUIENT_DIV, upbutton, GUIATTR_DIV_HEIGHT, parh(30));
-            setattr(GUIENT_DIV, upbutton, GUIATTR_DIV_BGCOLOR, &button_color);
-
-            createdom(GUIENT_DIV, toolbar, &downbutton);
-            setattr(GUIENT_DIV, downbutton, GUIATTR_DIV_X, parh(145));
-            setattr(GUIENT_DIV, downbutton, GUIATTR_DIV_Y, parh(5));
-            setattr(GUIENT_DIV, downbutton, GUIATTR_DIV_WIDTH, parh(50));
-            setattr(GUIENT_DIV, downbutton, GUIATTR_DIV_HEIGHT, parh(30));
-            setattr(GUIENT_DIV, downbutton, GUIATTR_DIV_BGCOLOR, &button_color);
+        createdom(GUIENT_DIV, window, &separator);
+        setattr(GUIENT_DIV, separator, GUIATTR_DIV_X, parh(0));
+        setattr(GUIENT_DIV, separator, GUIATTR_DIV_Y, parh(90));
+        setattr(GUIENT_DIV, separator, GUIATTR_DIV_WIDTH, parh(1024));
+        setattr(GUIENT_DIV, separator, GUIATTR_DIV_HEIGHT, parh(1));
+        setattr(GUIENT_DIV, separator, GUIATTR_DIV_BGCOLOR, &separator_color);
 
         createdom(GUIENT_DIV, window, &right_click_onfile);
         setattr(GUIENT_DIV, right_click_onfile, GUIATTR_DIV_X, parh(0));
@@ -874,18 +1046,6 @@ int main(int argc, char *argv[])
             setattr(GUIENT_DIV, paste_button, GUIATTR_DIV_WIDTH, parh(50));
             setattr(GUIENT_DIV, paste_button, GUIATTR_DIV_HEIGHT, parh(30));
             setattr(GUIENT_DIV, paste_button, GUIATTR_DIV_BGCOLOR, &button_color);
-
-        //=====ls and render the whole directory
-        listresult = ls(".");
-        int n = strlen(listresult.filenames) / 14 - 2;
-        int rowno = n / 10 + 1;
-        createdom(GUIENT_DIV, window, &scrollview);
-        setattr(GUIENT_DIV, scrollview, GUIATTR_DIV_X, parh(0));
-        setattr(GUIENT_DIV, scrollview, GUIATTR_DIV_Y, parh(60));
-        setattr(GUIENT_DIV, scrollview, GUIATTR_DIV_WIDTH, parh(1024));
-        setattr(GUIENT_DIV, scrollview, GUIATTR_DIV_HEIGHT, parh(125 * rowno + 10));
-        setattr(GUIENT_DIV, scrollview, GUIATTR_DIV_BGCOLOR, &window_background);
-        render(listresult.parseresult, n, scrollview, listresult.fileinfo + 2); //the first two are . and ..
 
     //==========receive events
     int *msg = (int*)malloc(100);
@@ -948,14 +1108,14 @@ int main(int argc, char *argv[])
                     {
                         int y;
                         getattr(GUIENT_DIV, scrollview, GUIATTR_DIV_Y, &y);
-                        y = y - 20;
+                        y = y + SCROLL_DISTANCE;
                         setattr(GUIENT_DIV, scrollview, GUIATTR_DIV_Y, &y);
                     }
                     else if (mm->dom_id == downbutton)
                     {
                         int y;
                         getattr(GUIENT_DIV, scrollview, GUIATTR_DIV_Y, &y);
-                        y = y + 20;
+                        y = y - SCROLL_DISTANCE;
                         setattr(GUIENT_DIV, scrollview, GUIATTR_DIV_Y, &y);
                     }
                     else    //open folder or file
@@ -963,12 +1123,6 @@ int main(int argc, char *argv[])
                         int nodeno = FindRightClickOnFile(mm->dom_id, filenodes.num);
                         if (nodeno != -1 && listresult.fileinfo[nodeno + 2] == FOLDERTYPE)
                         {
-                            /*char* d = (char*)malloc(MAX_DIRECTORY_LEN);
-                            memset(d, '\0', MAX_DIRECTORY_LEN);
-                            strcpy(d, current_path);
-                            int len = strlen(current_path);
-                            d[len] = '/';
-                            strcpy(d + strlen(d), );*/
                             changedirectory(listresult.parseresult[nodeno]);
                             invalidate(scrollview);
                         }
@@ -985,6 +1139,28 @@ int main(int argc, char *argv[])
     free(last_moved_path);
     free(last_copied_path);
     free(current_path);
+    free(close_icon_content.pics);
+    free(gobackbutton_content.pics);
+    free(upbutton_content.pics);
+    free(downbutton_content.pics);
+    free(text_type_content.pics);
+    free(file_type_content.pics);
+    free(folder_type_content.pics);
+    free(bitmap_type_content.pics);
+    free(listresult.filenames);
+    int i1;
+    for (i1 = 0; i1 < filenodes.num; i1++)
+        free(listresult.parseresult[i1]);
+    free(listresult.parseresult);
+    free(listresult.fileinfo);
+
+    //we must release text and img first and div can cascade release.
+    releasedom(GUIENT_TXT, window_title);
+    releasedom(GUIENT_IMG, close_icon);
+    releasedom(GUIENT_IMG, gobackbutton);
+    releasedom(GUIENT_IMG, upbutton);
+    releasedom(GUIENT_IMG, downbutton);
+    releasefilenodes();
     releasedom(GUIENT_DIV, window);
 
     releaseprocessqueue();

@@ -5,6 +5,7 @@
 #include "ex_mem.h"
 #include "guientity_cha.h"
 #include "guientity_attrvalue.h"
+#include "events.h"
 
 //==============================================
 uchar drawCha(dom* elem, int x, int y, int w, int h)
@@ -51,6 +52,9 @@ uint cha_createDom(cha* chaPtr, int x, int y, int w, int h, uint parent, int pid
     chaPtr->ds.entity=(void*)chaPtr;
     chaPtr->ds.onRender=drawCha;
     chaPtr->ds.pid=pid;
+    chaPtr->ds.onPoint=typicalPointEvent;
+    chaPtr->ds.onFocus=typicalFocusEvent;
+    chaPtr->ds.isIntegral=0;
 
     chaPtr->chaContent=0;
     chaPtr->chColor=rgb(0,255,0);
@@ -76,6 +80,9 @@ uint cha_createDomOrphan(cha* chaPtr, int x, int y, int w, int h, int pid)
     chaPtr->ds.entity=(void*)chaPtr;
     chaPtr->ds.onRender=drawCha;
     chaPtr->ds.pid=pid;
+    chaPtr->ds.onPoint=typicalPointEvent;
+    chaPtr->ds.onFocus=typicalFocusEvent;
+    chaPtr->ds.isIntegral=0;
 
     chaPtr->chaContent=0;
     chaPtr->chColor=rgb(0,255,0);

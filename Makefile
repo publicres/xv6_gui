@@ -180,6 +180,14 @@ DEFAULTFILES=\
 	search.matrix\
 	switch.matrix\
 	users.matrix\
+	close.mx\
+	goback.mx\
+	up.mx\
+	down.mx\
+	folder.mx\
+	file.mx\
+	bitmap.mx\
+	text.mx\
 
 UPROGS=\
 	_cat\
@@ -199,6 +207,7 @@ UPROGS=\
 	_zombie\
 	_guifilesystem\
 	_origincat\
+	_fileEditor\
 	_indexpage\
 
 fs.img: mkfs README $(UPROGS) $(DEFAULTFILES)

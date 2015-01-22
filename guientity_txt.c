@@ -7,6 +7,7 @@
 #include "guientity_cha.h"
 #include "guientity_txt.h"
 #include "guientity_attrvalue.h"
+#include "events.h"
 
 #define FONT_NUM 1
 static uint fontSize[FONT_NUM][2];
@@ -50,6 +51,9 @@ uint txt_createDom(int x, int y, uint w, uint h, uint parent, int pid)
     t->ds.entity=(void*)t;
     t->ds.onRender=0;
     t->ds.pid=pid;
+    t->ds.onPoint=typicalPointEvent;
+    t->ds.onFocus=typicalFocusEvent;
+    t->ds.isIntegral=0;
 
     t->blockHead=0;
     t->blockTail=0;
@@ -67,7 +71,7 @@ uint txt_createDom(int x, int y, uint w, uint h, uint parent, int pid)
         prepend((dom*)parent,&t->ds);
 
     cursorDiv=div_createDom(0, 0, t->chWidth, t->chHeight, (uint)t, pid);
-    div_changeBgcolor(cursorDiv, rgba(255,255,0,255));
+    div_changeBgcolor(cursorDiv, rgba(242,242,0,255));
     t->cursorDiv=(div*)cursorDiv;
 
     return (uint)t;
@@ -97,7 +101,7 @@ void txt_release(uint elem_)
 
     if (elem->ds.parent!=0)
         delete(&elem->ds);
-    _cascade_release(&elem->ds);
+    kfree((void*)&elem->ds);
 }
 
 uint initFont(void *val)
@@ -234,6 +238,7 @@ uint txt_setStr(uint elem_, char* str_)
 
         cha_createDom((cha*)nextPos, x, y, elem->chWidth, elem->chHeight, (uint)elem, elem->ds.pid);
         cha_setContent((uint)nextPos, elem->chImgArray[(uint)*str], *str);
+        cha_setColor((uint)nextPos, elem->txtColor);
 
         if (elem->tail==0)
         {
@@ -488,7 +493,8 @@ uint txt_insert(uint elem_, char val)
     }
     elem->tail=nextPos;
     cha_setContentNotRedraw((uint)nextPos, elem->chImgArray[(uint)val], val);
-
+    cha_setColor((uint)nextPos, elem->txtColor);
+    
     elem->cursor=nextPos;
     minX=elem->cursor->data.ds.x;
     minY=elem->cursor->data.ds.y;
@@ -540,7 +546,7 @@ uint txt_insert(uint elem_, char val)
 
         nextPos=nextPos->next;
     }
-
+    
     reDraw_(&elem->ds,minX,minY,maxX-minX,maxY-minY);
 
     return 0;
@@ -771,6 +777,36 @@ void txt_getStr(uint elem_, char* des)
     *d=0;
 }
 
+void txt_getTxtLen(uint elem_, int* des)
+{
+    txt *elem=(txt*)elem_;
+    txtContent* nextPos;
+    int len=0;
+
+    nextPos=elem->head;
+    while (nextPos!=0)
+    {
+        len++;
+        nextPos=nextPos->next;
+    }
+    *des=len;
+}
+
+uint txt_isChild(uint elem_, uint val)
+{
+    txt *elem=(txt*)elem_;
+    txtContent* nextPos;
+
+    nextPos=elem->head;
+    while (nextPos!=0)
+    {
+        if (nextPos == (txtContent*)val)
+            return 1;
+        nextPos=nextPos->next;
+    }
+    return 0;
+}
+
 uint txt_setAttr(uint elem_, int attr, void *val)
 {
     txt *elem=(txt*)elem_;
@@ -867,6 +903,12 @@ uint txt_setAttr(uint elem_, int attr, void *val)
     case GUIATTR_TXT_INSERT:
         u=txt_insert((uint)elem, *(char*)val);
         return u;
+    case GUIATTR_TXT_ISCHILD:
+        u=txt_isChild((uint)elem, *(uint*)val);
+        return u;
+    case GUIATTR_TXT_INTEGRL:
+        elem->ds.isIntegral=*(uchar*)val;
+        return 0;
     default:
         return -1;
     }
@@ -914,6 +956,9 @@ uint txt_getAttr(uint elem_, int attr, void *des)
         txt_incCursor((uint)elem);
         i=txt_bckspc((uint)elem, (char*)des);
         return i;
+    case GUIATTR_TXT_TXTLEN:
+        txt_getTxtLen((uint)elem, (int*)des);
+        break;
     default:
         return -1;
     }
