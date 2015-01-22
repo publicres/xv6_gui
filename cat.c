@@ -78,7 +78,7 @@ main(int argc, char *argv[])
     uint huahua,rec;
     color32 cs;
 
-    uchar *p=readImg("cursor.matrix",1);
+    uchar *p=readImg("cursor.mx",1);
 
         createdom(GUIENT_IMG,0xffffffff,&huahua);
         setattr(GUIENT_IMG,huahua,GUIATTR_IMG_X,parh(-50));

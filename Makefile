@@ -168,18 +168,18 @@ mkfs: mkfs.c fs.h
 .PRECIOUS: %.o
 
 DEFAULTFILES=\
-	cursor.matrix\
-	letters.matrix\
-	alarm.matrix\
-	bubble2.matrix\
-	bug.matrix\
-	cog.matrix\
-	filetext2.matrix\
-	headphones.matrix\
-	image.matrix\
-	search.matrix\
-	switch.matrix\
-	users.matrix\
+	cursor.mx\
+	letters.mx\
+	alarm.mx\
+	bubble2.mx\
+	bug.mx\
+	cog.mx\
+	filetext2.mx\
+	hp.mx\
+	image.mx\
+	search.mx\
+	switch.mx\
+	users.mx\
 	close.mx\
 	goback.mx\
 	up.mx\
