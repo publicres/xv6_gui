@@ -606,3 +606,15 @@ int sys_getmsgfromqueue(void)
     dequeue(proc->pid, r);
     return 0;
 }
+int sys_informhometoopenfile(void)
+{
+    char* pname;
+    char* fname;
+    if (argptr(0, &pname, 4) < 0)
+        return -1;
+    if (argptr(0, &fname, 4) < 0)
+        return -1;
+
+    informHomeToOpenFile(pname, fname);
+    return 0;
+}

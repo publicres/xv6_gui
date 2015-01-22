@@ -158,6 +158,9 @@ uint div_setAttr(uint elem_, int attr, void *val)
 	case GUIATTR_DIV_INTEGRL:
         elem->ds.isIntegral=*(uchar*)val;
 		return 0;
+    case GUIATTR_DIV_FOCUS:
+        setABSFocus(&elem->ds);
+        return 0;
     default:
         return -1;
     }
@@ -170,16 +173,16 @@ uint div_getAttr(uint elem_, int attr, void *des)
     switch (attr)
     {
     case GUIATTR_DIV_X:
-        return -1;
+        *((int*)des) = (elem->ds).x;
         break;
     case GUIATTR_DIV_Y:
-        return -1;
+        *((int*)des) = (elem->ds).y;
         break;
     case GUIATTR_DIV_WIDTH:
-        return -1;
+        *((int*)des) = (elem->ds).width;
         break;
     case GUIATTR_DIV_HEIGHT:
-        return -1;
+        *((int*)des) = (elem->ds).height;
         break;
     case GUIATTR_DIV_BGCOLOR:
         *((color32*)des)=elem->bgColor;

@@ -174,6 +174,7 @@ DEFAULTFILES=\
 	bubble2.mx\
 	bug.mx\
 	cog.mx\
+	home.mx\
 	filetext2.mx\
 	hp.mx\
 	image.mx\
@@ -188,6 +189,14 @@ DEFAULTFILES=\
 	file.mx\
 	bitmap.mx\
 	text.mx\
+	openfile.mx\
+	delete.mx\
+	copy.mx\
+	scissors.mx\
+	rename.mx\
+	newfolder.mx\
+	newfile.mx\
+	paste.mx\
 	guide.txt\
 
 UPROGS=\
@@ -210,6 +219,7 @@ UPROGS=\
 	_origincat\
 	_fileEditor\
 	_indexpage\
+	_aboutus\
 
 fs.img: mkfs README $(UPROGS) $(DEFAULTFILES)
 	./mkfs fs.img README $(UPROGS) $(DEFAULTFILES)
