@@ -170,16 +170,16 @@ uint div_getAttr(uint elem_, int attr, void *des)
     switch (attr)
     {
     case GUIATTR_DIV_X:
-        return -1;
+        *((int*)des) = (elem->ds).x;
         break;
     case GUIATTR_DIV_Y:
-        return -1;
+        *((int*)des) = (elem->ds).y;
         break;
     case GUIATTR_DIV_WIDTH:
-        return -1;
+        *((int*)des) = (elem->ds).width;
         break;
     case GUIATTR_DIV_HEIGHT:
-        return -1;
+        *((int*)des) = (elem->ds).height;
         break;
     case GUIATTR_DIV_BGCOLOR:
         *((color32*)des)=elem->bgColor;
