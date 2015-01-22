@@ -6,7 +6,8 @@
 #include "mouse.h"
 
 uint anc,forks,txt,ct;
-char* mstr="About us\n\n\n\nGraph user interface based on xv6.\nDevelopped by BingoLingo. \n    (Bao Yu, Wang Anqi, Levy, Zhong Yangxin)\n\nAll the source code is stored in Github\n    (git@github.com:publicres/xv6_gui.git)\nTo issue a bug, please contact us by email\n    (zly.george@163.com)\n\n\n\n\n\n\n\n2015/01/22";
+char* mstr=
+"  xv6 is a re-implementation of Dennis Ritchie's and Ken Thompson's Unix Version 6 (v6).  xv6 loosely follows the structure and style of v6, but is implemented for a modern x86-based multiprocessor using ANSI C.\n\n  xv6 is inspired by John Lions's Commentary on UNIX 6th Edition (Peer to Peer Communications; ISBN: 1-57398-013-7; 1st edition (June 14,2000)). See also http://pdos.csail.mit.edu/6.828/2012/v6.html, which provides pointers to on-line resources for v6. xv6 borrows code from the following sources:\n    JOS (asm.h, elf.h, mmu.h, bootasm.S, ide.c, console.c, and others)\n    Plan 9 (entryother.S, mp.h, mp.c, lapic.c)\n    FreeBSD (ioapic.c)\n    NetBSD (console.c)\nThe following people have made contributions:\n    Russ Cox (context switching, locking)\n    Cliff Frey (MP)\n    Xiao Yu (MP)\n    Nickolai Zeldovich\n    Austin Clements";
 
 int parher;
 #define parh(x) (parher=x,&parher)
@@ -71,7 +72,7 @@ void initDom()
     setattr(GUIENT_DIV,ct,GUIATTR_DIV_Y,parh(0));
     setattr(GUIENT_DIV,ct,GUIATTR_DIV_WIDTH,parh(1024));
     setattr(GUIENT_DIV,ct,GUIATTR_DIV_HEIGHT,parh(768));
-    cl=rgba(0,156,0,0);
+    cl=rgba(43,127,237,0);
     setattr(GUIENT_DIV,ct,GUIATTR_DIV_BGCOLOR,&cl);
 
     createdom(GUIENT_IMG,ct,&forks);
@@ -86,7 +87,7 @@ void initDom()
 
     createdom(GUIENT_TXT,ct,&(txt));
     setattr(GUIENT_TXT,txt,GUIATTR_TXT_X,parh(100));
-    setattr(GUIENT_TXT,txt,GUIATTR_TXT_Y,parh(150));
+    setattr(GUIENT_TXT,txt,GUIATTR_TXT_Y,parh(120));
     setattr(GUIENT_TXT,txt,GUIATTR_TXT_WIDTH,parh(824));
     setattr(GUIENT_TXT,txt,GUIATTR_TXT_HEIGHT,parh(24));
     setattr(GUIENT_TXT,txt,GUIATTR_TXT_STR,mstr);

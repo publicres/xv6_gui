@@ -5,8 +5,9 @@
 #include "message.h"
 #include "mouse.h"
 
-uint anc,forks,txt,ct;
-char* mstr="About us\n\n\n\nGraph user interface based on xv6.\nDevelopped by BingoLingo. \n    (Bao Yu, Wang Anqi, Levy, Zhong Yangxin)\n\nAll the source code is stored in Github\n    (git@github.com:publicres/xv6_gui.git)\nTo issue a bug, please contact us by email\n    (zly.george@163.com)\n\n\n\n\n\n\n\n2015/01/22";
+uint anc,forks,txt,ct,tb,tt,bb,bt;
+char* mstr="UNDER CONSTRUCTION  UNDER CONSTRUCTION  UNDER CONSTRUCTION  UNDER CONSTRUCTION";
+char* inf="Sorry! It seems that the programme hasn't been finished yet.\n\nEnjoy yourself in other apps! Thanks.";
 
 int parher;
 #define parh(x) (parher=x,&parher)
@@ -71,12 +72,46 @@ void initDom()
     setattr(GUIENT_DIV,ct,GUIATTR_DIV_Y,parh(0));
     setattr(GUIENT_DIV,ct,GUIATTR_DIV_WIDTH,parh(1024));
     setattr(GUIENT_DIV,ct,GUIATTR_DIV_HEIGHT,parh(768));
-    cl=rgba(0,156,0,0);
+    cl=rgba(0,42,51,0);
     setattr(GUIENT_DIV,ct,GUIATTR_DIV_BGCOLOR,&cl);
+
+    createdom(GUIENT_DIV,ct,&tb);
+    setattr(GUIENT_DIV,tb,GUIATTR_DIV_X,parh(0));
+    setattr(GUIENT_DIV,tb,GUIATTR_DIV_Y,parh(0));
+    setattr(GUIENT_DIV,tb,GUIATTR_DIV_WIDTH,parh(1024));
+    setattr(GUIENT_DIV,tb,GUIATTR_DIV_HEIGHT,parh(34));
+    cl=rgba(203,188,0,0);
+    setattr(GUIENT_DIV,tb,GUIATTR_DIV_BGCOLOR,&cl);
+
+    createdom(GUIENT_DIV,ct,&bb);
+    setattr(GUIENT_DIV,bb,GUIATTR_DIV_X,parh(0));
+    setattr(GUIENT_DIV,bb,GUIATTR_DIV_Y,parh(768-34));
+    setattr(GUIENT_DIV,bb,GUIATTR_DIV_WIDTH,parh(1024));
+    setattr(GUIENT_DIV,bb,GUIATTR_DIV_HEIGHT,parh(34));
+    cl=rgba(203,188,0,0);
+    setattr(GUIENT_DIV,bb,GUIATTR_DIV_BGCOLOR,&cl);
+
+    createdom(GUIENT_TXT,tb,&(tt));
+    setattr(GUIENT_TXT,tt,GUIATTR_TXT_X,parh(-10));
+    setattr(GUIENT_TXT,tt,GUIATTR_TXT_Y,parh(5));
+    setattr(GUIENT_TXT,tt,GUIATTR_TXT_WIDTH,parh(1350));
+    setattr(GUIENT_TXT,tt,GUIATTR_TXT_HEIGHT,parh(24));
+    setattr(GUIENT_TXT,tt,GUIATTR_TXT_STR,mstr);
+    ca[0]=0;ca[1]=42;ca[2]=51;
+    setattr(GUIENT_TXT,tt,GUIATTR_TXT_COLOR,ca);
+
+    createdom(GUIENT_TXT,bb,&(bt));
+    setattr(GUIENT_TXT,bt,GUIATTR_TXT_X,parh(-30));
+    setattr(GUIENT_TXT,bt,GUIATTR_TXT_Y,parh(5));
+    setattr(GUIENT_TXT,bt,GUIATTR_TXT_WIDTH,parh(1350));
+    setattr(GUIENT_TXT,bt,GUIATTR_TXT_HEIGHT,parh(24));
+    setattr(GUIENT_TXT,bt,GUIATTR_TXT_STR,mstr);
+    ca[0]=0;ca[1]=42;ca[2]=51;
+    setattr(GUIENT_TXT,bt,GUIATTR_TXT_COLOR,ca);
 
     createdom(GUIENT_IMG,ct,&forks);
     setattr(GUIENT_IMG,forks,GUIATTR_IMG_X,parh(990));
-    setattr(GUIENT_IMG,forks,GUIATTR_IMG_Y,parh(17));
+    setattr(GUIENT_IMG,forks,GUIATTR_IMG_Y,parh(50));
     setattr(GUIENT_IMG,forks,GUIATTR_IMG_WIDTH,parh(17));
     setattr(GUIENT_IMG,forks,GUIATTR_IMG_HEIGHT,parh(17));
     tcs.isRepeat=0;
@@ -86,10 +121,10 @@ void initDom()
 
     createdom(GUIENT_TXT,ct,&(txt));
     setattr(GUIENT_TXT,txt,GUIATTR_TXT_X,parh(100));
-    setattr(GUIENT_TXT,txt,GUIATTR_TXT_Y,parh(150));
+    setattr(GUIENT_TXT,txt,GUIATTR_TXT_Y,parh(310));
     setattr(GUIENT_TXT,txt,GUIATTR_TXT_WIDTH,parh(824));
     setattr(GUIENT_TXT,txt,GUIATTR_TXT_HEIGHT,parh(24));
-    setattr(GUIENT_TXT,txt,GUIATTR_TXT_STR,mstr);
+    setattr(GUIENT_TXT,txt,GUIATTR_TXT_STR,inf);
     ca[0]=ca[1]=ca[2]=0xff;
     setattr(GUIENT_TXT,txt,GUIATTR_TXT_COLOR,ca);
 }
@@ -114,6 +149,8 @@ int main(int argc, char *argv[])
                 {
                     releasedom(GUIENT_IMG,forks);
                     releasedom(GUIENT_TXT,txt);
+                    releasedom(GUIENT_TXT,bt);
+                    releasedom(GUIENT_TXT,tt);
                     releasedom(GUIENT_DIV,ct);
                     releaseprocessqueue();
                     exit();
