@@ -108,6 +108,8 @@ extern int sys_initprocessqueue(void);
 extern int sys_releaseprocessqueue(void);
 extern int sys_getmsgfromqueue(void);
 
+extern int sys_asynwait(void);
+
 static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
 [SYS_exit]    sys_exit,
@@ -139,6 +141,8 @@ static int (*syscalls[])(void) = {
 [SYS_initprocessqueue]  sys_initprocessqueue,
 [SYS_releaseprocessqueue]  sys_releaseprocessqueue,
 [SYS_getmsgfromqueue]  sys_getmsgfromqueue,
+
+[SYS_asynwait]    sys_asynwait,
 };
 
 void

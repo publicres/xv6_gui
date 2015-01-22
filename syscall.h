@@ -29,3 +29,5 @@
 #define SYS_initprocessqueue 26
 #define SYS_releaseprocessqueue 27
 #define SYS_getmsgfromqueue	 28
+
+#define SYS_asynwait    29

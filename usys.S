@@ -38,3 +38,5 @@ SYSCALL(getattr)
 SYSCALL(initprocessqueue)
 SYSCALL(releaseprocessqueue)
 SYSCALL(getmsgfromqueue)
+
+SYSCALL(asynwait)
