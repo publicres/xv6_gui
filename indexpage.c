@@ -99,7 +99,7 @@ tile* initTiles()
     (p+1)->x=407; (p+1)->y=224; (p+1)->w=210; (p+1)->h=100; (p+1)->bgcolor=rgba(43,127,237,0);
     (p+1)->px=80; (p+1)->py=17; (p+1)->picname="filetext2.mx";
     (p+1)->text="Text";
-    (p+0)->execName="fileEditor";
+    (p+1)->execName="fileEditor";
 
     (p+2)->x=627; (p+2)->y=224; (p+2)->w=210; (p+2)->h=100; (p+2)->bgcolor=rgba(184,28,67,0);
     (p+2)->px=80; (p+2)->py=17; (p+2)->picname="image.mx";

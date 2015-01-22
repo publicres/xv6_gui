@@ -130,15 +130,25 @@ int main(int argc, char *argv[])
 {
     int fd;
     char* str;
+    char* fnm;
 
     printf(1,"111/%d/",argc);
     if(argc != 2){
-        printf(1, "fileEditor: only allows 1 argument\r\n");
-        exit();
+        if (argc==1 && strcmp("fileEditor", argv[0]))
+        {
+            fnm="guide.txt";
+        }
+        else
+        {
+            printf(1, "fileEditor: only allows 1 argument\r\n");
+            exit();
+        }
     }
+    else
+        fnm=argv[1];
 
-    if((fd = open(argv[1], 0)) < 0){
-        printf(1, "fileEditor: cannot open %s\r\n", argv[1]);
+    if((fd = open(fnm, 0)) < 0){
+        printf(1, "fileEditor: cannot open %s\r\n", fnm);
         exit();
     }
 
@@ -251,7 +261,7 @@ int main(int argc, char *argv[])
                 setattr(GUIENT_TXT, titleTxt, GUIATTR_TXT_Y, parh(0));
                 setattr(GUIENT_TXT, titleTxt, GUIATTR_TXT_WIDTH, parh(630));
                 setattr(GUIENT_TXT, titleTxt, GUIATTR_TXT_HEIGHT, parh(24));
-                setattr(GUIENT_TXT, titleTxt, GUIATTR_TXT_STR, pars(argv[1]));
+                setattr(GUIENT_TXT, titleTxt, GUIATTR_TXT_STR, pars(fnm));
                 setattr(GUIENT_TXT, titleTxt, GUIATTR_TXT_COLOR, &titleTxt_color);
 
         createdom(GUIENT_DIV, window, &toolBar);
@@ -429,7 +439,7 @@ int main(int argc, char *argv[])
                     if (dirty != 0)
                     {
                         setattr(GUIENT_TXT, saveTxt, GUIATTR_TXT_COLOR, &saving_color);
-                        result = saveButton_onClick(argv[1], str, contentTxt);
+                        result = saveButton_onClick(fnm, str, contentTxt);
                         if (result == 0)
                         {
                             setattr(GUIENT_TXT, saveTxt, GUIATTR_TXT_COLOR, &saveTxt_color);
@@ -446,7 +456,7 @@ int main(int argc, char *argv[])
                 else if (mm->dom_id == saveAndCloseButton)
                 {
                     setattr(GUIENT_TXT, saveAndCloseTxt, GUIATTR_TXT_COLOR, &saving_color);
-                    result = saveButton_onClick(argv[1], str, contentTxt);
+                    result = saveButton_onClick(fnm, str, contentTxt);
                     if (result == 0)
                     {
                         setattr(GUIENT_TXT, saveAndCloseTxt, GUIATTR_TXT_COLOR, &saveAndCloseTxt_color);
