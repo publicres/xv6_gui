@@ -107,7 +107,6 @@ void downButton_onClick(uint contentTxt)
 
     getattr(GUIENT_TXT, contentTxt, GUIATTR_TXT_Y, &y);
     getattr(GUIENT_TXT, contentTxt, GUIATTR_TXT_HEIGHT, &h);
-
     if (y + h <= bottom)
         return;
     y -= 72;
@@ -462,7 +461,6 @@ int main(int argc, char *argv[])
             if (affirming == 1)
                 continue;
             km = (KBDMsg*)msg;
-            printf(1, "c:%d\r\n", (uint)(uchar)km->key_value);
             if (km->key_value == (char)26)
                 setattr(GUIENT_TXT, contentTxt, GUIATTR_TXT_DECCURS, parh(0));
             else if (km->key_value == (char)27)
