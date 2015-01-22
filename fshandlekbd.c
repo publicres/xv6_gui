@@ -32,6 +32,7 @@ typedef struct guifilenodes
 }FileNodes;
 
 uint windowparent = 0xffffffff;
+uint window;
 FileNodes filenodes;
 int last_right_clicked_fileno = -1;
 char* current_path;
@@ -47,6 +48,8 @@ contentStruct close_icon_content;
 
 uint j;
 #define parh(x) (j=x,&j)
+
+void createWarningWindow(char* warning, uint parent);
 
 char*
 fmtname(char *path)
@@ -176,24 +179,28 @@ int copyfile(char* srcpath, char* destpath)
     int file_src, file_dest;
     if ((file_src = open(srcpath, O_RDONLY)) < 0)
     {
-        printf(2, "The file you are going to copy does not exists!!\r\n");
+        //printf(2, "The file you are going to copy does not exists!!\r\n");
+        createWarningWindow("The file you are going to copy does not exists!!", window);
         return -1;
     }
     if ((file_dest = open(destpath, O_RDONLY)) >= 0)
     {
-        printf(2, "The destination you are going to copy the file has already had a file with the same name!!\r\n");
+        //printf(2, "The destination you are going to copy the file has already had a file with the same name!!\r\n");
         close(file_dest);
+        createWarningWindow("The destination you are going to copy the file has already had a file with the same name!", window);
         return -1;
     }
     if ((file_dest = open(destpath, O_CREATE)) < 0)
     {
-        printf(2, "Cannot create a new file!!!\r\n");
+        //printf(2, "Cannot create a new file!!!\r\n");
+        createWarningWindow("Cannot create a new file!", window);
         return -1;
     }
     close(file_dest);
     if ((file_dest = open(destpath, O_WRONLY)) < 0)
     {
-        printf(2, "Cannot write to the new file!!!\r\n");
+        //printf(2, "Cannot write to the new file!!!\r\n");
+        createWarningWindow("Cannot write to the new file!", window);
         return -1;
     }
     char* buff = (char*)malloc(4096 * sizeof(char));
@@ -203,7 +210,8 @@ int copyfile(char* srcpath, char* destpath)
         write(file_dest, buff, size);
     if(size < 0)
     {
-        printf(2, "copy file error!!!\r\n");
+        //printf(2, "copy file error!!!\r\n");
+        createWarningWindow("copy file error!!", window);
         return -1;
     }
     close(file_src);
@@ -217,18 +225,21 @@ int createnewfile(char* path)
     int ff;
     if (((ff = open(path, O_RDONLY)) >= 0))
     {
-        printf(2, "cannot create new file, the file has existed!!!\r\n");
+        //printf(2, "cannot create new file, the file has existed!!!\r\n");
+        createWarningWindow("cannot create new file, the file has existed!", window);
         close(ff);
         return -1;
     }
     if ((ff = open(path, O_CREATE)) < 0)
     {
-        printf(2, "cannot create new file\r\n");
+        //printf(2, "cannot create new file\r\n");
+        createWarningWindow("cannot create new file", window);
         return -1;
     }
     else
     {
-        printf(2, "create file success!!!\r\n");
+        //printf(2, "create file success!!!\r\n");
+        //createWarningWindow("create file success!", window);
         close(ff);
         return 0;
     }
@@ -238,7 +249,8 @@ int createnewfolder(char *foldername)
 {
     if(mkdir(foldername) < 0)
     {
-        printf(2, "cannot make directory\r\n");
+        //printf(2, "cannot make directory\r\n");
+        createWarningWindow("cannot make directory", window);
         return -1;
     }
     else
@@ -292,7 +304,8 @@ int removefile(char* path)
 {
     if (unlink(path) < 0)
     {
-        printf(2, "cannot remove, the thing you want to remove is being used!!  %s\r\n", path);
+        //printf(2, "cannot remove, the thing you want to remove is being used!!\r\n");
+        createWarningWindow("cannot remove, the thing you want to remove is being used!", window);
         return -1;
     }
     else
@@ -327,7 +340,8 @@ int removefolder(char* path)
                 r = removefolder(tmppath);
                 if (r == -1)
                 {
-                    printf(2, "There are something wrong when recursively remove folder!!\r\n");
+                    //printf(2, "There are something wrong when recursively remove folder!!\r\n");
+                    createWarningWindow("There are something wrong when recursively remove folder!", window);
                     free(tmppath);
                     free(savedpath);
                     return -1;
@@ -338,7 +352,8 @@ int removefolder(char* path)
                 r = removefile(tmppath);
                 if (r == -1)
                 {
-                    printf(2, "There are something wrong when recursively remove file!!\r\n");
+                    //printf(2, "There are something wrong when recursively remove file!!\r\n");
+                    createWarningWindow("There are something wrong when recursively remove file!", window);
                     free(tmppath);
                     free(savedpath);
                     return -1;
@@ -348,7 +363,8 @@ int removefolder(char* path)
     }
     if (unlink(path) < 0)
     {
-        printf(2, "There are something wrong when delete the empty folder!!!\r\n");
+        //printf(2, "There are something wrong when delete the empty folder!!!\r\n");
+        createWarningWindow("There are something wrong when delete the empty folder!", window);
         free(tmppath);
         free(savedpath);
         return -1;
@@ -377,20 +393,23 @@ int copyfolder(char* srcpath, char* destpath)
     int fds;
     if((fds = open(srcpath, O_RDONLY)) < 0)
     {
-        printf(2, "The folder you want to copy does not exist!!!!\r\n");
+        //printf(2, "The folder you want to copy does not exist!!!!\r\n");
+        createWarningWindow("The folder you want to copy does not exist!", window);
         return -1;
     }
     close(fds);
     int fdd;
     if ((fdd = open(destpath, O_RDONLY)) >= 0)
     {
-        printf(2, "The destination has already had a folder with the same name!!!\r\n");
+        //printf(2, "The destination has already had a folder with the same name!!!\r\n");
         close(fdd);
+        createWarningWindow("The destination has already had a folder with the same name!", window);
         return -1;
     }
     if (createnewfolder(destpath) < 0)
     {
-        printf(2, "copyfolder: cannot create the new folder!!!!\r\n");
+        //printf(2, "copyfolder: cannot create the new folder!!!!\r\n");
+        createWarningWindow("copyfolder: cannot create the new folder!", window);
         return -1;
     }
     LSResult srccontent = ls(srcpath);
@@ -423,11 +442,12 @@ int copyfolder(char* srcpath, char* destpath)
         {
             if (copyfolder(tmpsrc, tmpdest) < 0)
             {
-                printf(2, "copyfolder: We meet some problem when recursively copy folder!!!\r\n");
+                //printf(2, "copyfolder: We meet some problem when recursively copy folder!!!\r\n");
                 free(tmpsrc);
                 free(tmpdest);
                 free(savedsrc);
                 free(saveddest);
+                createWarningWindow("copyfolder: We meet some problem when recursively copy folder!", window);
                 return -1;
             }
         }
@@ -435,11 +455,12 @@ int copyfolder(char* srcpath, char* destpath)
         {
             if (copyfile(tmpsrc, tmpdest) < 0)
             {
-                printf(2, "copyfolder: We meet some problem when recursively copy file!!!\r\n");
+                //printf(2, "copyfolder: We meet some problem when recursively copy file!!!\r\n");
                 free(tmpsrc);
                 free(tmpdest);
                 free(savedsrc);
                 free(saveddest);
+                createWarningWindow("copyfolder: We meet some problem when recursively copy file!", window);
                 return -1;
             }
         }
@@ -456,12 +477,14 @@ int movefolder(char* srcpath, char* destpath)
 {
     if (copyfolder(srcpath, destpath) == -1)
     {
-        printf(2, "movefolder: There are something wrong when we copyfolder folder!!!\r\n");
+        //printf(2, "movefolder: There are something wrong when we copyfolder folder!!!\r\n");
+        createWarningWindow("movefolder: There are something wrong when we copyfolder folder!", window);
         return -1;
     }
     if (removefolder(srcpath) == -1)
     {
-        printf(2, "movefolder: There are something wrong when we delete the folder!!!\r\n");
+        //printf(2, "movefolder: There are something wrong when we delete the folder!!!\r\n");
+        createWarningWindow("movefolder: There are something wrong when we delete the folder!", window);
         return -1;
     }
     printf(2, "movefolder success!!!\r\n");
@@ -473,7 +496,8 @@ int renamefile(char* originname, char* nowname)
 {
     int r = movefile(originname, nowname);
     if (r < 0)
-        printf(2, "rename fail!!!\r\n");
+        //printf(2, "rename fail!!!\r\n");
+        createWarningWindow("rename fail!", window);
     else
         printf(2, "rename success!!!\r\n");
     return r;
@@ -519,14 +543,113 @@ uchar *readImg(char *fileName, uchar picMode)   //0:3channel,1:4channel
     return p;
 }
 
-void createInputNameDialog(char* defaultstring, uint parent)
+void createWarningWindow(char* warning, uint parent)
+{
+    uint dialog;
+        uint dialog_titlebar;
+            uint dialog_closebutton;
+                uint dialog_closeicon;
+        uint warning_textview;
+        uint okbutton;
+            uint oktext;
+
+
+    color32 dialog_background = rgba(255, 255, 255, 0);
+    color32 dialog_titlebar_color = rgba(210, 174, 142, 0);
+    color32 warning_textcolor = rgba(0, 0, 0, 0);
+    color32 okbutton_color = rgba(0, 255, 0, 0);
+    color32 dialog_closebutton_color = rgba(200, 80, 81, 0);
+
+    char* ok = "OK";
+
+
+    createdom(GUIENT_DIV, parent, &dialog);
+    setattr(GUIENT_DIV, dialog, GUIATTR_DIV_X, parh(300));
+    setattr(GUIENT_DIV, dialog, GUIATTR_DIV_Y, parh(250));
+    setattr(GUIENT_DIV, dialog, GUIATTR_DIV_WIDTH, parh(500));
+    setattr(GUIENT_DIV, dialog, GUIATTR_DIV_HEIGHT, parh(155));
+    setattr(GUIENT_DIV, dialog, GUIATTR_DIV_BGCOLOR, &dialog_background);
+
+        createdom(GUIENT_DIV, dialog, &dialog_titlebar);
+        setattr(GUIENT_DIV, dialog_titlebar, GUIATTR_DIV_X, parh(0));
+        setattr(GUIENT_DIV, dialog_titlebar, GUIATTR_DIV_Y, parh(0));
+        setattr(GUIENT_DIV, dialog_titlebar, GUIATTR_DIV_WIDTH, parh(500));
+        setattr(GUIENT_DIV, dialog_titlebar, GUIATTR_DIV_HEIGHT, parh(35));
+        setattr(GUIENT_DIV, dialog_titlebar, GUIATTR_DIV_BGCOLOR, &dialog_titlebar_color);
+
+            createdom(GUIENT_DIV, dialog_titlebar, &dialog_closebutton);
+            setattr(GUIENT_DIV, dialog_closebutton, GUIATTR_DIV_X, parh(449));
+            setattr(GUIENT_DIV, dialog_closebutton, GUIATTR_DIV_Y, parh(0));
+            setattr(GUIENT_DIV, dialog_closebutton, GUIATTR_DIV_WIDTH, parh(51));
+            setattr(GUIENT_DIV, dialog_closebutton, GUIATTR_DIV_HEIGHT, parh(30));
+            setattr(GUIENT_DIV, dialog_closebutton, GUIATTR_DIV_BGCOLOR, &dialog_closebutton_color);
+            setattr(GUIENT_DIV, dialog_closebutton, GUIATTR_DIV_INTEG, parh(1));
+
+                createdom(GUIENT_IMG, dialog_closebutton, &dialog_closeicon);
+                setattr(GUIENT_IMG, dialog_closeicon, GUIATTR_IMG_X, parh(18));
+                setattr(GUIENT_IMG, dialog_closeicon, GUIATTR_IMG_Y, parh(7));
+                setattr(GUIENT_IMG, dialog_closeicon, GUIATTR_IMG_WIDTH, parh(17));
+                setattr(GUIENT_IMG, dialog_closeicon, GUIATTR_IMG_HEIGHT, parh(17));
+                setattr(GUIENT_IMG, dialog_closeicon, GUIATTR_IMG_CONTENT, &close_icon_content);
+
+        createdom(GUIENT_TXT, dialog, &warning_textview);
+        setattr(GUIENT_TXT, warning_textview, GUIATTR_TXT_X, parh(10));
+        setattr(GUIENT_TXT, warning_textview, GUIATTR_TXT_Y, parh(45));
+        setattr(GUIENT_TXT, warning_textview, GUIATTR_TXT_WIDTH, parh(480));
+        setattr(GUIENT_TXT, warning_textview, GUIATTR_TXT_HEIGHT, parh(72));
+        setattr(GUIENT_TXT, warning_textview, GUIATTR_TXT_STR, warning);
+        setattr(GUIENT_TXT, warning_textview, GUIATTR_TXT_COLOR, &warning_textcolor);
+
+        createdom(GUIENT_DIV, dialog, &okbutton);
+        setattr(GUIENT_DIV, okbutton, GUIATTR_DIV_X, parh(215));
+        setattr(GUIENT_DIV, okbutton, GUIATTR_DIV_Y, parh(125));
+        setattr(GUIENT_DIV, okbutton, GUIATTR_DIV_WIDTH, parh(70));
+        setattr(GUIENT_DIV, okbutton, GUIATTR_DIV_HEIGHT, parh(24));
+        setattr(GUIENT_DIV, okbutton, GUIATTR_DIV_BGCOLOR, &okbutton_color);
+        setattr(GUIENT_DIV, okbutton, GUIATTR_DIV_INTEG, parh(1));
+
+            createdom(GUIENT_TXT, okbutton, &oktext);
+            setattr(GUIENT_TXT, oktext, GUIATTR_TXT_X, parh(20));
+            setattr(GUIENT_TXT, oktext, GUIATTR_TXT_Y, parh(0));
+            setattr(GUIENT_TXT, oktext, GUIATTR_TXT_WIDTH, parh(30));
+            setattr(GUIENT_TXT, oktext, GUIATTR_TXT_HEIGHT, parh(24));
+            setattr(GUIENT_TXT, oktext, GUIATTR_TXT_STR, ok);
+            setattr(GUIENT_TXT, oktext, GUIATTR_TXT_COLOR, &warning_textcolor);
+
+    //message handler
+    int *dmsg = (int*)malloc(100);
+    MouseMsg* dmm;
+    while(1)
+    {
+        getmsgfromqueue(dmsg);
+        if (*dmsg == MOUSE_MESSAGE)
+        {
+            dmm = (MouseMsg*)dmsg;
+            if ((dmm->mouse_event_type & LEFT_BTN_UP) != 0)
+            {
+                if (dmm->dom_id == dialog_closebutton || dmm->dom_id == okbutton)
+                    break;
+            }
+        }
+    }
+
+    //============release
+    releasedom(GUIENT_IMG, dialog_closeicon);
+    releasedom(GUIENT_TXT, warning_textview);
+    releasedom(GUIENT_TXT, oktext);
+    releasedom(GUIENT_DIV, dialog);
+
+    free(dmsg);
+}
+
+void createInputNameDialog(char* defaultstring, uint parent, char* mode)
 {
     uint dialog;
         uint dialog_titlebar;
             uint dialog_title_textview;
             uint dialog_closebutton;
                 uint dialog_closeicon;
-        uint warning_textview;
+        uint name_textview;
         uint okbutton;
             uint oktext;
         uint cancelbutton;
@@ -582,13 +705,13 @@ void createInputNameDialog(char* defaultstring, uint parent)
                 setattr(GUIENT_IMG, dialog_closeicon, GUIATTR_IMG_HEIGHT, parh(17));
                 setattr(GUIENT_IMG, dialog_closeicon, GUIATTR_IMG_CONTENT, &close_icon_content);
 
-        createdom(GUIENT_TXT, dialog, &warning_textview);
-        setattr(GUIENT_TXT, warning_textview, GUIATTR_TXT_X, parh(10));
-        setattr(GUIENT_TXT, warning_textview, GUIATTR_TXT_Y, parh(45));
-        setattr(GUIENT_TXT, warning_textview, GUIATTR_TXT_WIDTH, parh(480));
-        setattr(GUIENT_TXT, warning_textview, GUIATTR_TXT_HEIGHT, parh(72));
-        setattr(GUIENT_TXT, warning_textview, GUIATTR_TXT_STR, defaultstring);
-        setattr(GUIENT_TXT, warning_textview, GUIATTR_TXT_COLOR, &warning_textcolor);
+        createdom(GUIENT_TXT, dialog, &name_textview);
+        setattr(GUIENT_TXT, name_textview, GUIATTR_TXT_X, parh(10));
+        setattr(GUIENT_TXT, name_textview, GUIATTR_TXT_Y, parh(45));
+        setattr(GUIENT_TXT, name_textview, GUIATTR_TXT_WIDTH, parh(480));
+        setattr(GUIENT_TXT, name_textview, GUIATTR_TXT_HEIGHT, parh(72));
+        setattr(GUIENT_TXT, name_textview, GUIATTR_TXT_STR, defaultstring);
+        setattr(GUIENT_TXT, name_textview, GUIATTR_TXT_COLOR, &warning_textcolor);
 
         createdom(GUIENT_DIV, dialog, &okbutton);
         setattr(GUIENT_DIV, okbutton, GUIATTR_DIV_X, parh(120));
@@ -609,7 +732,7 @@ void createInputNameDialog(char* defaultstring, uint parent)
         createdom(GUIENT_DIV, dialog, &cancelbutton);
         setattr(GUIENT_DIV, cancelbutton, GUIATTR_DIV_X, parh(310));
         setattr(GUIENT_DIV, cancelbutton, GUIATTR_DIV_Y, parh(125));
-        setattr(GUIENT_DIV, cancelbutton, GUIATTR_DIV_WIDTH, parh(70));
+        setattr(GUIENT_DIV, cancelbutton, GUIATTR_DIV_WIDTH, parh(90));
         setattr(GUIENT_DIV, cancelbutton, GUIATTR_DIV_HEIGHT, parh(24));
         setattr(GUIENT_DIV, cancelbutton, GUIATTR_DIV_BGCOLOR, &cancelbutton_color);
         setattr(GUIENT_DIV, cancelbutton, GUIATTR_DIV_INTEG, parh(1));
@@ -617,14 +740,23 @@ void createInputNameDialog(char* defaultstring, uint parent)
             createdom(GUIENT_TXT, cancelbutton, &canceltext);
             setattr(GUIENT_TXT, canceltext, GUIATTR_TXT_X, parh(0));
             setattr(GUIENT_TXT, canceltext, GUIATTR_TXT_Y, parh(0));
-            setattr(GUIENT_TXT, canceltext, GUIATTR_TXT_WIDTH, parh(70));
+            setattr(GUIENT_TXT, canceltext, GUIATTR_TXT_WIDTH, parh(90));
             setattr(GUIENT_TXT, canceltext, GUIATTR_TXT_HEIGHT, parh(24));
             setattr(GUIENT_TXT, canceltext, GUIATTR_TXT_STR, cancel);
             setattr(GUIENT_TXT, canceltext, GUIATTR_TXT_COLOR, &warning_textcolor);
 
+    int len = strlen(defaultstring);
+    int i;
+    for (i = 0; i < len + 1; i++)
+    {
+        setattr(GUIENT_TXT, name_textview, GUIATTR_TXT_INCCURS, parh(0));
+    }
+
     //message handler
     int *dmsg = (int*)malloc(100);
     MouseMsg* dmm;
+    KBDMsg* dkm;
+    char dc;
     while(1)
     {
         getmsgfromqueue(dmsg);
@@ -633,22 +765,111 @@ void createInputNameDialog(char* defaultstring, uint parent)
             dmm = (MouseMsg*)dmsg;
             if ((dmm->mouse_event_type & LEFT_BTN_UP) != 0)
             {
-                if (dmm->dom_id == dialog_closebutton || dmm->dom_id == okbutton)
+                if (dmm->dom_id == dialog_closebutton || dmm->dom_id == cancelbutton)
                     break;
+                else if (dmm->dom_id == okbutton)
+                {
+                    char* tmpdest = (char*)malloc(MAX_DIRECTORY_LEN);
+                    memset(tmpdest, '\0', MAX_DIRECTORY_LEN);
+                    strcpy(tmpdest, current_path);
+                    int tmpn = strlen(tmpdest);
+                    char* tmpname = (char*)malloc(25);
+                    memset(tmpname, '\0', 25);
+                    getattr(GUIENT_TXT, name_textview, GUIATTR_TXT_STR, tmpname);
+                    strcpy(tmpdest + tmpn, tmpname);
+
+                    char* tmpsrc = (char*)malloc(MAX_DIRECTORY_LEN);
+                    memset(tmpsrc, '\0', MAX_DIRECTORY_LEN);
+                    strcpy(tmpsrc, current_path);
+                    tmpn = strlen(tmpsrc);
+                    strcpy(tmpsrc + strlen(tmpsrc), defaultstring);
+
+                    printf(2, "\r\n\r\n%s   %s\r\n\r\n", tmpsrc, tmpdest);
+                    int ff;
+                    if (strlen(tmpname) > DIRSIZ)
+                    {
+                        printf(2, "name too long!!!\r\n");
+                    }
+                    else if (((ff = open(tmpdest, O_RDONLY)) >= 0))
+                    {
+                        printf(2, "file or folder has existed!!!\r\n");
+                        close(ff);
+                    }
+                    else
+                    {
+                        if (mode[0] == '1')
+                        {
+                            if (createnewfile(tmpdest) >= 0)
+                            {
+                                free(tmpsrc);
+                                free(tmpdest);
+                                break;
+                            }
+                        }
+                        else if (mode[0] == '2')
+                        {
+                            if (createnewfolder(tmpdest) >= 0)
+                            {
+                                free(tmpsrc);
+                                free(tmpdest);
+                                break;
+                            }
+                        }
+                        else if (mode[0] == '3')
+                        {
+                            if (renamefile(defaultstring, tmpdest) >= 0)
+                            {
+                                free(tmpsrc);
+                                free(tmpdest);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        else if (*dmsg == KEYBOARD_MESSAGE)
+        {
+            dkm = (KBDMsg*)dmsg;
+            if (dkm->key_value == (char)8)
+            {
+                dc = 0;
+                getattr(GUIENT_TXT, name_textview, GUIATTR_TXT_BCKSPC, &dc);
+            }
+            else if (dkm->key_value == ' ' || dkm->key_value == '\n' || dkm->key_value == '/')
+            {
+                ;//illegal
+            }
+            else
+            {
+                setattr(GUIENT_TXT, name_textview, GUIATTR_TXT_INSERT, &dkm->key_value);
             }
         }
     }
-
     //============release
     releasedom(GUIENT_IMG, dialog_closeicon);
-    releasedom(GUIENT_TXT, warning_textview);
+    releasedom(GUIENT_TXT, name_textview);
     releasedom(GUIENT_TXT, oktext);
+    releasedom(GUIENT_TXT, canceltext);
+    releasedom(GUIENT_TXT, dialog_title_textview);
     releasedom(GUIENT_DIV, dialog);
 
     free(dmsg);
 }
 
-//parameter: default name, current folder, window parent
+uint cvtS2U(char* str)
+{
+    uint ret=0;
+    while (*str!=0)
+    {
+        ret=ret*10+(*str-'0');
+        str++;
+    }
+    return ret;
+}
+
+//parameter: default name, current folder, mode, window parent
+//mode: 1->new file   2->new folder  3->rename
 int main(int argc, char *argv[])
 {
     if (argc <= 1)
@@ -660,6 +881,10 @@ int main(int argc, char *argv[])
 
     char* defaultname = argv[1];
     current_path = argv[2];
+    char* mode = argv[3];
+    char* wp = argv[4];
+
+    windowparent = cvtS2U(wp);
 
     uint safe_area;
 
@@ -675,7 +900,9 @@ int main(int argc, char *argv[])
     setattr(GUIENT_DIV, safe_area, GUIATTR_DIV_HEIGHT, parh(768));
     setattr(GUIENT_DIV, safe_area, GUIATTR_DIV_BGCOLOR, &safe_area_color);
 
-    createInputNameDialog(defaultname, safe_area);
+    window = safe_area;
+
+    createInputNameDialog(defaultname, safe_area, mode);
 
     releasedom(GUIENT_DIV, safe_area);
 

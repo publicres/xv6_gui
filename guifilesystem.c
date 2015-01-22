@@ -13,7 +13,7 @@
 #define NOTYPE 0
 #define FILETYPE 2
 #define FILENUMINAROW 7
-#define SCROLL_DISTANCE 50
+#define SCROLL_DISTANCE 200
 #define RIGHT_CLICK_MENU_Y_POS 610
 
 typedef struct lsresult
@@ -32,6 +32,7 @@ typedef struct guifilenodes
 }FileNodes;
 
 uint windowparent = 0xffffffff;
+uint window;
 FileNodes filenodes;
 int last_right_clicked_fileno = -1;
 char* current_path;
@@ -47,6 +48,8 @@ contentStruct close_icon_content;
 
 uint j;
 #define parh(x) (j=x,&j)
+
+void createWarningWindow(char* warning, uint parent);
 
 char*
 fmtname(char *path)
@@ -176,24 +179,28 @@ int copyfile(char* srcpath, char* destpath)
     int file_src, file_dest;
     if ((file_src = open(srcpath, O_RDONLY)) < 0)
     {
-        printf(2, "The file you are going to copy does not exists!!\r\n");
+        //printf(2, "The file you are going to copy does not exists!!\r\n");
+        createWarningWindow("The file you are going to copy does not exists!!", window);
         return -1;
     }
     if ((file_dest = open(destpath, O_RDONLY)) >= 0)
     {
-        printf(2, "The destination you are going to copy the file has already had a file with the same name!!\r\n");
+        //printf(2, "The destination you are going to copy the file has already had a file with the same name!!\r\n");
         close(file_dest);
+        createWarningWindow("The destination you are going to copy the file has already had a file with the same name!", window);
         return -1;
     }
     if ((file_dest = open(destpath, O_CREATE)) < 0)
     {
-        printf(2, "Cannot create a new file!!!\r\n");
+        //printf(2, "Cannot create a new file!!!\r\n");
+        createWarningWindow("Cannot create a new file!", window);
         return -1;
     }
     close(file_dest);
     if ((file_dest = open(destpath, O_WRONLY)) < 0)
     {
-        printf(2, "Cannot write to the new file!!!\r\n");
+        //printf(2, "Cannot write to the new file!!!\r\n");
+        createWarningWindow("Cannot write to the new file!", window);
         return -1;
     }
     char* buff = (char*)malloc(4096 * sizeof(char));
@@ -203,7 +210,8 @@ int copyfile(char* srcpath, char* destpath)
         write(file_dest, buff, size);
     if(size < 0)
     {
-        printf(2, "copy file error!!!\r\n");
+        //printf(2, "copy file error!!!\r\n");
+        createWarningWindow("copy file error!!", window);
         return -1;
     }
     close(file_src);
@@ -217,18 +225,21 @@ int createnewfile(char* path)
     int ff;
     if (((ff = open(path, O_RDONLY)) >= 0))
     {
-        printf(2, "cannot create new file, the file has existed!!!\r\n");
+        //printf(2, "cannot create new file, the file has existed!!!\r\n");
+        createWarningWindow("cannot create new file, the file has existed!", window);
         close(ff);
         return -1;
     }
     if ((ff = open(path, O_CREATE)) < 0)
     {
-        printf(2, "cannot create new file\r\n");
+        //printf(2, "cannot create new file\r\n");
+        createWarningWindow("cannot create new file", window);
         return -1;
     }
     else
     {
-        printf(2, "create file success!!!\r\n");
+        //printf(2, "create file success!!!\r\n");
+        //createWarningWindow("create file success!", window);
         close(ff);
         return 0;
     }
@@ -238,7 +249,8 @@ int createnewfolder(char *foldername)
 {
     if(mkdir(foldername) < 0)
     {
-        printf(2, "cannot make directory\r\n");
+        //printf(2, "cannot make directory\r\n");
+        createWarningWindow("cannot make directory", window);
         return -1;
     }
     else
@@ -292,7 +304,8 @@ int removefile(char* path)
 {
     if (unlink(path) < 0)
     {
-        printf(2, "cannot remove, the thing you want to remove is being used!!\r\n");
+        //printf(2, "cannot remove, the thing you want to remove is being used!!\r\n");
+        createWarningWindow("cannot remove, the thing you want to remove is being used!", window);
         return -1;
     }
     else
@@ -327,7 +340,8 @@ int removefolder(char* path)
                 r = removefolder(tmppath);
                 if (r == -1)
                 {
-                    printf(2, "There are something wrong when recursively remove folder!!\r\n");
+                    //printf(2, "There are something wrong when recursively remove folder!!\r\n");
+                    createWarningWindow("There are something wrong when recursively remove folder!", window);
                     free(tmppath);
                     free(savedpath);
                     return -1;
@@ -338,7 +352,8 @@ int removefolder(char* path)
                 r = removefile(tmppath);
                 if (r == -1)
                 {
-                    printf(2, "There are something wrong when recursively remove file!!\r\n");
+                    //printf(2, "There are something wrong when recursively remove file!!\r\n");
+                    createWarningWindow("There are something wrong when recursively remove file!", window);
                     free(tmppath);
                     free(savedpath);
                     return -1;
@@ -348,7 +363,8 @@ int removefolder(char* path)
     }
     if (unlink(path) < 0)
     {
-        printf(2, "There are something wrong when delete the empty folder!!!\r\n");
+        //printf(2, "There are something wrong when delete the empty folder!!!\r\n");
+        createWarningWindow("There are something wrong when delete the empty folder!", window);
         free(tmppath);
         free(savedpath);
         return -1;
@@ -377,20 +393,23 @@ int copyfolder(char* srcpath, char* destpath)
     int fds;
     if((fds = open(srcpath, O_RDONLY)) < 0)
     {
-        printf(2, "The folder you want to copy does not exist!!!!\r\n");
+        //printf(2, "The folder you want to copy does not exist!!!!\r\n");
+        createWarningWindow("The folder you want to copy does not exist!", window);
         return -1;
     }
     close(fds);
     int fdd;
     if ((fdd = open(destpath, O_RDONLY)) >= 0)
     {
-        printf(2, "The destination has already had a folder with the same name!!!\r\n");
+        //printf(2, "The destination has already had a folder with the same name!!!\r\n");
         close(fdd);
+        createWarningWindow("The destination has already had a folder with the same name!", window);
         return -1;
     }
     if (createnewfolder(destpath) < 0)
     {
-        printf(2, "copyfolder: cannot create the new folder!!!!\r\n");
+        //printf(2, "copyfolder: cannot create the new folder!!!!\r\n");
+        createWarningWindow("copyfolder: cannot create the new folder!", window);
         return -1;
     }
     LSResult srccontent = ls(srcpath);
@@ -423,11 +442,12 @@ int copyfolder(char* srcpath, char* destpath)
         {
             if (copyfolder(tmpsrc, tmpdest) < 0)
             {
-                printf(2, "copyfolder: We meet some problem when recursively copy folder!!!\r\n");
+                //printf(2, "copyfolder: We meet some problem when recursively copy folder!!!\r\n");
                 free(tmpsrc);
                 free(tmpdest);
                 free(savedsrc);
                 free(saveddest);
+                createWarningWindow("copyfolder: We meet some problem when recursively copy folder!", window);
                 return -1;
             }
         }
@@ -435,11 +455,12 @@ int copyfolder(char* srcpath, char* destpath)
         {
             if (copyfile(tmpsrc, tmpdest) < 0)
             {
-                printf(2, "copyfolder: We meet some problem when recursively copy file!!!\r\n");
+                //printf(2, "copyfolder: We meet some problem when recursively copy file!!!\r\n");
                 free(tmpsrc);
                 free(tmpdest);
                 free(savedsrc);
                 free(saveddest);
+                createWarningWindow("copyfolder: We meet some problem when recursively copy file!", window);
                 return -1;
             }
         }
@@ -456,12 +477,14 @@ int movefolder(char* srcpath, char* destpath)
 {
     if (copyfolder(srcpath, destpath) == -1)
     {
-        printf(2, "movefolder: There are something wrong when we copyfolder folder!!!\r\n");
+        //printf(2, "movefolder: There are something wrong when we copyfolder folder!!!\r\n");
+        createWarningWindow("movefolder: There are something wrong when we copyfolder folder!", window);
         return -1;
     }
     if (removefolder(srcpath) == -1)
     {
-        printf(2, "movefolder: There are something wrong when we delete the folder!!!\r\n");
+        //printf(2, "movefolder: There are something wrong when we delete the folder!!!\r\n");
+        createWarningWindow("movefolder: There are something wrong when we delete the folder!", window);
         return -1;
     }
     printf(2, "movefolder success!!!\r\n");
@@ -473,7 +496,8 @@ int renamefile(char* originname, char* nowname)
 {
     int r = movefile(originname, nowname);
     if (r < 0)
-        printf(2, "rename fail!!!\r\n");
+        //printf(2, "rename fail!!!\r\n");
+        createWarningWindow("rename fail!", window);
     else
         printf(2, "rename success!!!\r\n");
     return r;
@@ -998,6 +1022,26 @@ uint cvtS2U(char* str)
     return ret;
 }
 
+char* UInt2String(uint num)
+{
+    uint i;
+    int k;
+    char* tmp = (char*)malloc(25 * sizeof(char));
+    memset(tmp, '\0', 25);
+    for (i = num, k = 0; i != 0;)
+    {
+        tmp[k++] = (i % 10) + '0';
+        i = i / 10;
+    }
+    int n = strlen(tmp);
+    char* result = (char*)malloc(25);
+    memset(result, '\0', 25);
+    for (i = 0, k = n - 1; i < n; i++, k--)
+        result[i] = tmp[k];
+    free(tmp);
+    return result;
+}
+
 int main(int argc, char *argv[])
 {
     initprocessqueue();
@@ -1032,7 +1076,6 @@ int main(int argc, char *argv[])
     exec("fshandlekbd", a);*/
 
     //===========create window
-    uint window;
         uint titlebar;
             uint window_title;
             uint closebutton;
@@ -1045,7 +1088,8 @@ int main(int argc, char *argv[])
 
         uint separator;
 
-        uint scrollview;
+        uint scrollviewfather;
+            uint scrollview;
         uint right_click_onfile;
             uint openbutton;
             uint delete_button;
@@ -1061,8 +1105,8 @@ int main(int argc, char *argv[])
     color32 window_background = rgba(255, 255, 255, 0);
     color32 titlebar_color = rgba(210, 174, 142, 0);
     color32 closebutton_color = rgba(200, 80, 81, 0);
-    color32 right_click_onfile_color = rgba(202, 203, 203, 43);
-    color32 right_click_onwindow_color = rgba(202, 203, 203, 43);
+    color32 right_click_onfile_color = rgba(202, 203, 203, 0);
+    color32 right_click_onwindow_color = rgba(202, 203, 203, 0);
     color32 separator_color = rgba(169, 160, 137, 0);
     color32 window_title_color = rgba(0, 0, 0, 0);
 
@@ -1120,17 +1164,12 @@ int main(int argc, char *argv[])
     setattr(GUIENT_DIV, window, GUIATTR_DIV_HEIGHT, parh(768));
     setattr(GUIENT_DIV, window, GUIATTR_DIV_BGCOLOR, &window_background);
 
-        //=====ls and render the whole directory
-        listresult = ls(".");
-        int n = strlen(listresult.filenames) / 14 - 2;
-        int rowno = n / FILENUMINAROW + 1;
-        createdom(GUIENT_DIV, window, &scrollview);
-        setattr(GUIENT_DIV, scrollview, GUIATTR_DIV_X, parh(0));
-        setattr(GUIENT_DIV, scrollview, GUIATTR_DIV_Y, parh(95));
-        setattr(GUIENT_DIV, scrollview, GUIATTR_DIV_WIDTH, parh(1024));
-        setattr(GUIENT_DIV, scrollview, GUIATTR_DIV_HEIGHT, parh(190 * rowno + 10));
-        setattr(GUIENT_DIV, scrollview, GUIATTR_DIV_BGCOLOR, &window_background);
-        render(listresult.parseresult, n, scrollview, listresult.fileinfo + 2); //the first two are . and ..
+        createdom(GUIENT_DIV, window, &scrollviewfather);
+        setattr(GUIENT_DIV, scrollviewfather, GUIATTR_DIV_X, parh(0));
+        setattr(GUIENT_DIV, scrollviewfather, GUIATTR_DIV_Y, parh(95));
+        setattr(GUIENT_DIV, scrollviewfather, GUIATTR_DIV_WIDTH, parh(1024));
+        setattr(GUIENT_DIV, scrollviewfather, GUIATTR_DIV_HEIGHT, parh(673));
+        setattr(GUIENT_DIV, scrollviewfather, GUIATTR_DIV_BGCOLOR, &window_background);
 
         createdom(GUIENT_DIV, window, &titlebar);
         setattr(GUIENT_DIV, titlebar, GUIATTR_DIV_X, parh(0));
@@ -1267,6 +1306,18 @@ int main(int argc, char *argv[])
             setattr(GUIENT_IMG, paste_button, GUIATTR_IMG_HEIGHT, parh(80));
             setattr(GUIENT_IMG, paste_button, GUIATTR_IMG_CONTENT, &paste_button_content);
 
+        //=====ls and render the whole directory
+        listresult = ls(".");
+        int n = strlen(listresult.filenames) / 14 - 2;
+        int rowno = n / FILENUMINAROW + 1;
+        createdom(GUIENT_DIV, scrollviewfather, &scrollview);
+        setattr(GUIENT_DIV, scrollview, GUIATTR_DIV_X, parh(0));
+        setattr(GUIENT_DIV, scrollview, GUIATTR_DIV_Y, parh(0));
+        setattr(GUIENT_DIV, scrollview, GUIATTR_DIV_WIDTH, parh(1024));
+        setattr(GUIENT_DIV, scrollview, GUIATTR_DIV_HEIGHT, parh(190 * rowno + 10));
+        setattr(GUIENT_DIV, scrollview, GUIATTR_DIV_BGCOLOR, &window_background);
+        render(listresult.parseresult, n, scrollview, listresult.fileinfo + 2); //the first two are . and ..
+
     //==========receive events
     int *msg = (int*)malloc(100);
     MouseMsg* mm;
@@ -1339,6 +1390,51 @@ int main(int argc, char *argv[])
                         printf(1, "-, %d\r\n", y);
                         y = y - SCROLL_DISTANCE;
                         setattr(GUIENT_DIV, scrollview, GUIATTR_DIV_Y, &y);
+                    }
+                    else if (mm->dom_id == new_file_button)
+                    {
+                        if (fork() == 0)
+                        {//mode: 1->new file   2->new folder  3->rename
+                            char* a[5];
+                            a[0] = "fshandlekbd";
+                            a[1] = "newfile";
+                            a[2] = current_path;
+                            a[3] = "1";
+                            a[4] = UInt2String(windowparent);
+                            exec("fshandlekbd", a);
+                        }
+                        wait();
+                        invalidate(scrollview);
+                    }
+                    else if (mm->dom_id == new_folder_button)
+                    {
+                        if (fork() == 0)
+                        {//mode: 1->new file   2->new folder  3->rename
+                            char* a[5];
+                            a[0] = "fshandlekbd";
+                            a[1] = "newfolder";
+                            a[2] = current_path;
+                            a[3] = "2";
+                            a[4] = UInt2String(windowparent);
+                            exec("fshandlekbd", a);
+                        }
+                        wait();
+                        invalidate(scrollview);
+                    }
+                    else if (mm->dom_id == rename_button)
+                    {
+                        if (fork() == 0)
+                        {//mode: 1->new file   2->new folder  3->rename
+                            char* a[5];
+                            a[0] = "fshandlekbd";
+                            a[1] = listresult.parseresult[last_right_clicked_fileno];
+                            a[2] = current_path;
+                            a[3] = "3";
+                            a[4] = UInt2String(windowparent);
+                            exec("fshandlekbd", a);
+                        }
+                        wait();
+                        invalidate(scrollview);
                     }
                     else    //open folder or file
                     {
