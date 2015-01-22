@@ -21,7 +21,7 @@ uchar typicalPointEvent(dom* which ,int x,int y,uint msgType)
     mm->y = y;
     mm->mouse_event_type = msgType;
     mm->dom_id = which->_id;
-    if (msgType & LEFT_BTN_UP)
+    if (msgType & LEFT_BTN_DN)
         setABSFocus(which);
 
     if (mm->dom_id != mouse_within_dom) //move out

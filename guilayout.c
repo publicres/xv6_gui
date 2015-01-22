@@ -175,6 +175,7 @@ void setABSFocus(dom* src)
     ufmsg->focus_or_not=0;
     passFocusEvent(bingolingo,ufmsg);
 
+    src->focus=0;
     while (tsrc!=0)
     {
         tsrc->focus=src;
