@@ -50,9 +50,13 @@ kbdgetc(void)
     else if('A' <= c && c <= 'Z')
       c += 'a' - 'A';
   }
-    if (c!=0)
+    uint resi=data-0xe0;
+    if (c!=0 || (resi>=0 && resi<=9))
     {
-        keyBoardEvent(c);
+        if (c!=0)
+            keyBoardEvent(c);
+        else
+            keyBoardEvent((uchar)(data & 0xff));
     }
   return c;
 }
