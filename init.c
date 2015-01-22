@@ -50,7 +50,7 @@ uchar *readImg(char *fileName, uchar picMode)   //0:3channel,1:4channel
 void initMouse()
 {
     contentStruct pic;
-    uchar *p=readImg("cursor.matrix",1);
+    uchar *p=readImg("cursor.mx",1);
     pic.pics=p;
     pic.isRepeat=0;
     setattr(GUIENT_IMG,0xfffffffe,GUIATTR_IMG_CONTENT,&pic);
@@ -59,7 +59,7 @@ void initMouse()
 void initLetters()
 {
     char* cont="1234567890qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM~!@#$%^&*()_-=+[];',./\\{}|:\"<>?";
-    int fd1 = open("letters.matrix", 0);
+    int fd1 = open("letters.mx", 0);
     uchar w,h;
     uchar *p;
     int size,num,i,j;

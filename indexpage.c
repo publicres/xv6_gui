@@ -36,6 +36,7 @@ typedef struct ori_tile
     uint tid;
     uint xid;
     uint pid;
+
 } tile;
 tile* ts;
 
@@ -85,49 +86,49 @@ tile* initTiles()
     uchar ca[3]={0xff,0xff,0xff};
     tile* p=malloc(sizeof(tile)*ntile);
     (p+0)->x=187; (p+0)->y=224; (p+0)->w=210; (p+0)->h=100; (p+0)->bgcolor=rgba(217,81,43,0);
-    (p+0)->px=80; (p+0)->py=17; (p+0)->picname="search.matrix";
+    (p+0)->px=80; (p+0)->py=17; (p+0)->picname="search.mx";
     (p+0)->text="File";
 
     (p+1)->x=407; (p+1)->y=224; (p+1)->w=210; (p+1)->h=100; (p+1)->bgcolor=rgba(43,127,237,0);
-    (p+1)->px=80; (p+1)->py=17; (p+1)->picname="filetext2.matrix";
+    (p+1)->px=80; (p+1)->py=17; (p+1)->picname="filetext2.mx";
     (p+1)->text="Text";
 
     (p+2)->x=627; (p+2)->y=224; (p+2)->w=210; (p+2)->h=100; (p+2)->bgcolor=rgba(184,28,67,0);
-    (p+2)->px=80; (p+2)->py=17; (p+2)->picname="image.matrix";
+    (p+2)->px=80; (p+2)->py=17; (p+2)->picname="image.mx";
     (p+2)->text="Image";
 
     (p+3)->x=187; (p+3)->y=334; (p+3)->w=210; (p+3)->h=100; (p+3)->bgcolor=rgba(95,60,186,0);
-    (p+3)->px=80; (p+3)->py=17; (p+3)->picname="bug.matrix";
+    (p+3)->px=80; (p+3)->py=17; (p+3)->picname="bug.mx";
     (p+3)->text="Minesweeper";
 
     (p+4)->x=407; (p+4)->y=334; (p+4)->w=210; (p+4)->h=100; (p+4)->bgcolor=rgba(0,156,0,0);
-    (p+4)->px=80; (p+4)->py=17; (p+4)->picname="users.matrix";
+    (p+4)->px=80; (p+4)->py=17; (p+4)->picname="users.mx";
     (p+4)->text="About";
 
     (p+5)->x=627; (p+5)->y=334; (p+5)->w=100; (p+5)->h=100; (p+5)->bgcolor=rgba(42,127,237,0);
-    (p+5)->px=25; (p+5)->py=17; (p+5)->picname="headphones.matrix";
+    (p+5)->px=25; (p+5)->py=17; (p+5)->picname="hp.mx";
     (p+5)->text="Music";
 
     (p+6)->x=737; (p+6)->y=334; (p+6)->w=100; (p+6)->h=100; (p+6)->bgcolor=rgba(95,60,186,0);
-    (p+6)->px=25; (p+6)->py=17; (p+6)->picname="cog.matrix";
+    (p+6)->px=25; (p+6)->py=17; (p+6)->picname="cog.mx";
     (p+6)->text="Set";
 
     (p+7)->x=187; (p+7)->y=444; (p+7)->w=210; (p+7)->h=100; (p+7)->bgcolor=rgba(43,127,237,0);
-    (p+7)->px=80; (p+7)->py=17; (p+7)->picname="bubble2.matrix";
+    (p+7)->px=80; (p+7)->py=17; (p+7)->picname="bubble2.mx";
     (p+7)->text="ReadMe";
 
     (p+8)->x=407; (p+8)->y=444; (p+8)->w=100; (p+8)->h=100; (p+8)->bgcolor=rgba(184,28,67,0);
-    (p+8)->px=25; (p+8)->py=17; (p+8)->picname="alarm.matrix";
+    (p+8)->px=25; (p+8)->py=17; (p+8)->picname="alarm.mx";
     (p+8)->text="Clock";
 
     (p+9)->x=517; (p+9)->y=444; (p+9)->w=100; (p+9)->h=100; (p+9)->bgcolor=rgba(155,37,163,0);
-    (p+9)->px=25; (p+9)->py=17; (p+9)->picname="switch.matrix";
+    (p+9)->px=25; (p+9)->py=17; (p+9)->picname="switch.mx";
     (p+9)->text="Shut";
 
     for (i=0;i<ntile;i++)
     {
         (p+i)->tx=5;
-        (p+i)->ty=70;
+        (p+i)->ty=73;
         (p+i)->pw=64;
         (p+i)->ph=64;
         (p+i)->pic=readImg((p+i)->picname,1);
@@ -187,7 +188,7 @@ void setupGUI()
     setattr(GUIENT_DIV,slider,GUIATTR_DIV_Y,parh(0));
     setattr(GUIENT_DIV,slider,GUIATTR_DIV_WIDTH,parh(200));
     setattr(GUIENT_DIV,slider,GUIATTR_DIV_HEIGHT,parh(768));
-    cl=rgba(0,0,0,95);
+    cl=rgba(0,0,0,55);
     setattr(GUIENT_DIV,slider,GUIATTR_DIV_BGCOLOR,&cl);
 
 
@@ -226,6 +227,11 @@ void OnMouseIn(uint domID)
 {
     uint i;
     color24 p;
+    if (domID==superhome)
+    {
+        setattr(GUIENT_DIV,slider,GUIATTR_DIV_X,parh(0));
+        return;
+    }
     for (i=0;i<ntile;i++)
         if ((ts+i)->tid==domID)
         {
@@ -240,6 +246,11 @@ void OnMouseIn(uint domID)
 void OnMouseOut(uint domID)
 {
     uint i;
+    if (domID==slider)
+    {
+        setattr(GUIENT_DIV,slider,GUIATTR_DIV_X,parh(-200));
+        return;
+    }
     for (i=0;i<ntile;i++)
         if ((ts+i)->tid==domID)
         {
