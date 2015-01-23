@@ -13,7 +13,7 @@
 #define NOTYPE 0
 #define FILETYPE 2
 #define FILENUMINAROW 7
-#define SCROLL_DISTANCE 250
+#define SCROLL_DISTANCE 700
 #define RIGHT_CLICK_MENU_Y_POS 610
 
 #define N_FILETYPE  1
@@ -1011,50 +1011,50 @@ int main(int argc, char *argv[])
 
     char* window_title_text = "File Explorer";
 
-    close_icon_content.pics = readImg("close.mx", 1);
+    close_icon_content.pics = readImg("/close.mx", 1);
     close_icon_content.isRepeat = 0;
     contentStruct gobackbutton_content;
-    gobackbutton_content.pics = readImg("goback.mx", 1);
+    gobackbutton_content.pics = readImg("/goback.mx", 1);
     gobackbutton_content.isRepeat = 0;
     contentStruct upbutton_content;
-    upbutton_content.pics = readImg("up.mx", 1);
+    upbutton_content.pics = readImg("/up.mx", 1);
     upbutton_content.isRepeat = 0;
     contentStruct downbutton_content;
-    downbutton_content.pics = readImg("down.mx", 1);
+    downbutton_content.pics = readImg("/down.mx", 1);
     downbutton_content.isRepeat = 0;
-    folder_type_content.pics = readImg("folder.mx", 1);
+    folder_type_content.pics = readImg("/folder.mx", 1);
     folder_type_content.isRepeat = 0;
-    bitmap_type_content.pics = readImg("bitmap.mx", 1);
+    bitmap_type_content.pics = readImg("/bitmap.mx", 1);
     bitmap_type_content.isRepeat = 0;
-    file_type_content.pics = readImg("file.mx", 1);
+    file_type_content.pics = readImg("/file.mx", 1);
     file_type_content.isRepeat = 0;
-    text_type_content.pics = readImg("text.mx", 1);
+    text_type_content.pics = readImg("/text.mx", 1);
     text_type_content.isRepeat = 0;
     contentStruct openbutton_content;
-    openbutton_content.pics = readImg("openfile.mx", 1);
+    openbutton_content.pics = readImg("/openfile.mx", 1);
     openbutton_content.isRepeat = 0;
     contentStruct delete_button_content;
-    delete_button_content.pics = readImg("delete.mx", 1);
+    delete_button_content.pics = readImg("/delete.mx", 1);
     delete_button_content.isRepeat = 0;
     contentStruct copy_button_content;
-    copy_button_content.pics = readImg("copy.mx", 1);
+    copy_button_content.pics = readImg("/copy.mx", 1);
     copy_button_content.isRepeat = 0;
     contentStruct move_button_content;
-    move_button_content.pics = readImg("scissors.mx", 1);
+    move_button_content.pics = readImg("/scissors.mx", 1);
     move_button_content.isRepeat = 0;
     contentStruct rename_button_content;
-    rename_button_content.pics = readImg("rename.mx", 1);
+    rename_button_content.pics = readImg("/rename.mx", 1);
     rename_button_content.isRepeat = 0;
     contentStruct new_folder_button_content;
-    new_folder_button_content.pics = readImg("newfolder.mx", 1);
+    new_folder_button_content.pics = readImg("/newfolder.mx", 1);
     new_folder_button_content.isRepeat = 0;
     contentStruct new_file_button_content;
-    new_file_button_content.pics = readImg("newfile.mx", 1);
+    new_file_button_content.pics = readImg("/newfile.mx", 1);
     new_file_button_content.isRepeat = 0;
     contentStruct paste_button_content;
-    paste_button_content.pics = readImg("paste.mx", 1);
+    paste_button_content.pics = readImg("/paste.mx", 1);
     paste_button_content.isRepeat = 0;
-    loading_icon_content.pics = readImg("loading.mx", 1);
+    loading_icon_content.pics = readImg("/loading.mx", 1);
     loading_icon_content.isRepeat = 0;
     
 
@@ -1350,12 +1350,12 @@ int main(int argc, char *argv[])
                         if (fork() == 0)
                         {//mode: 1->new file   2->new folder  3->rename
                             char* a[5];
-                            a[0] = "fshandlekbd";
-                            a[1] = "newfile";
-                            a[2] = current_path;
-                            a[3] = "1";
-                            a[4] = UInt2String(windowparent);
-                            exec("fshandlekbd", a);
+                            a[4] = (char*)0;
+                            a[0] = "newfile";
+                            a[1] = current_path;
+                            a[2] = "1";
+                            a[3] = UInt2String(windowparent);
+                            exec("/fshandlekbd", a);
                         }
                         wait();
                         setattr(GUIENT_IMG, loading_icon, GUIATTR_IMG_Y, parh(320));
@@ -1367,12 +1367,12 @@ int main(int argc, char *argv[])
                         if (fork() == 0)
                         {//mode: 1->new file   2->new folder  3->rename
                             char* a[5];
-                            a[0] = "fshandlekbd";
-                            a[1] = "newfolder";
-                            a[2] = current_path;
-                            a[3] = "2";
-                            a[4] = UInt2String(windowparent);
-                            exec("fshandlekbd", a);
+                            a[4] = (char*)0;
+                            a[0] = "newfolder";
+                            a[1] = current_path;
+                            a[2] = "2";
+                            a[3] = UInt2String(windowparent);
+                            exec("/fshandlekbd", a);
                         }
                         wait();
                         setattr(GUIENT_IMG, loading_icon, GUIATTR_IMG_Y, parh(320));
@@ -1390,12 +1390,12 @@ int main(int argc, char *argv[])
                             if (fork() == 0)
                             {//mode: 1->new file   2->new folder  3->rename
                                 char* a[5];
-                                a[0] = "fshandlekbd";
-                                a[1] = listresult.parseresult[last_right_clicked_fileno];
-                                a[2] = current_path;
-                                a[3] = "3";
-                                a[4] = UInt2String(windowparent);
-                                exec("fshandlekbd", a);
+                                a[4] = (char*)0;
+                                a[0] = listresult.parseresult[last_right_clicked_fileno];
+                                a[1] = current_path;
+                                a[2] = "3";
+                                a[3] = UInt2String(windowparent);
+                                exec("/fshandlekbd", a);
                             }
                             wait();
                             setattr(GUIENT_IMG, loading_icon, GUIATTR_IMG_Y, parh(320));

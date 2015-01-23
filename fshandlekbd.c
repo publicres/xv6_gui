@@ -784,7 +784,7 @@ void createInputNameDialog(char* defaultstring, uint parent, char* mode)
                     tmpn = strlen(tmpsrc);
                     strcpy(tmpsrc + strlen(tmpsrc), defaultstring);
 
-                    printf(2, "\r\n\r\n%s   %s\r\n\r\n", tmpsrc, tmpdest);
+                    //printf(2, "\r\n\r\n%s   %s\r\n\r\n", tmpsrc, tmpdest);
                     int ff;
                     if (strlen(tmpname) > DIRSIZ)
                     {
@@ -872,17 +872,18 @@ uint cvtS2U(char* str)
 //mode: 1->new file   2->new folder  3->rename
 int main(int argc, char *argv[])
 {
-    if (argc <= 1)
+    printf(1, "first words!\r\n");
+    if (argc <= 3)
     {
         printf(2, "parameter num wrong!!!\r\n");
         exit();
     }
     initprocessqueue();
 
-    char* defaultname = argv[1];
-    current_path = argv[2];
-    char* mode = argv[3];
-    char* wp = argv[4];
+    char* defaultname = argv[0];
+    current_path = argv[1];
+    char* mode = argv[2];
+    char* wp = argv[3];
 
     windowparent = cvtS2U(wp);
 
@@ -890,7 +891,7 @@ int main(int argc, char *argv[])
 
     color32 safe_area_color = rgba(0, 0, 0, 255);
 
-    close_icon_content.pics = readImg("close.mx", 1);
+    close_icon_content.pics = readImg("/close.mx", 1);
     close_icon_content.isRepeat = 0;
 
     createdom(GUIENT_DIV, windowparent, &safe_area);

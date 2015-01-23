@@ -409,16 +409,19 @@ sys_exec(void)
   }
   memset(argv, 0, sizeof(argv));
   for(i=0;; i++){
-    if(i >= NELEM(argv))
+    if(i >= NELEM(argv)){
       return -1;
-    if(fetchint(uargv+4*i, (int*)&uarg) < 0)
+    }
+    if(fetchint(uargv+4*i, (int*)&uarg) < 0){
       return -1;
+    }
     if(uarg == 0){
       argv[i] = 0;
       break;
     }
-    if(fetchstr(uarg, &argv[i]) < 0)
+    if(fetchstr(uarg, &argv[i]) < 0){
       return -1;
+    }
   }
   return exec(path, argv);
 }
