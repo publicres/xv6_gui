@@ -110,7 +110,7 @@ void randGrid()
     {
     	for(ja = 0; ja < minegrid_width; ja++)
     	{
-    		if(rand()%3 == 1)
+    		if(rand()%5 == 1)
     		{
     			gridvalue[ia][ja] = 1;
     		}
@@ -271,13 +271,7 @@ void setGridTxt(uint xa, uint ya, uint counter)
 		return;
 	}
 	gridplayerknow[ya][xa] = counter;
-    createdom(GUIENT_TXT, minegrid[ya][xa], &gridTxt[ya][xa]);   txtDomId[txtDomNum++] = gridTxt[ya][xa];
-    setattr(GUIENT_TXT, gridTxt[ya][xa], GUIATTR_TXT_X, parh(4));
-    setattr(GUIENT_TXT, gridTxt[ya][xa], GUIATTR_TXT_Y, parh(0));
-    setattr(GUIENT_TXT, gridTxt[ya][xa], GUIATTR_TXT_WIDTH, parh(15));
-    setattr(GUIENT_TXT, gridTxt[ya][xa], GUIATTR_TXT_HEIGHT, parh(24));
     setattr(GUIENT_TXT, gridTxt[ya][xa], GUIATTR_TXT_STR, parc(counter+'0'));
-    setattr(GUIENT_TXT, gridTxt[ya][xa], GUIATTR_TXT_COLOR, &bluetxt);
 }
 
 void setGridDom(uint xa, uint ya, uint ctype)
@@ -392,6 +386,7 @@ int main(int argc, char *argv[])
             uint closeButton;
         uint statusFrame;
             uint statusTxt;
+        uint resetButton;
         uint contentFrame;
 
     warning = rgba(251, 237, 6, 0);
@@ -452,6 +447,12 @@ int main(int argc, char *argv[])
         setattr(GUIENT_DIV, statusFrame, GUIATTR_DIV_HEIGHT, parh(24));
         setattr(GUIENT_DIV, statusFrame, GUIATTR_DIV_BGCOLOR, &appNameTxtFrame_color);
 
+        	createdom(GUIENT_TXT, statusFrame, &statusTxt);   txtDomId[txtDomNum++] = statusTxt;
+            setattr(GUIENT_TXT, statusTxt, GUIATTR_TXT_X, parh(2));
+            setattr(GUIENT_TXT, statusTxt, GUIATTR_TXT_Y, parh(0));
+            setattr(GUIENT_TXT, statusTxt, GUIATTR_TXT_HEIGHT, parh(24));
+            setattr(GUIENT_TXT, statusTxt, GUIATTR_TXT_WIDTH, parh(165));
+            setattr(GUIENT_TXT, statusTxt, GUIATTR_TXT_COLOR, &appNameTxt_color);
 
 
         createdom(GUIENT_DIV, window, &contentFrame);
@@ -460,6 +461,15 @@ int main(int argc, char *argv[])
         setattr(GUIENT_DIV, contentFrame, GUIATTR_DIV_WIDTH, parh(1024));
         setattr(GUIENT_DIV, contentFrame, GUIATTR_DIV_HEIGHT, parh(720));
         setattr(GUIENT_DIV, contentFrame, GUIATTR_DIV_BGCOLOR, &contentFrame_color);
+
+        createdom(GUIENT_DIV, window, &resetButton);
+        setattr(GUIENT_DIV, resetButton, GUIATTR_DIV_X, parh(488));
+        setattr(GUIENT_DIV, resetButton, GUIATTR_DIV_Y, parh(80));
+        setattr(GUIENT_DIV, resetButton, GUIATTR_DIV_WIDTH, parh(48));
+        setattr(GUIENT_DIV, resetButton, GUIATTR_DIV_HEIGHT, parh(48));
+        setattr(GUIENT_DIV, resetButton, GUIATTR_DIV_BGCOLOR, &contentGridUnit_color);
+
+
 
             uint i, j, contentWidth, contentHeight, gridx, gridy;
             contentWidth = minegrid_width * grid_unit_width + (minegrid_width - 1) * grid_unit_interval;
@@ -481,6 +491,14 @@ int main(int argc, char *argv[])
             		setattr(GUIENT_DIV, minegrid[i][j], GUIATTR_DIV_WIDTH, parh(grid_unit_width));
             		setattr(GUIENT_DIV, minegrid[i][j], GUIATTR_DIV_HEIGHT, parh(grid_unit_height));
             		setattr(GUIENT_DIV, minegrid[i][j], GUIATTR_DIV_BGCOLOR, &contentGridUnit_color);
+            		setattr(GUIENT_DIV, minegrid[i][j], GUIATTR_DIV_INTEGRL, parh(1));
+
+            		createdom(GUIENT_TXT, minegrid[i][j], &gridTxt[i][j]);   txtDomId[txtDomNum++] = gridTxt[i][j];
+            		setattr(GUIENT_TXT, gridTxt[i][j], GUIATTR_TXT_X, parh(4));
+    				setattr(GUIENT_TXT, gridTxt[i][j], GUIATTR_TXT_Y, parh(0));
+    				setattr(GUIENT_TXT, gridTxt[i][j], GUIATTR_TXT_WIDTH, parh(15));
+    				setattr(GUIENT_TXT, gridTxt[i][j], GUIATTR_TXT_HEIGHT, parh(24));
+    				setattr(GUIENT_TXT, gridTxt[i][j], GUIATTR_TXT_COLOR, &bluetxt);
             	}
             }
 
@@ -499,7 +517,24 @@ int main(int argc, char *argv[])
     	if (*msg == MOUSE_MESSAGE)
     	{
     		mm = (MouseMsg*)msg;
-    		if ((mm->mouse_event_type & LEFT_BTN_UP) != 0 && mm->dom_id == closeButton)
+    		if ((mm->mouse_event_type & LEFT_BTN_UP) != 0 && mm->dom_id == resetButton)
+    		{
+    			randGrid();
+    			showgrid(gridvalue);
+    			cleangrid(gridplayerknow,UNKNOWN);
+    			timeafterwin = 0;
+    			for(i = 0; i < minegrid_height; i++)
+	            {
+	            	for(j = 0; j < minegrid_width; j++)
+	            	{
+	            		setattr(GUIENT_DIV, minegrid[i][j], GUIATTR_DIV_BGCOLOR, &contentGridUnit_color);
+	            		setattr(GUIENT_TXT, gridTxt[i][j], GUIATTR_TXT_STR, pars(""));
+	            	}
+	            }
+	            setattr(GUIENT_TXT, statusTxt, GUIATTR_TXT_STR, pars(""));
+    			continue;
+    		}
+    		else if ((mm->mouse_event_type & LEFT_BTN_UP) != 0 && mm->dom_id == closeButton)
     		{
     			break;
     		}
@@ -523,12 +558,6 @@ int main(int argc, char *argv[])
     		timeafterwin += win();
     		if(timeafterwin == 1)
     		{
-    			createdom(GUIENT_TXT, statusFrame, &statusTxt);   txtDomId[txtDomNum++] = statusTxt;
-                setattr(GUIENT_TXT, statusTxt, GUIATTR_TXT_X, parh(2));
-                setattr(GUIENT_TXT, statusTxt, GUIATTR_TXT_Y, parh(0));
-                setattr(GUIENT_TXT, statusTxt, GUIATTR_TXT_HEIGHT, parh(24));
-                setattr(GUIENT_TXT, statusTxt, GUIATTR_TXT_WIDTH, parh(165));
-                setattr(GUIENT_TXT, statusTxt, GUIATTR_TXT_COLOR, &appNameTxt_color);
                 setattr(GUIENT_TXT, statusTxt, GUIATTR_TXT_STR, pars("You are win"));
     		}
     	}
