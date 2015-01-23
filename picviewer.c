@@ -92,8 +92,8 @@ int main(int argc, char *argv[])
     if (strcmp("picviewer", argv[0]) != 0)
         windowParent = cvtS2U(argv[0]);
 
-    if((fd = open(argv[1], 0)) < 0){
-    	printf(1, "picviewer:cannot open %s\r\n", argv[1]);
+    if((fd = open(fnm, 0)) < 0){
+    	printf(1, "picviewer:cannot open %s\r\n", fnm);
     	exit();
     }
 
@@ -132,7 +132,7 @@ int main(int argc, char *argv[])
         setattr(GUIENT_DIV, titleBar, GUIATTR_DIV_WIDTH, parh(1024));
         setattr(GUIENT_DIV, titleBar, GUIATTR_DIV_HEIGHT, parh(30));
         setattr(GUIENT_DIV, titleBar, GUIATTR_DIV_BGCOLOR, &titleBar_color);
-        
+
             createdom(GUIENT_DIV, titleBar, &appNameTxtFrame);
             setattr(GUIENT_DIV, appNameTxtFrame, GUIATTR_DIV_X, parh(0));
             setattr(GUIENT_DIV, appNameTxtFrame, GUIATTR_DIV_Y, parh(0));
@@ -154,29 +154,29 @@ int main(int argc, char *argv[])
         setattr(GUIENT_DIV, closeButton, GUIATTR_DIV_WIDTH, parh(30));
         setattr(GUIENT_DIV, closeButton, GUIATTR_DIV_HEIGHT, parh(30));
         setattr(GUIENT_DIV, closeButton, GUIATTR_DIV_BGCOLOR, &closeButton_color);
-        
+
         createdom(GUIENT_DIV, titleBar, &titleTxtFrame);
         setattr(GUIENT_DIV, titleTxtFrame, GUIATTR_DIV_X, parh(250));
         setattr(GUIENT_DIV, titleTxtFrame, GUIATTR_DIV_Y, parh(3));
         setattr(GUIENT_DIV, titleTxtFrame, GUIATTR_DIV_WIDTH, parh(630));
         setattr(GUIENT_DIV, titleTxtFrame, GUIATTR_DIV_HEIGHT, parh(24));
         setattr(GUIENT_DIV, titleTxtFrame, GUIATTR_DIV_BGCOLOR, &titleTxtFrame_color);
-        
+
             createdom(GUIENT_TXT, titleTxtFrame, &titleTxt);    txtDomId[txtDomNum++]=titleTxt;
             setattr(GUIENT_TXT, titleTxt, GUIATTR_TXT_X, parh(0));
             setattr(GUIENT_TXT, titleTxt, GUIATTR_TXT_Y, parh(0));
             setattr(GUIENT_TXT, titleTxt, GUIATTR_TXT_WIDTH, parh(630));
             setattr(GUIENT_TXT, titleTxt, GUIATTR_TXT_HEIGHT, parh(24));
-            setattr(GUIENT_TXT, titleTxt, GUIATTR_TXT_STR, pars(argv[1]));
+            setattr(GUIENT_TXT, titleTxt, GUIATTR_TXT_STR, pars(fnm));
             setattr(GUIENT_TXT, titleTxt, GUIATTR_TXT_COLOR, &titleTxt_color);
-    
+
         createdom(GUIENT_DIV, window, &contentPicFrame);
         setattr(GUIENT_DIV, contentPicFrame, GUIATTR_DIV_X, parh(10));
         setattr(GUIENT_DIV, contentPicFrame, GUIATTR_DIV_Y, parh(45));
         setattr(GUIENT_DIV, contentPicFrame, GUIATTR_DIV_WIDTH, parh(920));
         setattr(GUIENT_DIV, contentPicFrame, GUIATTR_DIV_HEIGHT, parh(720));
         setattr(GUIENT_DIV, contentPicFrame, GUIATTR_DIV_BGCOLOR, &contentPicFrame_color);
-    
+
     contentStruct pic;
     uchar *p = readImg(fnm,1);
     uint w, h, pic_x, pic_y;
@@ -218,7 +218,7 @@ int main(int argc, char *argv[])
     }
     releasedom(GUIENT_IMG, contentPic);
     releasedom(GUIENT_DIV, window);
-    
+
 
     releaseprocessqueue();
     exit();

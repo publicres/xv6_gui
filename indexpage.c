@@ -104,7 +104,7 @@ tile* initTiles()
     (p+2)->x=627; (p+2)->y=224; (p+2)->w=210; (p+2)->h=100; (p+2)->bgcolor=rgba(184,28,67,0);
     (p+2)->px=80; (p+2)->py=17; (p+2)->picname="image.mx";
     (p+2)->text="Image";
-    (p+2)->execName="undefined";
+    (p+2)->execName="picviewer";
 
     (p+3)->x=187; (p+3)->y=334; (p+3)->w=210; (p+3)->h=100; (p+3)->bgcolor=rgba(95,60,186,0);
     (p+3)->px=80; (p+3)->py=17; (p+3)->picname="bug.mx";
@@ -554,18 +554,19 @@ int main(int argc, char *argv[])
                 OnMouseIn(km->dom_id);
             else if (km->enter_or_leave==MOUSE_LEAVE)
                 OnMouseOut(km->dom_id);
-            else if (km->mouse_event_type & LEFT_BTN_DN)
+            else if (km->mouse_event_type & LEFT_BTN_UP)
                 OnClick(km->dom_id);
         }
         else if (*msg==FOCUS_MESSAGE)
         {
             fm=(FocusMsg*)msg;
             if (fm->focus_or_not==0)
-                OnBlur(km->dom_id);
+                OnBlur(fm->dom_id);
         }
         else if (*msg==CALL_MESSAGE)
         {
             cm=(CallMsg*)msg;
+            printf(1,"sniff!%s,%s\n",cm->call_process_name,cm->file_path);
             callByName(cm->call_process_name,cm->file_path);
         }
     }

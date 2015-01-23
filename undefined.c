@@ -80,7 +80,7 @@ void initDom()
     setattr(GUIENT_DIV,tb,GUIATTR_DIV_Y,parh(0));
     setattr(GUIENT_DIV,tb,GUIATTR_DIV_WIDTH,parh(1024));
     setattr(GUIENT_DIV,tb,GUIATTR_DIV_HEIGHT,parh(34));
-    cl=rgba(203,188,0,0);
+    cl=rgba(244,202,0,0);
     setattr(GUIENT_DIV,tb,GUIATTR_DIV_BGCOLOR,&cl);
 
     createdom(GUIENT_DIV,ct,&bb);
