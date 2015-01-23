@@ -198,6 +198,7 @@ DEFAULTFILES=\
 	newfile.mx\
 	paste.mx\
 	guide.txt\
+	loading.mx\
 
 UPROGS=\
 	_cat\
@@ -226,6 +227,7 @@ UPROGS=\
     _picviewer\
     _minesweeper\
     
+
 fs.img: mkfs README $(UPROGS) $(DEFAULTFILES)
 	./mkfs fs.img README $(UPROGS) $(DEFAULTFILES)
 

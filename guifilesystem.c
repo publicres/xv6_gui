@@ -13,8 +13,12 @@
 #define NOTYPE 0
 #define FILETYPE 2
 #define FILENUMINAROW 7
-#define SCROLL_DISTANCE 50
+#define SCROLL_DISTANCE 250
 #define RIGHT_CLICK_MENU_Y_POS 610
+
+#define N_FILETYPE  1
+#define N_TEXTTYPE  2
+#define N_IMGTYPE   3
 
 typedef struct lsresult
 {
@@ -32,6 +36,9 @@ typedef struct guifilenodes
 }FileNodes;
 
 uint windowparent = 0xffffffff;
+uint window;
+uint path_textview;
+uint loading_icon;
 FileNodes filenodes;
 int last_right_clicked_fileno = -1;
 char* current_path;
@@ -44,9 +51,15 @@ contentStruct bitmap_type_content;
 contentStruct file_type_content;
 contentStruct text_type_content;
 contentStruct close_icon_content;
+contentStruct loading_icon_content;
 
 uint j;
 #define parh(x) (j=x,&j)
+int xywh[4];
+uint* xywhU = (uint*)xywh;
+#define pari(x,y,w,h) (xywh[0]=x,xywh[1]=y,xywhU[2]=(uint)(w),xywhU[3]=(uint)(h),xywh)
+
+void createWarningWindow(char* warning, uint parent);
 
 char*
 fmtname(char *path)
@@ -109,7 +122,7 @@ LSResult ls(char *path)
   LSResult r;
 
   if((fd = open(path, 0)) < 0){
-    printf(2, "ls: cannot open %s\r\n", path);
+    //printf(2, "ls: cannot open %s\r\n", path);
     r.filenames = (char*)malloc(2 * sizeof(char));
     memset(r.filenames, '\0', 3);
     r.fileinfo = (int*)malloc(2 * sizeof(int));
@@ -118,7 +131,7 @@ LSResult ls(char *path)
   }
   
   if(fstat(fd, &st) < 0){
-    printf(2, "ls: cannot stat %s\r\n", path);
+    //printf(2, "ls: cannot stat %s\r\n", path);
     r.filenames = (char*)malloc(2 * sizeof(char));
     memset(r.filenames, '\0', 3);
     r.fileinfo = (int*)malloc(2 * sizeof(int));
@@ -135,14 +148,14 @@ LSResult ls(char *path)
   
   switch(st.type){
   case T_FILE:
-    printf(1, "%s %d %d %d\r\n", fmtname(path), st.type, st.ino, st.size);
+    //printf(1, "%s %d %d %d\r\n", fmtname(path), st.type, st.ino, st.size);
     strcpy(result + strlen(result), fmtname(path));
     info[n++] = st.type;
     break;
   
   case T_DIR:
     if(strlen(path) + 1 + DIRSIZ + 1 > sizeof buf){
-      printf(1, "ls: path too long\r\n");
+      //printf(1, "ls: path too long\r\n");
       break;
     }
     strcpy(buf, path);
@@ -154,7 +167,7 @@ LSResult ls(char *path)
       memmove(p, de.name, DIRSIZ);
       p[DIRSIZ] = 0;
       if(stat(buf, &st) < 0){
-        printf(1, "ls: cannot stat %s\r\n", buf);
+        //printf(1, "ls: cannot stat %s\r\n", buf);
         continue;
       }
       //printf(1, "%s %d %d %d\r\n", fmtname(buf), st.type, st.ino, st.size);
@@ -176,24 +189,28 @@ int copyfile(char* srcpath, char* destpath)
     int file_src, file_dest;
     if ((file_src = open(srcpath, O_RDONLY)) < 0)
     {
-        printf(2, "The file you are going to copy does not exists!!\r\n");
+        //printf(2, "The file you are going to copy does not exists!!\r\n");
+        createWarningWindow("file does not exists!!", window);
         return -1;
     }
     if ((file_dest = open(destpath, O_RDONLY)) >= 0)
     {
-        printf(2, "The destination you are going to copy the file has already had a file with the same name!!\r\n");
+        //printf(2, "The destination you are going to copy the file has already had a file with the same name!!\r\n");
         close(file_dest);
+        createWarningWindow("destination had a file with the same name!", window);
         return -1;
     }
     if ((file_dest = open(destpath, O_CREATE)) < 0)
     {
-        printf(2, "Cannot create a new file!!!\r\n");
+        //printf(2, "Cannot create a new file!!!\r\n");
+        createWarningWindow("Cannot create a new file!", window);
         return -1;
     }
     close(file_dest);
     if ((file_dest = open(destpath, O_WRONLY)) < 0)
     {
-        printf(2, "Cannot write to the new file!!!\r\n");
+        //printf(2, "Cannot write to the new file!!!\r\n");
+        createWarningWindow("Cannot write to the new file!", window);
         return -1;
     }
     char* buff = (char*)malloc(4096 * sizeof(char));
@@ -203,7 +220,8 @@ int copyfile(char* srcpath, char* destpath)
         write(file_dest, buff, size);
     if(size < 0)
     {
-        printf(2, "copy file error!!!\r\n");
+        //printf(2, "copy file error!!!\r\n");
+        createWarningWindow("copy file error!!", window);
         return -1;
     }
     close(file_src);
@@ -217,48 +235,51 @@ int createnewfile(char* path)
     int ff;
     if (((ff = open(path, O_RDONLY)) >= 0))
     {
-        printf(2, "cannot create new file, the file has existed!!!\r\n");
+        //printf(2, "cannot create new file, the file has existed!!!\r\n");
         close(ff);
+        createWarningWindow("file has existed!", window);
         return -1;
     }
     if ((ff = open(path, O_CREATE)) < 0)
     {
-        printf(2, "cannot create new file\r\n");
+        //printf(2, "cannot create new file\r\n");
+        createWarningWindow("cannot create new file", window);
         return -1;
     }
     else
     {
-        printf(2, "create file success!!!\r\n");
+        //printf(2, "create file success!!!\r\n");
         close(ff);
         return 0;
     }
 }
 
-int createnewfolder(char *foldername)
+/*int createnewfolder(char *foldername)
 {
     if(mkdir(foldername) < 0)
     {
-        printf(2, "cannot make directory\r\n");
+        //printf(2, "cannot make directory\r\n");
+        createWarningWindow("cannot make directory", window);
         return -1;
     }
     else
     {
-        printf(2, "make directory success\r\n");
+        //printf(2, "make directory success\r\n");
         return 0;
     }
-}
+}*/
 
 //the path passed in must ensure that it is the pure name of a child of the current directory
 int changedirectory(char* path) 
 {
     if(chdir(path) < 0)
     {
-        printf(2, "cannot cd\r\n");
+        //printf(2, "cannot cd\r\n");
         return -1;
     }
     else
     {
-        printf(2, "cd success\r\n");
+        //printf(2, "cd success\r\n");
         int n = strlen(path);
         int i;
         if (n == 2 && path[0] == '.' && path[1] == '.')
@@ -292,12 +313,13 @@ int removefile(char* path)
 {
     if (unlink(path) < 0)
     {
-        printf(2, "cannot remove, the thing you want to remove is being used!!\r\n");
+        //printf(2, "cannot remove, the thing you want to remove is being used!!\r\n");
+        createWarningWindow("cannot remove, the file is being used!", window);
         return -1;
     }
     else
     {
-        printf(2, "remove file success!!!\r\n");
+        //printf(2, "remove file success!!!\r\n");
         return 0;
     }
 }
@@ -327,7 +349,8 @@ int removefolder(char* path)
                 r = removefolder(tmppath);
                 if (r == -1)
                 {
-                    printf(2, "There are something wrong when recursively remove folder!!\r\n");
+                    //printf(2, "There are something wrong when recursively remove folder!!\r\n");
+                    createWarningWindow("recursively remove folder wrong", window);
                     free(tmppath);
                     free(savedpath);
                     return -1;
@@ -338,7 +361,8 @@ int removefolder(char* path)
                 r = removefile(tmppath);
                 if (r == -1)
                 {
-                    printf(2, "There are something wrong when recursively remove file!!\r\n");
+                    //printf(2, "There are something wrong when recursively remove file!!\r\n");
+                    createWarningWindow("recursively remove file wrong", window);
                     free(tmppath);
                     free(savedpath);
                     return -1;
@@ -348,14 +372,15 @@ int removefolder(char* path)
     }
     if (unlink(path) < 0)
     {
-        printf(2, "There are something wrong when delete the empty folder!!!\r\n");
+        //printf(2, "There are something wrong when delete the empty folder!!!\r\n");
+        createWarningWindow("delete the empty folder wrong", window);
         free(tmppath);
         free(savedpath);
         return -1;
     }
     else
     {
-        printf(2, "remove folder success!!!\r\n");
+        //printf(2, "remove folder success!!!\r\n");
         free(tmppath);
         free(savedpath);
         return 0;
@@ -377,20 +402,23 @@ int copyfolder(char* srcpath, char* destpath)
     int fds;
     if((fds = open(srcpath, O_RDONLY)) < 0)
     {
-        printf(2, "The folder you want to copy does not exist!!!!\r\n");
+        //printf(2, "The folder you want to copy does not exist!!!!\r\n");
+        createWarningWindow("folder does not exist", window);
         return -1;
     }
     close(fds);
     int fdd;
     if ((fdd = open(destpath, O_RDONLY)) >= 0)
     {
-        printf(2, "The destination has already had a folder with the same name!!!\r\n");
+        //printf(2, "The destination has already had a folder with the same name!!!\r\n");
         close(fdd);
+        createWarningWindow("destination has a folder with the same name", window);
         return -1;
     }
-    if (createnewfolder(destpath) < 0)
+    if (mkdir(destpath) < 0)
     {
-        printf(2, "copyfolder: cannot create the new folder!!!!\r\n");
+        //printf(2, "copyfolder: cannot create the new folder!!!!\r\n");
+        createWarningWindow("cannot create the new folder", window);
         return -1;
     }
     LSResult srccontent = ls(srcpath);
@@ -423,11 +451,12 @@ int copyfolder(char* srcpath, char* destpath)
         {
             if (copyfolder(tmpsrc, tmpdest) < 0)
             {
-                printf(2, "copyfolder: We meet some problem when recursively copy folder!!!\r\n");
+                //printf(2, "copyfolder: We meet some problem when recursively copy folder!!!\r\n");
                 free(tmpsrc);
                 free(tmpdest);
                 free(savedsrc);
                 free(saveddest);
+                createWarningWindow("recursively copy folder wrong", window);
                 return -1;
             }
         }
@@ -435,11 +464,12 @@ int copyfolder(char* srcpath, char* destpath)
         {
             if (copyfile(tmpsrc, tmpdest) < 0)
             {
-                printf(2, "copyfolder: We meet some problem when recursively copy file!!!\r\n");
+                //printf(2, "copyfolder: We meet some problem when recursively copy file!!!\r\n");
                 free(tmpsrc);
                 free(tmpdest);
                 free(savedsrc);
                 free(saveddest);
+                createWarningWindow("recursively copy file wrong", window);
                 return -1;
             }
         }
@@ -448,7 +478,7 @@ int copyfolder(char* srcpath, char* destpath)
     free(tmpdest);
     free(savedsrc);
     free(saveddest);
-    printf(2, "copyfolder: copy folder success!!!\r\n");
+    //printf(2, "copyfolder: copy folder success!!!\r\n");
     return 0;
 }
 
@@ -456,15 +486,17 @@ int movefolder(char* srcpath, char* destpath)
 {
     if (copyfolder(srcpath, destpath) == -1)
     {
-        printf(2, "movefolder: There are something wrong when we copyfolder folder!!!\r\n");
+        //printf(2, "movefolder: There are something wrong when we copyfolder folder!!!\r\n");
+        createWarningWindow("copy folder wrong", window);
         return -1;
     }
     if (removefolder(srcpath) == -1)
     {
-        printf(2, "movefolder: There are something wrong when we delete the folder!!!\r\n");
+        //printf(2, "movefolder: There are something wrong when we delete the folder!!!\r\n");
+        createWarningWindow("delete folder wrong", window);
         return -1;
     }
-    printf(2, "movefolder success!!!\r\n");
+    //printf(2, "movefolder success!!!\r\n");
     return 0;
 }
 
@@ -473,10 +505,42 @@ int renamefile(char* originname, char* nowname)
 {
     int r = movefile(originname, nowname);
     if (r < 0)
-        printf(2, "rename fail!!!\r\n");
-    else
-        printf(2, "rename success!!!\r\n");
+        //printf(2, "rename fail!!!\r\n");
+        createWarningWindow("rename fail", window);
+    /*else
+        printf(2, "rename success!!!\r\n");*/
     return r;
+}
+
+int judgeTypeByName(char* name)
+{
+    int t;
+    if (strcmp("README", name) == 0)
+        return N_TEXTTYPE;
+    for (t = strlen(name) - 1; t >= 0; t--)
+    {
+        if (name[t] == '.')
+            break;
+    }
+    if (t < 0)
+    {
+        return N_FILETYPE;
+    }
+    else
+    {
+        if (strcmp(name + t + 1, "txt") == 0)
+        {
+            return N_TEXTTYPE;
+        }
+        else if (strcmp(name + t + 1, "mx") == 0)
+        {
+            return N_IMGTYPE;
+        }
+        else
+        {
+            return N_FILETYPE;
+        }
+    }
 }
 
 void render(char** names, int num, uint parent, int* fileinfo)
@@ -495,17 +559,19 @@ void render(char** names, int num, uint parent, int* fileinfo)
         int col = i % FILENUMINAROW;
 
         createdom(GUIENT_DIV, parent, &filenodes.nodes[i]);
-        setattr(GUIENT_DIV, filenodes.nodes[i], GUIATTR_DIV_X, parh(28 + 140 * col));
-        setattr(GUIENT_DIV, filenodes.nodes[i], GUIATTR_DIV_Y, parh(10 + 190 * row));
-        setattr(GUIENT_DIV, filenodes.nodes[i], GUIATTR_DIV_WIDTH, parh(130));
-        setattr(GUIENT_DIV, filenodes.nodes[i], GUIATTR_DIV_HEIGHT, parh(180));
+        setattr(GUIENT_DIV, filenodes.nodes[i], GUIATTR_DIV_XYWH, pari((28 + 140 * col),(10 + 190 * row),130,180));
+        // setattr(GUIENT_DIV, filenodes.nodes[i], GUIATTR_DIV_X, parh(28 + 140 * col));
+        // setattr(GUIENT_DIV, filenodes.nodes[i], GUIATTR_DIV_Y, parh(10 + 190 * row));
+        // setattr(GUIENT_DIV, filenodes.nodes[i], GUIATTR_DIV_WIDTH, parh(130));
+        // setattr(GUIENT_DIV, filenodes.nodes[i], GUIATTR_DIV_HEIGHT, parh(180));
         setattr(GUIENT_DIV, filenodes.nodes[i], GUIATTR_DIV_INTEG, parh(1));
 
             createdom(GUIENT_IMG, filenodes.nodes[i], &filenodes.icons[i]);
-            setattr(GUIENT_IMG, filenodes.icons[i], GUIATTR_IMG_X, parh(1));
-            setattr(GUIENT_IMG, filenodes.icons[i], GUIATTR_IMG_Y, parh(2));
-            setattr(GUIENT_IMG, filenodes.icons[i], GUIATTR_IMG_WIDTH, parh(128));
-            setattr(GUIENT_IMG, filenodes.icons[i], GUIATTR_IMG_HEIGHT, parh(128));
+            setattr(GUIENT_IMG, filenodes.icons[i], GUIATTR_IMG_XYWH, pari(1,2,128,128));
+            // setattr(GUIENT_IMG, filenodes.icons[i], GUIATTR_IMG_X, parh(1));
+            // setattr(GUIENT_IMG, filenodes.icons[i], GUIATTR_IMG_Y, parh(2));
+            // setattr(GUIENT_IMG, filenodes.icons[i], GUIATTR_IMG_WIDTH, parh(128));
+            // setattr(GUIENT_IMG, filenodes.icons[i], GUIATTR_IMG_HEIGHT, parh(128));
             if (fileinfo[i] == FOLDERTYPE)
             {
                 setattr(GUIENT_IMG, filenodes.icons[i], GUIATTR_IMG_CONTENT, &folder_type_content);
@@ -516,41 +582,34 @@ void render(char** names, int num, uint parent, int* fileinfo)
             }
             else
             {
-                int t;
-                for (t = strlen(names[i]) - 1; t >= 0; t--)
-                {
-                    if (names[i][t] == '.')
-                        break;
-                }
-                if (t < 0)
+                int typ = judgeTypeByName(names[i]);
+                if (typ ==N_FILETYPE)
                 {
                     setattr(GUIENT_IMG, filenodes.icons[i], GUIATTR_IMG_CONTENT, &file_type_content);
                 }
+                else if (typ == N_TEXTTYPE)
+                {
+                    //printf(1, "txt!!!!!!!\r\n");
+                    setattr(GUIENT_IMG, filenodes.icons[i], GUIATTR_IMG_CONTENT, &text_type_content);
+                }
+                else if (typ == N_IMGTYPE)
+                {
+                    //printf(1, "bitmap!!\r\n");
+                    setattr(GUIENT_IMG, filenodes.icons[i], GUIATTR_IMG_CONTENT, &bitmap_type_content);
+                }
                 else
                 {
-                    if (strcmp(names[i] + t + 1, "txt") == 0)
-                    {
-                        //printf(1, "txt!!!!!!!\r\n");
-                        setattr(GUIENT_IMG, filenodes.icons[i], GUIATTR_IMG_CONTENT, &text_type_content);
-                    }
-                    else if (strcmp(names[i] + t + 1, "matrix") || strcmp(names[i] + t + 1, "mx") == 0)
-                    {
-                        //printf(1, "bitmap!!\r\n");
-                        setattr(GUIENT_IMG, filenodes.icons[i], GUIATTR_IMG_CONTENT, &bitmap_type_content);
-                    }
-                    else
-                    {
-                        //printf(1, "file!!!!\r\n");
-                        setattr(GUIENT_IMG, filenodes.icons[i], GUIATTR_IMG_CONTENT, &file_type_content);
-                    }
+                    //printf(1, "file!!!!\r\n");
+                    setattr(GUIENT_IMG, filenodes.icons[i], GUIATTR_IMG_CONTENT, &file_type_content);
                 }
             }
 
             createdom(GUIENT_TXT, filenodes.nodes[i], &filenodes.titles[i]);
-            setattr(GUIENT_TXT, filenodes.titles[i], GUIATTR_TXT_X, parh(5));
-            setattr(GUIENT_TXT, filenodes.titles[i], GUIATTR_TXT_Y, parh(132));
-            setattr(GUIENT_TXT, filenodes.titles[i], GUIATTR_TXT_WIDTH, parh(120));
-            setattr(GUIENT_TXT, filenodes.titles[i], GUIATTR_TXT_HEIGHT, parh(48));
+            setattr(GUIENT_TXT, filenodes.titles[i], GUIATTR_TXT_XYWH, pari(5,132,120,48));
+            // setattr(GUIENT_TXT, filenodes.titles[i], GUIATTR_TXT_X, parh(5));
+            // setattr(GUIENT_TXT, filenodes.titles[i], GUIATTR_TXT_Y, parh(132));
+            // setattr(GUIENT_TXT, filenodes.titles[i], GUIATTR_TXT_WIDTH, parh(120));
+            // setattr(GUIENT_TXT, filenodes.titles[i], GUIATTR_TXT_HEIGHT, parh(48));
             setattr(GUIENT_TXT, filenodes.titles[i], GUIATTR_TXT_STR, names[i]);
             setattr(GUIENT_TXT, filenodes.titles[i], GUIATTR_TXT_COLOR, &name_color);
     }
@@ -663,7 +722,6 @@ int handlepaste()
         strcpy(tmp, current_path);
         strcpy(tmp + strlen(tmp), tmp2);
         int pasteresult = -1;
-        printf(1, "haha: %s   %s\n", last_moved_path, tmp);
         if (file_type_to_be_operate == FOLDERTYPE) 
             pasteresult = movefolder(last_moved_path, tmp); 
         else if (file_type_to_be_operate == FILETYPE)
@@ -685,7 +743,7 @@ void pastebutton_onclick()
     }
     else
     {
-        //come up with a dialog reminding the failure
+        createWarningWindow("operation fail", window);
     }
 }
 
@@ -713,6 +771,8 @@ void invalidate(uint parent)
 
     releasefilenodes();
 
+    setattr(GUIENT_TXT, path_textview, GUIATTR_TXT_STR, current_path);
+
     listresult = ls(current_path);
     int n = strlen(listresult.filenames) / 14 - 2;
     render(listresult.parseresult, n, parent, listresult.fileinfo + 2); //the first two are . and ..
@@ -723,7 +783,7 @@ uchar *readImg(char *fileName, uchar picMode)   //0:3channel,1:4channel
     int fd1 = open(fileName, 0);
     if (fd1 < 0)
     {
-        printf(1, "open file error\n");
+        //printf(1, "open file error\n");
         return 0;
     }
     uchar w,h;
@@ -779,55 +839,62 @@ void createWarningWindow(char* warning, uint parent)
 
 
     createdom(GUIENT_DIV, parent, &dialog);
-    setattr(GUIENT_DIV, dialog, GUIATTR_DIV_X, parh(300));
-    setattr(GUIENT_DIV, dialog, GUIATTR_DIV_Y, parh(250));
-    setattr(GUIENT_DIV, dialog, GUIATTR_DIV_WIDTH, parh(500));
-    setattr(GUIENT_DIV, dialog, GUIATTR_DIV_HEIGHT, parh(155));
+    setattr(GUIENT_DIV, dialog, GUIATTR_DIV_XYWH, pari(300,250,500,155));
+    // setattr(GUIENT_DIV, dialog, GUIATTR_DIV_X, parh(300));
+    // setattr(GUIENT_DIV, dialog, GUIATTR_DIV_Y, parh(250));
+    // setattr(GUIENT_DIV, dialog, GUIATTR_DIV_WIDTH, parh(500));
+    // setattr(GUIENT_DIV, dialog, GUIATTR_DIV_HEIGHT, parh(155));
     setattr(GUIENT_DIV, dialog, GUIATTR_DIV_BGCOLOR, &dialog_background);
 
         createdom(GUIENT_DIV, dialog, &dialog_titlebar);
-        setattr(GUIENT_DIV, dialog_titlebar, GUIATTR_DIV_X, parh(0));
-        setattr(GUIENT_DIV, dialog_titlebar, GUIATTR_DIV_Y, parh(0));
-        setattr(GUIENT_DIV, dialog_titlebar, GUIATTR_DIV_WIDTH, parh(500));
-        setattr(GUIENT_DIV, dialog_titlebar, GUIATTR_DIV_HEIGHT, parh(35));
+        setattr(GUIENT_DIV, dialog_titlebar, GUIATTR_DIV_XYWH, pari(0,0,500,35));
+        // setattr(GUIENT_DIV, dialog_titlebar, GUIATTR_DIV_X, parh(0));
+        // setattr(GUIENT_DIV, dialog_titlebar, GUIATTR_DIV_Y, parh(0));
+        // setattr(GUIENT_DIV, dialog_titlebar, GUIATTR_DIV_WIDTH, parh(500));
+        // setattr(GUIENT_DIV, dialog_titlebar, GUIATTR_DIV_HEIGHT, parh(35));
         setattr(GUIENT_DIV, dialog_titlebar, GUIATTR_DIV_BGCOLOR, &dialog_titlebar_color);
 
             createdom(GUIENT_DIV, dialog_titlebar, &dialog_closebutton);
-            setattr(GUIENT_DIV, dialog_closebutton, GUIATTR_DIV_X, parh(449));
-            setattr(GUIENT_DIV, dialog_closebutton, GUIATTR_DIV_Y, parh(0));
-            setattr(GUIENT_DIV, dialog_closebutton, GUIATTR_DIV_WIDTH, parh(51));
-            setattr(GUIENT_DIV, dialog_closebutton, GUIATTR_DIV_HEIGHT, parh(30));
+            setattr(GUIENT_DIV, dialog_closebutton, GUIATTR_DIV_XYWH, pari(449,0,51,30));
+            // setattr(GUIENT_DIV, dialog_closebutton, GUIATTR_DIV_X, parh(449));
+            // setattr(GUIENT_DIV, dialog_closebutton, GUIATTR_DIV_Y, parh(0));
+            // setattr(GUIENT_DIV, dialog_closebutton, GUIATTR_DIV_WIDTH, parh(51));
+            // setattr(GUIENT_DIV, dialog_closebutton, GUIATTR_DIV_HEIGHT, parh(30));
             setattr(GUIENT_DIV, dialog_closebutton, GUIATTR_DIV_BGCOLOR, &dialog_closebutton_color);
             setattr(GUIENT_DIV, dialog_closebutton, GUIATTR_DIV_INTEG, parh(1));
 
                 createdom(GUIENT_IMG, dialog_closebutton, &dialog_closeicon);
-                setattr(GUIENT_IMG, dialog_closeicon, GUIATTR_IMG_X, parh(18));
-                setattr(GUIENT_IMG, dialog_closeicon, GUIATTR_IMG_Y, parh(7));
-                setattr(GUIENT_IMG, dialog_closeicon, GUIATTR_IMG_WIDTH, parh(17));
-                setattr(GUIENT_IMG, dialog_closeicon, GUIATTR_IMG_HEIGHT, parh(17));
+                setattr(GUIENT_IMG, dialog_closeicon, GUIATTR_IMG_XYWH, pari(18,7,17,17));
+                // setattr(GUIENT_IMG, dialog_closeicon, GUIATTR_IMG_X, parh(18));
+                // setattr(GUIENT_IMG, dialog_closeicon, GUIATTR_IMG_Y, parh(7));
+                // setattr(GUIENT_IMG, dialog_closeicon, GUIATTR_IMG_WIDTH, parh(17));
+                // setattr(GUIENT_IMG, dialog_closeicon, GUIATTR_IMG_HEIGHT, parh(17));
                 setattr(GUIENT_IMG, dialog_closeicon, GUIATTR_IMG_CONTENT, &close_icon_content);
 
         createdom(GUIENT_TXT, dialog, &warning_textview);
-        setattr(GUIENT_TXT, warning_textview, GUIATTR_TXT_X, parh(10));
-        setattr(GUIENT_TXT, warning_textview, GUIATTR_TXT_Y, parh(45));
-        setattr(GUIENT_TXT, warning_textview, GUIATTR_TXT_WIDTH, parh(480));
-        setattr(GUIENT_TXT, warning_textview, GUIATTR_TXT_HEIGHT, parh(72));
+        setattr(GUIENT_TXT, warning_textview, GUIATTR_TXT_XYWH, pari(10,45,480,72));
+        // setattr(GUIENT_TXT, warning_textview, GUIATTR_TXT_X, parh(10));
+        // setattr(GUIENT_TXT, warning_textview, GUIATTR_TXT_Y, parh(45));
+        // setattr(GUIENT_TXT, warning_textview, GUIATTR_TXT_WIDTH, parh(480));
+        // setattr(GUIENT_TXT, warning_textview, GUIATTR_TXT_HEIGHT, parh(72));
         setattr(GUIENT_TXT, warning_textview, GUIATTR_TXT_STR, warning);
         setattr(GUIENT_TXT, warning_textview, GUIATTR_TXT_COLOR, &warning_textcolor);
 
         createdom(GUIENT_DIV, dialog, &okbutton);
-        setattr(GUIENT_DIV, okbutton, GUIATTR_DIV_X, parh(215));
-        setattr(GUIENT_DIV, okbutton, GUIATTR_DIV_Y, parh(125));
-        setattr(GUIENT_DIV, okbutton, GUIATTR_DIV_WIDTH, parh(70));
-        setattr(GUIENT_DIV, okbutton, GUIATTR_DIV_HEIGHT, parh(24));
+        setattr(GUIENT_DIV, okbutton, GUIATTR_DIV_XYWH, pari(215,125,70,24));
+        // setattr(GUIENT_DIV, okbutton, GUIATTR_DIV_X, parh(215));
+        // setattr(GUIENT_DIV, okbutton, GUIATTR_DIV_Y, parh(125));
+        // setattr(GUIENT_DIV, okbutton, GUIATTR_DIV_WIDTH, parh(70));
+        // setattr(GUIENT_DIV, okbutton, GUIATTR_DIV_HEIGHT, parh(24));
         setattr(GUIENT_DIV, okbutton, GUIATTR_DIV_BGCOLOR, &okbutton_color);
         setattr(GUIENT_DIV, okbutton, GUIATTR_DIV_INTEG, parh(1));
 
             createdom(GUIENT_TXT, okbutton, &oktext);
-            setattr(GUIENT_TXT, oktext, GUIATTR_TXT_X, parh(20));
-            setattr(GUIENT_TXT, oktext, GUIATTR_TXT_Y, parh(0));
-            setattr(GUIENT_TXT, oktext, GUIATTR_TXT_WIDTH, parh(30));
-            setattr(GUIENT_TXT, oktext, GUIATTR_TXT_HEIGHT, parh(24));
+            setattr(GUIENT_TXT, oktext, GUIATTR_TXT_XYWH, pari(20,0,30,24));
+            // setattr(GUIENT_TXT, oktext, GUIATTR_TXT_X, parh(20));
+            // setattr(GUIENT_TXT, oktext, GUIATTR_TXT_Y, parh(0));
+            // setattr(GUIENT_TXT, oktext, GUIATTR_TXT_WIDTH, parh(30));
+            // setattr(GUIENT_TXT, oktext, GUIATTR_TXT_HEIGHT, parh(24));
             setattr(GUIENT_TXT, oktext, GUIATTR_TXT_STR, ok);
             setattr(GUIENT_TXT, oktext, GUIATTR_TXT_COLOR, &warning_textcolor);
 
@@ -857,136 +924,6 @@ void createWarningWindow(char* warning, uint parent)
     free(dmsg);
 }
 
-/*char* createInputNameDialog(char* defaultstring, uint parent)
-{
-    uint dialog;
-        uint dialog_titlebar;
-            uint dialog_title_textview;
-            uint dialog_closebutton;
-                uint dialog_closeicon;
-        uint warning_textview;
-        uint okbutton;
-            uint oktext;
-        uint cancelbutton;
-            uint canceltext;
-
-
-    color32 dialog_background = rgba(255, 255, 255, 0);
-    color32 dialog_titlebar_color = rgba(210, 174, 142, 0);
-    color32 warning_textcolor = rgba(0, 0, 0, 0);
-    color32 okbutton_color = rgba(0, 255, 0, 0);
-    color32 cancelbutton_color = rgba(255, 0, 0, 0);
-    color32 dialog_closebutton_color = rgba(200, 80, 81, 0);
-
-    char* ok = "OK";
-    char* title_text = "input name:";
-    char* cancel = "Cancel";
-
-
-    createdom(GUIENT_DIV, parent, &dialog);
-    setattr(GUIENT_DIV, dialog, GUIATTR_DIV_X, parh(300));
-    setattr(GUIENT_DIV, dialog, GUIATTR_DIV_Y, parh(250));
-    setattr(GUIENT_DIV, dialog, GUIATTR_DIV_WIDTH, parh(500));
-    setattr(GUIENT_DIV, dialog, GUIATTR_DIV_HEIGHT, parh(155));
-    setattr(GUIENT_DIV, dialog, GUIATTR_DIV_BGCOLOR, &dialog_background);
-
-        createdom(GUIENT_DIV, dialog, &dialog_titlebar);
-        setattr(GUIENT_DIV, dialog_titlebar, GUIATTR_DIV_X, parh(0));
-        setattr(GUIENT_DIV, dialog_titlebar, GUIATTR_DIV_Y, parh(0));
-        setattr(GUIENT_DIV, dialog_titlebar, GUIATTR_DIV_WIDTH, parh(500));
-        setattr(GUIENT_DIV, dialog_titlebar, GUIATTR_DIV_HEIGHT, parh(35));
-        setattr(GUIENT_DIV, dialog_titlebar, GUIATTR_DIV_BGCOLOR, &dialog_titlebar_color);
-
-            createdom(GUIENT_TXT, dialog_titlebar, &dialog_title_textview);
-            setattr(GUIENT_TXT, dialog_title_textview, GUIATTR_TXT_X, parh(167));
-            setattr(GUIENT_TXT, dialog_title_textview, GUIATTR_TXT_Y, parh(5));
-            setattr(GUIENT_TXT, dialog_title_textview, GUIATTR_TXT_WIDTH, parh(165));
-            setattr(GUIENT_TXT, dialog_title_textview, GUIATTR_TXT_HEIGHT, parh(24));
-            setattr(GUIENT_TXT, dialog_title_textview, GUIATTR_TXT_STR, title_text);
-            setattr(GUIENT_TXT, dialog_title_textview, GUIATTR_TXT_COLOR, &warning_textcolor);
-
-            createdom(GUIENT_DIV, dialog_titlebar, &dialog_closebutton);
-            setattr(GUIENT_DIV, dialog_closebutton, GUIATTR_DIV_X, parh(449));
-            setattr(GUIENT_DIV, dialog_closebutton, GUIATTR_DIV_Y, parh(0));
-            setattr(GUIENT_DIV, dialog_closebutton, GUIATTR_DIV_WIDTH, parh(51));
-            setattr(GUIENT_DIV, dialog_closebutton, GUIATTR_DIV_HEIGHT, parh(30));
-            setattr(GUIENT_DIV, dialog_closebutton, GUIATTR_DIV_BGCOLOR, &dialog_closebutton_color);
-            setattr(GUIENT_DIV, dialog_closebutton, GUIATTR_DIV_INTEG, parh(1));
-
-                createdom(GUIENT_IMG, dialog_closebutton, &dialog_closeicon);
-                setattr(GUIENT_IMG, dialog_closeicon, GUIATTR_IMG_X, parh(18));
-                setattr(GUIENT_IMG, dialog_closeicon, GUIATTR_IMG_Y, parh(7));
-                setattr(GUIENT_IMG, dialog_closeicon, GUIATTR_IMG_WIDTH, parh(17));
-                setattr(GUIENT_IMG, dialog_closeicon, GUIATTR_IMG_HEIGHT, parh(17));
-                setattr(GUIENT_IMG, dialog_closeicon, GUIATTR_IMG_CONTENT, &close_icon_content);
-
-        createdom(GUIENT_TXT, dialog, &warning_textview);
-        setattr(GUIENT_TXT, warning_textview, GUIATTR_TXT_X, parh(10));
-        setattr(GUIENT_TXT, warning_textview, GUIATTR_TXT_Y, parh(45));
-        setattr(GUIENT_TXT, warning_textview, GUIATTR_TXT_WIDTH, parh(480));
-        setattr(GUIENT_TXT, warning_textview, GUIATTR_TXT_HEIGHT, parh(72));
-        setattr(GUIENT_TXT, warning_textview, GUIATTR_TXT_STR, defaultstring);
-        setattr(GUIENT_TXT, warning_textview, GUIATTR_TXT_COLOR, &warning_textcolor);
-
-        createdom(GUIENT_DIV, dialog, &okbutton);
-        setattr(GUIENT_DIV, okbutton, GUIATTR_DIV_X, parh(120));
-        setattr(GUIENT_DIV, okbutton, GUIATTR_DIV_Y, parh(125));
-        setattr(GUIENT_DIV, okbutton, GUIATTR_DIV_WIDTH, parh(70));
-        setattr(GUIENT_DIV, okbutton, GUIATTR_DIV_HEIGHT, parh(24));
-        setattr(GUIENT_DIV, okbutton, GUIATTR_DIV_BGCOLOR, &okbutton_color);
-        setattr(GUIENT_DIV, okbutton, GUIATTR_DIV_INTEG, parh(1));
-
-            createdom(GUIENT_TXT, okbutton, &oktext);
-            setattr(GUIENT_TXT, oktext, GUIATTR_TXT_X, parh(20));
-            setattr(GUIENT_TXT, oktext, GUIATTR_TXT_Y, parh(0));
-            setattr(GUIENT_TXT, oktext, GUIATTR_TXT_WIDTH, parh(30));
-            setattr(GUIENT_TXT, oktext, GUIATTR_TXT_HEIGHT, parh(24));
-            setattr(GUIENT_TXT, oktext, GUIATTR_TXT_STR, ok);
-            setattr(GUIENT_TXT, oktext, GUIATTR_TXT_COLOR, &warning_textcolor);
-
-        createdom(GUIENT_DIV, dialog, &cancelbutton);
-        setattr(GUIENT_DIV, cancelbutton, GUIATTR_DIV_X, parh(310));
-        setattr(GUIENT_DIV, cancelbutton, GUIATTR_DIV_Y, parh(125));
-        setattr(GUIENT_DIV, cancelbutton, GUIATTR_DIV_WIDTH, parh(70));
-        setattr(GUIENT_DIV, cancelbutton, GUIATTR_DIV_HEIGHT, parh(24));
-        setattr(GUIENT_DIV, cancelbutton, GUIATTR_DIV_BGCOLOR, &cancelbutton_color);
-        setattr(GUIENT_DIV, cancelbutton, GUIATTR_DIV_INTEG, parh(1));
-
-            createdom(GUIENT_TXT, cancelbutton, &canceltext);
-            setattr(GUIENT_TXT, canceltext, GUIATTR_TXT_X, parh(20));
-            setattr(GUIENT_TXT, canceltext, GUIATTR_TXT_Y, parh(0));
-            setattr(GUIENT_TXT, canceltext, GUIATTR_TXT_WIDTH, parh(30));
-            setattr(GUIENT_TXT, canceltext, GUIATTR_TXT_HEIGHT, parh(24));
-            setattr(GUIENT_TXT, canceltext, GUIATTR_TXT_STR, cancel);
-            setattr(GUIENT_TXT, canceltext, GUIATTR_TXT_COLOR, &warning_textcolor);
-
-    //message handler
-    int *dmsg = (int*)malloc(100);
-    MouseMsg* dmm;
-    while(1)
-    {
-        getmsgfromqueue(dmsg);
-        if (*dmsg == MOUSE_MESSAGE)
-        {
-            dmm = (MouseMsg*)dmsg;
-            if ((dmm->mouse_event_type & LEFT_BTN_UP) != 0)
-            {
-                if (dmm->dom_id == dialog_closebutton || dmm->dom_id == okbutton)
-                    break;
-            }
-        }
-    }
-
-    //============release
-    releasedom(GUIENT_IMG, dialog_closeicon);
-    releasedom(GUIENT_TXT, warning_textview);
-    releasedom(GUIENT_TXT, oktext);
-    releasedom(GUIENT_DIV, dialog);
-
-    free(dmsg);
-    return "";
-}*/
-
 uint cvtS2U(char* str)
 {
     uint ret=0;
@@ -996,6 +933,26 @@ uint cvtS2U(char* str)
         str++;
     }
     return ret;
+}
+
+char* UInt2String(uint num)
+{
+    uint i;
+    int k;
+    char* tmp = (char*)malloc(25 * sizeof(char));
+    memset(tmp, '\0', 25);
+    for (i = num, k = 0; i != 0;)
+    {
+        tmp[k++] = (i % 10) + '0';
+        i = i / 10;
+    }
+    int n = strlen(tmp);
+    char* result = (char*)malloc(25);
+    memset(result, '\0', 25);
+    for (i = 0, k = n - 1; i < n; i++, k--)
+        result[i] = tmp[k];
+    free(tmp);
+    return result;
 }
 
 int main(int argc, char *argv[])
@@ -1013,26 +970,9 @@ int main(int argc, char *argv[])
 
     windowparent = cvtS2U(argv[0]);
 
-    /*createnewfolder("A");
-    createnewfolder("B");
-    movefile("/README", "/A/README");
-    memset(last_copied_path, '\0', MAX_DIRECTORY_LEN);
-    memset(last_moved_path, '\0', MAX_DIRECTORY_LEN);
-    last_moved_path[0] = '/';
-    last_moved_path[1] = 'A';
-    file_type_to_be_operate = FOLDERTYPE;
-    changedirectory("/B");
-    pastebutton_onclick();
-    exit();*/
-
-    /*char* a[3];
-    a[0] = "fshandlekbd";
-    a[1] = "README";
-    a[2] = "/";
-    exec("fshandlekbd", a);*/
 
     //===========create window
-    uint window;
+    //uint window;
         uint titlebar;
             uint window_title;
             uint closebutton;
@@ -1040,12 +980,15 @@ int main(int argc, char *argv[])
 
         uint toolbar;
             uint gobackbutton;
+            uint path_textview_father;
+                //uint path_textview;
             uint upbutton;
             uint downbutton;
 
         uint separator;
 
-        uint scrollview;
+        uint scrollviewfather;
+            uint scrollview;
         uint right_click_onfile;
             uint openbutton;
             uint delete_button;
@@ -1061,211 +1004,269 @@ int main(int argc, char *argv[])
     color32 window_background = rgba(255, 255, 255, 0);
     color32 titlebar_color = rgba(210, 174, 142, 0);
     color32 closebutton_color = rgba(200, 80, 81, 0);
-    color32 right_click_onfile_color = rgba(202, 203, 203, 43);
-    color32 right_click_onwindow_color = rgba(202, 203, 203, 43);
+    color32 right_click_onfile_color = rgba(202, 203, 203, 0);
+    color32 right_click_onwindow_color = rgba(202, 203, 203, 0);
     color32 separator_color = rgba(169, 160, 137, 0);
     color32 window_title_color = rgba(0, 0, 0, 0);
 
     char* window_title_text = "File Explorer";
 
-    close_icon_content.pics = readImg("close.mx", 1);
+    close_icon_content.pics = readImg("/close.mx", 1);
     close_icon_content.isRepeat = 0;
     contentStruct gobackbutton_content;
-    gobackbutton_content.pics = readImg("goback.mx", 1);
+    gobackbutton_content.pics = readImg("/goback.mx", 1);
     gobackbutton_content.isRepeat = 0;
     contentStruct upbutton_content;
-    upbutton_content.pics = readImg("up.mx", 1);
+    upbutton_content.pics = readImg("/up.mx", 1);
     upbutton_content.isRepeat = 0;
     contentStruct downbutton_content;
-    downbutton_content.pics = readImg("down.mx", 1);
+    downbutton_content.pics = readImg("/down.mx", 1);
     downbutton_content.isRepeat = 0;
-    folder_type_content.pics = readImg("folder.mx", 1);
+    folder_type_content.pics = readImg("/folder.mx", 1);
     folder_type_content.isRepeat = 0;
-    bitmap_type_content.pics = readImg("bitmap.mx", 1);
+    bitmap_type_content.pics = readImg("/bitmap.mx", 1);
     bitmap_type_content.isRepeat = 0;
-    file_type_content.pics = readImg("file.mx", 1);
+    file_type_content.pics = readImg("/file.mx", 1);
     file_type_content.isRepeat = 0;
-    text_type_content.pics = readImg("text.mx", 1);
+    text_type_content.pics = readImg("/text.mx", 1);
     text_type_content.isRepeat = 0;
     contentStruct openbutton_content;
-    openbutton_content.pics = readImg("openfile.mx", 1);
+    openbutton_content.pics = readImg("/openfile.mx", 1);
     openbutton_content.isRepeat = 0;
     contentStruct delete_button_content;
-    delete_button_content.pics = readImg("delete.mx", 1);
+    delete_button_content.pics = readImg("/delete.mx", 1);
     delete_button_content.isRepeat = 0;
     contentStruct copy_button_content;
-    copy_button_content.pics = readImg("copy.mx", 1);
+    copy_button_content.pics = readImg("/copy.mx", 1);
     copy_button_content.isRepeat = 0;
     contentStruct move_button_content;
-    move_button_content.pics = readImg("scissors.mx", 1);
+    move_button_content.pics = readImg("/scissors.mx", 1);
     move_button_content.isRepeat = 0;
     contentStruct rename_button_content;
-    rename_button_content.pics = readImg("rename.mx", 1);
+    rename_button_content.pics = readImg("/rename.mx", 1);
     rename_button_content.isRepeat = 0;
     contentStruct new_folder_button_content;
-    new_folder_button_content.pics = readImg("newfolder.mx", 1);
+    new_folder_button_content.pics = readImg("/newfolder.mx", 1);
     new_folder_button_content.isRepeat = 0;
     contentStruct new_file_button_content;
-    new_file_button_content.pics = readImg("newfile.mx", 1);
+    new_file_button_content.pics = readImg("/newfile.mx", 1);
     new_file_button_content.isRepeat = 0;
     contentStruct paste_button_content;
-    paste_button_content.pics = readImg("paste.mx", 1);
+    paste_button_content.pics = readImg("/paste.mx", 1);
     paste_button_content.isRepeat = 0;
+    loading_icon_content.pics = readImg("/loading.mx", 1);
+    loading_icon_content.isRepeat = 0;
     
 
     createdom(GUIENT_DIV, windowparent, &window);
-    setattr(GUIENT_DIV, window, GUIATTR_DIV_X, parh(0));
-    setattr(GUIENT_DIV, window, GUIATTR_DIV_Y, parh(0));
-    setattr(GUIENT_DIV, window, GUIATTR_DIV_WIDTH, parh(1024));
-    setattr(GUIENT_DIV, window, GUIATTR_DIV_HEIGHT, parh(768));
+    setattr(GUIENT_DIV, window, GUIATTR_DIV_XYWH, pari(0,0,1024,768));
+    // setattr(GUIENT_DIV, window, GUIATTR_DIV_X, parh(0));
+    // setattr(GUIENT_DIV, window, GUIATTR_DIV_Y, parh(0));
+    // setattr(GUIENT_DIV, window, GUIATTR_DIV_WIDTH, parh(1024));
+    // setattr(GUIENT_DIV, window, GUIATTR_DIV_HEIGHT, parh(768));
     setattr(GUIENT_DIV, window, GUIATTR_DIV_BGCOLOR, &window_background);
+
+        createdom(GUIENT_DIV, window, &scrollviewfather);
+        setattr(GUIENT_DIV, scrollviewfather, GUIATTR_DIV_XYWH, pari(0,95,1024,673));
+        // setattr(GUIENT_DIV, scrollviewfather, GUIATTR_DIV_X, parh(0));
+        // setattr(GUIENT_DIV, scrollviewfather, GUIATTR_DIV_Y, parh(95));
+        // setattr(GUIENT_DIV, scrollviewfather, GUIATTR_DIV_WIDTH, parh(1024));
+        // setattr(GUIENT_DIV, scrollviewfather, GUIATTR_DIV_HEIGHT, parh(673));
+        setattr(GUIENT_DIV, scrollviewfather, GUIATTR_DIV_BGCOLOR, &window_background);
+
+        createdom(GUIENT_DIV, window, &titlebar);
+        setattr(GUIENT_DIV, titlebar, GUIATTR_DIV_XYWH, pari(0,0,1024,35));
+        // setattr(GUIENT_DIV, titlebar, GUIATTR_DIV_X, parh(0));
+        // setattr(GUIENT_DIV, titlebar, GUIATTR_DIV_Y, parh(0));
+        // setattr(GUIENT_DIV, titlebar, GUIATTR_DIV_WIDTH, parh(1024));
+        // setattr(GUIENT_DIV, titlebar, GUIATTR_DIV_HEIGHT, parh(35));
+        setattr(GUIENT_DIV, titlebar, GUIATTR_DIV_BGCOLOR, &titlebar_color);
+
+            createdom(GUIENT_TXT, titlebar, &window_title);
+            setattr(GUIENT_TXT, window_title, GUIATTR_TXT_XYWH, pari(440,3,200,24));
+            // setattr(GUIENT_TXT, window_title, GUIATTR_TXT_X, parh(440));
+            // setattr(GUIENT_TXT, window_title, GUIATTR_TXT_Y, parh(3));
+            // setattr(GUIENT_TXT, window_title, GUIATTR_TXT_WIDTH, parh(200));
+            // setattr(GUIENT_TXT, window_title, GUIATTR_TXT_HEIGHT, parh(24));
+            setattr(GUIENT_TXT, window_title, GUIATTR_TXT_STR, window_title_text);
+            setattr(GUIENT_TXT, window_title, GUIATTR_TXT_COLOR, &window_title_color);
+
+            createdom(GUIENT_DIV, titlebar, &closebutton);
+            setattr(GUIENT_DIV, closebutton, GUIATTR_DIV_XYWH, pari(973,0,51,30));
+            // setattr(GUIENT_DIV, closebutton, GUIATTR_DIV_X, parh(973));
+            // setattr(GUIENT_DIV, closebutton, GUIATTR_DIV_Y, parh(0));
+            // setattr(GUIENT_DIV, closebutton, GUIATTR_DIV_WIDTH, parh(51));
+            // setattr(GUIENT_DIV, closebutton, GUIATTR_DIV_HEIGHT, parh(30));
+            setattr(GUIENT_DIV, closebutton, GUIATTR_DIV_BGCOLOR, &closebutton_color);
+            setattr(GUIENT_DIV, closebutton, GUIATTR_DIV_INTEG, parh(1));
+
+                createdom(GUIENT_IMG, closebutton, &close_icon);
+                setattr(GUIENT_IMG, close_icon, GUIATTR_IMG_XYWH, pari(18,7,17,17));
+                // setattr(GUIENT_IMG, close_icon, GUIATTR_IMG_X, parh(18));
+                // setattr(GUIENT_IMG, close_icon, GUIATTR_IMG_Y, parh(7));
+                // setattr(GUIENT_IMG, close_icon, GUIATTR_IMG_WIDTH, parh(17));
+                // setattr(GUIENT_IMG, close_icon, GUIATTR_IMG_HEIGHT, parh(17));
+                setattr(GUIENT_IMG, close_icon, GUIATTR_IMG_CONTENT, &close_icon_content);
+
+        createdom(GUIENT_DIV, window, &toolbar);
+        setattr(GUIENT_DIV, toolbar, GUIATTR_DIV_XYWH, pari(0,35,1024,55));
+        // setattr(GUIENT_DIV, toolbar, GUIATTR_DIV_X, parh(0));
+        // setattr(GUIENT_DIV, toolbar, GUIATTR_DIV_Y, parh(35));
+        // setattr(GUIENT_DIV, toolbar, GUIATTR_DIV_WIDTH, parh(1024));
+        // setattr(GUIENT_DIV, toolbar, GUIATTR_DIV_HEIGHT, parh(55));
+        setattr(GUIENT_DIV, toolbar, GUIATTR_DIV_BGCOLOR, &window_background);
+
+            createdom(GUIENT_IMG, toolbar, &gobackbutton);
+            setattr(GUIENT_IMG, gobackbutton, GUIATTR_IMG_XYWH, pari(17,17,30,30));
+            // setattr(GUIENT_IMG, gobackbutton, GUIATTR_IMG_X, parh(17));
+            // setattr(GUIENT_IMG, gobackbutton, GUIATTR_IMG_Y, parh(17));
+            // setattr(GUIENT_IMG, gobackbutton, GUIATTR_IMG_WIDTH, parh(30));
+            // setattr(GUIENT_IMG, gobackbutton, GUIATTR_IMG_HEIGHT, parh(30));
+            setattr(GUIENT_IMG, gobackbutton, GUIATTR_IMG_CONTENT, &gobackbutton_content);
+
+            createdom(GUIENT_DIV, toolbar, &path_textview_father);
+            setattr(GUIENT_DIV, path_textview_father, GUIATTR_DIV_XYWH, pari(55,17,810,24));
+            // setattr(GUIENT_DIV, path_textview_father, GUIATTR_DIV_X, parh(55));
+            // setattr(GUIENT_DIV, path_textview_father, GUIATTR_DIV_Y, parh(17));
+            // setattr(GUIENT_DIV, path_textview_father, GUIATTR_DIV_WIDTH, parh(810));
+            // setattr(GUIENT_DIV, path_textview_father, GUIATTR_DIV_HEIGHT, parh(24));
+            setattr(GUIENT_DIV, path_textview_father, GUIATTR_DIV_BGCOLOR, &window_background);
+
+                createdom(GUIENT_TXT, path_textview_father, &path_textview);
+                setattr(GUIENT_TXT, path_textview, GUIATTR_TXT_XYWH, pari(0,0,810,24));
+                // setattr(GUIENT_TXT, path_textview, GUIATTR_TXT_X, parh(0));
+                // setattr(GUIENT_TXT, path_textview, GUIATTR_TXT_Y, parh(0));
+                // setattr(GUIENT_TXT, path_textview, GUIATTR_TXT_WIDTH, parh(810));
+                // setattr(GUIENT_TXT, path_textview, GUIATTR_TXT_HEIGHT, parh(24));
+                setattr(GUIENT_TXT, path_textview, GUIATTR_TXT_STR, current_path);
+                setattr(GUIENT_TXT, path_textview, GUIATTR_TXT_COLOR, &window_title_color);
+    
+            createdom(GUIENT_IMG, toolbar, &upbutton);
+            setattr(GUIENT_IMG, upbutton, GUIATTR_IMG_XYWH, pari(872,17,32,32));
+            // setattr(GUIENT_IMG, upbutton, GUIATTR_IMG_X, parh(872));
+            // setattr(GUIENT_IMG, upbutton, GUIATTR_IMG_Y, parh(17));
+            // setattr(GUIENT_IMG, upbutton, GUIATTR_IMG_WIDTH, parh(32));
+            // setattr(GUIENT_IMG, upbutton, GUIATTR_IMG_HEIGHT, parh(32));
+            setattr(GUIENT_IMG, upbutton, GUIATTR_IMG_CONTENT, &upbutton_content);
+    
+            createdom(GUIENT_IMG, toolbar, &downbutton);
+            setattr(GUIENT_IMG, downbutton, GUIATTR_IMG_XYWH, pari(934,17,32,32));
+            // setattr(GUIENT_IMG, downbutton, GUIATTR_IMG_X, parh(934));
+            // setattr(GUIENT_IMG, downbutton, GUIATTR_IMG_Y, parh(17));
+            // setattr(GUIENT_IMG, downbutton, GUIATTR_IMG_WIDTH, parh(32));
+            // setattr(GUIENT_IMG, downbutton, GUIATTR_IMG_HEIGHT, parh(32));
+            setattr(GUIENT_IMG, downbutton, GUIATTR_IMG_CONTENT, &downbutton_content);
+
+        createdom(GUIENT_DIV, window, &separator);
+        setattr(GUIENT_DIV, separator, GUIATTR_DIV_XYWH, pari(0,90,1024,1));
+        // setattr(GUIENT_DIV, separator, GUIATTR_DIV_X, parh(0));
+        // setattr(GUIENT_DIV, separator, GUIATTR_DIV_Y, parh(90));
+        // setattr(GUIENT_DIV, separator, GUIATTR_DIV_WIDTH, parh(1024));
+        // setattr(GUIENT_DIV, separator, GUIATTR_DIV_HEIGHT, parh(1));
+        setattr(GUIENT_DIV, separator, GUIATTR_DIV_BGCOLOR, &separator_color);
+
+        createdom(GUIENT_IMG, window, &loading_icon);
+        setattr(GUIENT_IMG, loading_icon, GUIATTR_IMG_XYWH, pari(450,320,128,128));
+        // setattr(GUIENT_IMG, loading_icon, GUIATTR_IMG_X, parh(333));
+        // setattr(GUIENT_IMG, loading_icon, GUIATTR_IMG_Y, parh(333));
+        // setattr(GUIENT_IMG, loading_icon, GUIATTR_IMG_WIDTH, parh(128));
+        // setattr(GUIENT_IMG, loading_icon, GUIATTR_IMG_HEIGHT, parh(128));
+        setattr(GUIENT_IMG, loading_icon, GUIATTR_IMG_CONTENT, &loading_icon_content);
+
+        createdom(GUIENT_DIV, window, &right_click_onfile);
+        setattr(GUIENT_DIV, right_click_onfile, GUIATTR_DIV_XYWH, pari(0,768,1024,158));
+        // setattr(GUIENT_DIV, right_click_onfile, GUIATTR_DIV_X, parh(0));
+        // setattr(GUIENT_DIV, right_click_onfile, GUIATTR_DIV_Y, parh(768));  //change between 610 and 768
+        // setattr(GUIENT_DIV, right_click_onfile, GUIATTR_DIV_WIDTH, parh(1024));
+        // setattr(GUIENT_DIV, right_click_onfile, GUIATTR_DIV_HEIGHT, parh(158));
+        setattr(GUIENT_DIV, right_click_onfile, GUIATTR_DIV_BGCOLOR, &right_click_onfile_color);
+
+            createdom(GUIENT_IMG, right_click_onfile, &openbutton);
+            setattr(GUIENT_IMG, openbutton, GUIATTR_IMG_XYWH, pari(37,39,80,80));
+            // setattr(GUIENT_IMG, openbutton, GUIATTR_IMG_X, parh(37));
+            // setattr(GUIENT_IMG, openbutton, GUIATTR_IMG_Y, parh(39));
+            // setattr(GUIENT_IMG, openbutton, GUIATTR_IMG_WIDTH, parh(80));
+            // setattr(GUIENT_IMG, openbutton, GUIATTR_IMG_HEIGHT, parh(80));
+            setattr(GUIENT_IMG, openbutton, GUIATTR_IMG_CONTENT, &openbutton_content);
+
+            createdom(GUIENT_IMG, right_click_onfile, &delete_button);
+            setattr(GUIENT_IMG, delete_button, GUIATTR_IMG_XYWH, pari(252,39,80,80));
+            // setattr(GUIENT_IMG, delete_button, GUIATTR_IMG_X, parh(252));
+            // setattr(GUIENT_IMG, delete_button, GUIATTR_IMG_Y, parh(39));
+            // setattr(GUIENT_IMG, delete_button, GUIATTR_IMG_WIDTH, parh(80));
+            // setattr(GUIENT_IMG, delete_button, GUIATTR_IMG_HEIGHT, parh(80));
+            setattr(GUIENT_IMG, delete_button, GUIATTR_IMG_CONTENT, &delete_button_content);
+
+            createdom(GUIENT_IMG, right_click_onfile, &copy_button);
+            setattr(GUIENT_IMG, copy_button, GUIATTR_IMG_XYWH, pari(472,39,80,80));
+            // setattr(GUIENT_IMG, copy_button, GUIATTR_IMG_X, parh(472));
+            // setattr(GUIENT_IMG, copy_button, GUIATTR_IMG_Y, parh(39));
+            // setattr(GUIENT_IMG, copy_button, GUIATTR_IMG_WIDTH, parh(80));
+            // setattr(GUIENT_IMG, copy_button, GUIATTR_IMG_HEIGHT, parh(80));
+            setattr(GUIENT_IMG, copy_button, GUIATTR_IMG_CONTENT, &copy_button_content);
+
+            createdom(GUIENT_IMG, right_click_onfile, &move_button);
+            setattr(GUIENT_IMG, move_button, GUIATTR_IMG_XYWH, pari(692,39,80,80));
+            // setattr(GUIENT_IMG, move_button, GUIATTR_IMG_X, parh(692));
+            // setattr(GUIENT_IMG, move_button, GUIATTR_IMG_Y, parh(39));
+            // setattr(GUIENT_IMG, move_button, GUIATTR_IMG_WIDTH, parh(80));
+            // setattr(GUIENT_IMG, move_button, GUIATTR_IMG_HEIGHT, parh(80));
+            setattr(GUIENT_IMG, move_button, GUIATTR_IMG_CONTENT, &move_button_content);
+
+            createdom(GUIENT_IMG, right_click_onfile, &rename_button);
+            setattr(GUIENT_IMG, rename_button, GUIATTR_IMG_XYWH, pari(912,39,80,80));
+            // setattr(GUIENT_IMG, rename_button, GUIATTR_IMG_X, parh(912));
+            // setattr(GUIENT_IMG, rename_button, GUIATTR_IMG_Y, parh(39));
+            // setattr(GUIENT_IMG, rename_button, GUIATTR_IMG_WIDTH, parh(80));
+            // setattr(GUIENT_IMG, rename_button, GUIATTR_IMG_HEIGHT, parh(80));
+            setattr(GUIENT_IMG, rename_button, GUIATTR_IMG_CONTENT, &rename_button_content);
+
+        createdom(GUIENT_DIV, window, &right_click_onwindow);
+        setattr(GUIENT_DIV, right_click_onwindow, GUIATTR_DIV_XYWH, pari(0,768,1024,158));
+        // setattr(GUIENT_DIV, right_click_onwindow, GUIATTR_DIV_X, parh(0));
+        // setattr(GUIENT_DIV, right_click_onwindow, GUIATTR_DIV_Y, parh(768));  //change between 610 and 768
+        // setattr(GUIENT_DIV, right_click_onwindow, GUIATTR_DIV_WIDTH, parh(1024));
+        // setattr(GUIENT_DIV, right_click_onwindow, GUIATTR_DIV_HEIGHT, parh(158));
+        setattr(GUIENT_DIV, right_click_onwindow, GUIATTR_DIV_BGCOLOR, &right_click_onwindow_color);
+
+            createdom(GUIENT_IMG, right_click_onwindow, &new_folder_button);
+            setattr(GUIENT_IMG, new_folder_button, GUIATTR_IMG_XYWH, pari(252,39,80,80));
+            // setattr(GUIENT_IMG, new_folder_button, GUIATTR_IMG_X, parh(252));
+            // setattr(GUIENT_IMG, new_folder_button, GUIATTR_IMG_Y, parh(39));
+            // setattr(GUIENT_IMG, new_folder_button, GUIATTR_IMG_WIDTH, parh(80));
+            // setattr(GUIENT_IMG, new_folder_button, GUIATTR_IMG_HEIGHT, parh(80));
+            setattr(GUIENT_IMG, new_folder_button, GUIATTR_IMG_CONTENT, &new_folder_button_content);
+
+            createdom(GUIENT_IMG, right_click_onwindow, &new_file_button);
+            setattr(GUIENT_IMG, new_file_button, GUIATTR_IMG_XYWH, pari(477,39,80,80));
+            // setattr(GUIENT_IMG, new_file_button, GUIATTR_IMG_X, parh(477));
+            // setattr(GUIENT_IMG, new_file_button, GUIATTR_IMG_Y, parh(39));
+            // setattr(GUIENT_IMG, new_file_button, GUIATTR_IMG_WIDTH, parh(80));
+            // setattr(GUIENT_IMG, new_file_button, GUIATTR_IMG_HEIGHT, parh(80));
+            setattr(GUIENT_IMG, new_file_button, GUIATTR_IMG_CONTENT, &new_file_button_content);
+
+            createdom(GUIENT_IMG, right_click_onwindow, &paste_button);
+            setattr(GUIENT_IMG, paste_button, GUIATTR_IMG_XYWH, pari(692,39,80,80));
+            // setattr(GUIENT_IMG, paste_button, GUIATTR_IMG_X, parh(692));
+            // setattr(GUIENT_IMG, paste_button, GUIATTR_IMG_Y, parh(39));
+            // setattr(GUIENT_IMG, paste_button, GUIATTR_IMG_WIDTH, parh(80));
+            // setattr(GUIENT_IMG, paste_button, GUIATTR_IMG_HEIGHT, parh(80));
+            setattr(GUIENT_IMG, paste_button, GUIATTR_IMG_CONTENT, &paste_button_content);
 
         //=====ls and render the whole directory
         listresult = ls(".");
         int n = strlen(listresult.filenames) / 14 - 2;
         int rowno = n / FILENUMINAROW + 1;
-        createdom(GUIENT_DIV, window, &scrollview);
-        setattr(GUIENT_DIV, scrollview, GUIATTR_DIV_X, parh(0));
-        setattr(GUIENT_DIV, scrollview, GUIATTR_DIV_Y, parh(95));
-        setattr(GUIENT_DIV, scrollview, GUIATTR_DIV_WIDTH, parh(1024));
-        setattr(GUIENT_DIV, scrollview, GUIATTR_DIV_HEIGHT, parh(190 * rowno + 10));
+        createdom(GUIENT_DIV, scrollviewfather, &scrollview);
+        setattr(GUIENT_DIV, scrollview, GUIATTR_DIV_XYWH, pari(0,0,1024,(190 * rowno + 10)));
+        // setattr(GUIENT_DIV, scrollview, GUIATTR_DIV_X, parh(0));
+        // setattr(GUIENT_DIV, scrollview, GUIATTR_DIV_Y, parh(0));
+        // setattr(GUIENT_DIV, scrollview, GUIATTR_DIV_WIDTH, parh(1024));
+        // setattr(GUIENT_DIV, scrollview, GUIATTR_DIV_HEIGHT, parh(190 * rowno + 10));
         setattr(GUIENT_DIV, scrollview, GUIATTR_DIV_BGCOLOR, &window_background);
+        setattr(GUIENT_IMG, loading_icon, GUIATTR_IMG_Y, parh(320));
         render(listresult.parseresult, n, scrollview, listresult.fileinfo + 2); //the first two are . and ..
-
-        createdom(GUIENT_DIV, window, &titlebar);
-        setattr(GUIENT_DIV, titlebar, GUIATTR_DIV_X, parh(0));
-        setattr(GUIENT_DIV, titlebar, GUIATTR_DIV_Y, parh(0));
-        setattr(GUIENT_DIV, titlebar, GUIATTR_DIV_WIDTH, parh(1024));
-        setattr(GUIENT_DIV, titlebar, GUIATTR_DIV_HEIGHT, parh(35));
-        setattr(GUIENT_DIV, titlebar, GUIATTR_DIV_BGCOLOR, &titlebar_color);
-
-            createdom(GUIENT_TXT, titlebar, &window_title);
-            setattr(GUIENT_TXT, window_title, GUIATTR_TXT_X, parh(440));
-            setattr(GUIENT_TXT, window_title, GUIATTR_TXT_Y, parh(3));
-            setattr(GUIENT_TXT, window_title, GUIATTR_TXT_WIDTH, parh(200));
-            setattr(GUIENT_TXT, window_title, GUIATTR_TXT_HEIGHT, parh(24));
-            setattr(GUIENT_TXT, window_title, GUIATTR_TXT_STR, window_title_text);
-            setattr(GUIENT_TXT, window_title, GUIATTR_TXT_COLOR, &window_title_color);
-
-            createdom(GUIENT_DIV, titlebar, &closebutton);
-            setattr(GUIENT_DIV, closebutton, GUIATTR_DIV_X, parh(973));
-            setattr(GUIENT_DIV, closebutton, GUIATTR_DIV_Y, parh(0));
-            setattr(GUIENT_DIV, closebutton, GUIATTR_DIV_WIDTH, parh(51));
-            setattr(GUIENT_DIV, closebutton, GUIATTR_DIV_HEIGHT, parh(30));
-            setattr(GUIENT_DIV, closebutton, GUIATTR_DIV_BGCOLOR, &closebutton_color);
-            setattr(GUIENT_DIV, closebutton, GUIATTR_DIV_INTEG, parh(1));
-
-                createdom(GUIENT_IMG, closebutton, &close_icon);
-                setattr(GUIENT_IMG, close_icon, GUIATTR_IMG_X, parh(18));
-                setattr(GUIENT_IMG, close_icon, GUIATTR_IMG_Y, parh(7));
-                setattr(GUIENT_IMG, close_icon, GUIATTR_IMG_WIDTH, parh(17));
-                setattr(GUIENT_IMG, close_icon, GUIATTR_IMG_HEIGHT, parh(17));
-                setattr(GUIENT_IMG, close_icon, GUIATTR_IMG_CONTENT, &close_icon_content);
-
-        createdom(GUIENT_DIV, window, &toolbar);
-        setattr(GUIENT_DIV, toolbar, GUIATTR_DIV_X, parh(0));
-        setattr(GUIENT_DIV, toolbar, GUIATTR_DIV_Y, parh(35));
-        setattr(GUIENT_DIV, toolbar, GUIATTR_DIV_WIDTH, parh(1024));
-        setattr(GUIENT_DIV, toolbar, GUIATTR_DIV_HEIGHT, parh(55));
-        setattr(GUIENT_DIV, toolbar, GUIATTR_DIV_BGCOLOR, &window_background);
-
-            createdom(GUIENT_IMG, toolbar, &gobackbutton);
-            setattr(GUIENT_IMG, gobackbutton, GUIATTR_IMG_X, parh(17));
-            setattr(GUIENT_IMG, gobackbutton, GUIATTR_IMG_Y, parh(17));
-            setattr(GUIENT_IMG, gobackbutton, GUIATTR_IMG_WIDTH, parh(30));
-            setattr(GUIENT_IMG, gobackbutton, GUIATTR_IMG_HEIGHT, parh(30));
-            setattr(GUIENT_IMG, gobackbutton, GUIATTR_IMG_CONTENT, &gobackbutton_content);
-    
-            createdom(GUIENT_IMG, toolbar, &upbutton);
-            setattr(GUIENT_IMG, upbutton, GUIATTR_IMG_X, parh(872));
-            setattr(GUIENT_IMG, upbutton, GUIATTR_IMG_Y, parh(17));
-            setattr(GUIENT_IMG, upbutton, GUIATTR_IMG_WIDTH, parh(32));
-            setattr(GUIENT_IMG, upbutton, GUIATTR_IMG_HEIGHT, parh(32));
-            setattr(GUIENT_IMG, upbutton, GUIATTR_IMG_CONTENT, &upbutton_content);
-    
-            createdom(GUIENT_IMG, toolbar, &downbutton);
-            setattr(GUIENT_IMG, downbutton, GUIATTR_IMG_X, parh(934));
-            setattr(GUIENT_IMG, downbutton, GUIATTR_IMG_Y, parh(17));
-            setattr(GUIENT_IMG, downbutton, GUIATTR_IMG_WIDTH, parh(32));
-            setattr(GUIENT_IMG, downbutton, GUIATTR_IMG_HEIGHT, parh(32));
-            setattr(GUIENT_IMG, downbutton, GUIATTR_IMG_CONTENT, &downbutton_content);
-
-        createdom(GUIENT_DIV, window, &separator);
-        setattr(GUIENT_DIV, separator, GUIATTR_DIV_X, parh(0));
-        setattr(GUIENT_DIV, separator, GUIATTR_DIV_Y, parh(90));
-        setattr(GUIENT_DIV, separator, GUIATTR_DIV_WIDTH, parh(1024));
-        setattr(GUIENT_DIV, separator, GUIATTR_DIV_HEIGHT, parh(1));
-        setattr(GUIENT_DIV, separator, GUIATTR_DIV_BGCOLOR, &separator_color);
-
-        createdom(GUIENT_DIV, window, &right_click_onfile);
-        setattr(GUIENT_DIV, right_click_onfile, GUIATTR_DIV_X, parh(0));
-        setattr(GUIENT_DIV, right_click_onfile, GUIATTR_DIV_Y, parh(768));  //change between 610 and 768
-        setattr(GUIENT_DIV, right_click_onfile, GUIATTR_DIV_WIDTH, parh(1024));
-        setattr(GUIENT_DIV, right_click_onfile, GUIATTR_DIV_HEIGHT, parh(158));
-        setattr(GUIENT_DIV, right_click_onfile, GUIATTR_DIV_BGCOLOR, &right_click_onfile_color);
-
-            createdom(GUIENT_IMG, right_click_onfile, &openbutton);
-            setattr(GUIENT_IMG, openbutton, GUIATTR_IMG_X, parh(37));
-            setattr(GUIENT_IMG, openbutton, GUIATTR_IMG_Y, parh(39));
-            setattr(GUIENT_IMG, openbutton, GUIATTR_IMG_WIDTH, parh(80));
-            setattr(GUIENT_IMG, openbutton, GUIATTR_IMG_HEIGHT, parh(80));
-            setattr(GUIENT_IMG, openbutton, GUIATTR_IMG_CONTENT, &openbutton_content);
-
-            createdom(GUIENT_IMG, right_click_onfile, &delete_button);
-            setattr(GUIENT_IMG, delete_button, GUIATTR_IMG_X, parh(252));
-            setattr(GUIENT_IMG, delete_button, GUIATTR_IMG_Y, parh(39));
-            setattr(GUIENT_IMG, delete_button, GUIATTR_IMG_WIDTH, parh(80));
-            setattr(GUIENT_IMG, delete_button, GUIATTR_IMG_HEIGHT, parh(80));
-            setattr(GUIENT_IMG, delete_button, GUIATTR_IMG_CONTENT, &delete_button_content);
-
-            createdom(GUIENT_IMG, right_click_onfile, &copy_button);
-            setattr(GUIENT_IMG, copy_button, GUIATTR_IMG_X, parh(472));
-            setattr(GUIENT_IMG, copy_button, GUIATTR_IMG_Y, parh(39));
-            setattr(GUIENT_IMG, copy_button, GUIATTR_IMG_WIDTH, parh(80));
-            setattr(GUIENT_IMG, copy_button, GUIATTR_IMG_HEIGHT, parh(80));
-            setattr(GUIENT_IMG, copy_button, GUIATTR_IMG_CONTENT, &copy_button_content);
-
-            createdom(GUIENT_IMG, right_click_onfile, &move_button);
-            setattr(GUIENT_IMG, move_button, GUIATTR_IMG_X, parh(692));
-            setattr(GUIENT_IMG, move_button, GUIATTR_IMG_Y, parh(39));
-            setattr(GUIENT_IMG, move_button, GUIATTR_IMG_WIDTH, parh(80));
-            setattr(GUIENT_IMG, move_button, GUIATTR_IMG_HEIGHT, parh(80));
-            setattr(GUIENT_IMG, move_button, GUIATTR_IMG_CONTENT, &move_button_content);
-
-            createdom(GUIENT_IMG, right_click_onfile, &rename_button);
-            setattr(GUIENT_IMG, rename_button, GUIATTR_IMG_X, parh(912));
-            setattr(GUIENT_IMG, rename_button, GUIATTR_IMG_Y, parh(39));
-            setattr(GUIENT_IMG, rename_button, GUIATTR_IMG_WIDTH, parh(80));
-            setattr(GUIENT_IMG, rename_button, GUIATTR_IMG_HEIGHT, parh(80));
-            setattr(GUIENT_IMG, rename_button, GUIATTR_IMG_CONTENT, &rename_button_content);
-
-        createdom(GUIENT_DIV, window, &right_click_onwindow);
-        setattr(GUIENT_DIV, right_click_onwindow, GUIATTR_DIV_X, parh(0));
-        setattr(GUIENT_DIV, right_click_onwindow, GUIATTR_DIV_Y, parh(768));  //change between 610 and 768
-        setattr(GUIENT_DIV, right_click_onwindow, GUIATTR_DIV_WIDTH, parh(1024));
-        setattr(GUIENT_DIV, right_click_onwindow, GUIATTR_DIV_HEIGHT, parh(158));
-        setattr(GUIENT_DIV, right_click_onwindow, GUIATTR_DIV_BGCOLOR, &right_click_onwindow_color);
-
-            createdom(GUIENT_IMG, right_click_onwindow, &new_folder_button);
-            setattr(GUIENT_IMG, new_folder_button, GUIATTR_IMG_X, parh(252));
-            setattr(GUIENT_IMG, new_folder_button, GUIATTR_IMG_Y, parh(39));
-            setattr(GUIENT_IMG, new_folder_button, GUIATTR_IMG_WIDTH, parh(80));
-            setattr(GUIENT_IMG, new_folder_button, GUIATTR_IMG_HEIGHT, parh(80));
-            setattr(GUIENT_IMG, new_folder_button, GUIATTR_IMG_CONTENT, &new_folder_button_content);
-
-            createdom(GUIENT_IMG, right_click_onwindow, &new_file_button);
-            setattr(GUIENT_IMG, new_file_button, GUIATTR_IMG_X, parh(477));
-            setattr(GUIENT_IMG, new_file_button, GUIATTR_IMG_Y, parh(39));
-            setattr(GUIENT_IMG, new_file_button, GUIATTR_IMG_WIDTH, parh(80));
-            setattr(GUIENT_IMG, new_file_button, GUIATTR_IMG_HEIGHT, parh(80));
-            setattr(GUIENT_IMG, new_file_button, GUIATTR_IMG_CONTENT, &new_file_button_content);
-
-            createdom(GUIENT_IMG, right_click_onwindow, &paste_button);
-            setattr(GUIENT_IMG, paste_button, GUIATTR_IMG_X, parh(692));
-            setattr(GUIENT_IMG, paste_button, GUIATTR_IMG_Y, parh(39));
-            setattr(GUIENT_IMG, paste_button, GUIATTR_IMG_WIDTH, parh(80));
-            setattr(GUIENT_IMG, paste_button, GUIATTR_IMG_HEIGHT, parh(80));
-            setattr(GUIENT_IMG, paste_button, GUIATTR_IMG_CONTENT, &paste_button_content);
+        setattr(GUIENT_IMG, loading_icon, GUIATTR_IMG_Y, parh(-222));
 
     //==========receive events
     int *msg = (int*)malloc(100);
@@ -1304,7 +1305,9 @@ int main(int argc, char *argv[])
                     else if (mm->dom_id == delete_button) //here I used switch but failed
                     {
                         deletebutton_onclick();
+                        setattr(GUIENT_IMG, loading_icon, GUIATTR_IMG_Y, parh(320));
                         invalidate(scrollview);
+                        setattr(GUIENT_IMG, loading_icon, GUIATTR_IMG_Y, parh(-222));
                     }
                     else if (mm->dom_id == copy_button)
                     {
@@ -1317,18 +1320,21 @@ int main(int argc, char *argv[])
                     else if (mm->dom_id == paste_button)
                     {
                         pastebutton_onclick();
+                        setattr(GUIENT_IMG, loading_icon, GUIATTR_IMG_Y, parh(320));
                         invalidate(scrollview);
+                        setattr(GUIENT_IMG, loading_icon, GUIATTR_IMG_Y, parh(-222));
                     }
                     else if (mm->dom_id == gobackbutton)
                     {
                         changedirectory("..");
+                        setattr(GUIENT_IMG, loading_icon, GUIATTR_IMG_Y, parh(320));
                         invalidate(scrollview);
+                        setattr(GUIENT_IMG, loading_icon, GUIATTR_IMG_Y, parh(-222));
                     }
                     else if (mm->dom_id == upbutton)
                     {
                         int y;
                         getattr(GUIENT_DIV, scrollview, GUIATTR_DIV_Y, &y);
-                        printf(1, "+, %d\r\n", y);
                         y = y + SCROLL_DISTANCE;
                         setattr(GUIENT_DIV, scrollview, GUIATTR_DIV_Y, &y);
                     }
@@ -1336,9 +1342,102 @@ int main(int argc, char *argv[])
                     {
                         int y;
                         getattr(GUIENT_DIV, scrollview, GUIATTR_DIV_Y, &y);
-                        printf(1, "-, %d\r\n", y);
                         y = y - SCROLL_DISTANCE;
                         setattr(GUIENT_DIV, scrollview, GUIATTR_DIV_Y, &y);
+                    }
+                    else if (mm->dom_id == new_file_button)
+                    {
+                        if (fork() == 0)
+                        {//mode: 1->new file   2->new folder  3->rename
+                            char* a[5];
+                            a[4] = (char*)0;
+                            a[0] = "newfile";
+                            a[1] = current_path;
+                            a[2] = "1";
+                            a[3] = UInt2String(windowparent);
+                            exec("/fshandlekbd", a);
+                        }
+                        wait();
+                        setattr(GUIENT_IMG, loading_icon, GUIATTR_IMG_Y, parh(320));
+                        invalidate(scrollview);
+                        setattr(GUIENT_IMG, loading_icon, GUIATTR_IMG_Y, parh(-222));
+                    }
+                    else if (mm->dom_id == new_folder_button)
+                    {
+                        if (fork() == 0)
+                        {//mode: 1->new file   2->new folder  3->rename
+                            char* a[5];
+                            a[4] = (char*)0;
+                            a[0] = "newfolder";
+                            a[1] = current_path;
+                            a[2] = "2";
+                            a[3] = UInt2String(windowparent);
+                            exec("/fshandlekbd", a);
+                        }
+                        wait();
+                        setattr(GUIENT_IMG, loading_icon, GUIATTR_IMG_Y, parh(320));
+                        invalidate(scrollview);
+                        setattr(GUIENT_IMG, loading_icon, GUIATTR_IMG_Y, parh(-222));
+                    }
+                    else if (mm->dom_id == rename_button)
+                    {
+                        if (listresult.fileinfo[last_right_clicked_fileno + 2] == FOLDERTYPE)
+                        {
+                            createWarningWindow("We can't rename folder!", window);
+                        }
+                        else
+                        {
+                            if (fork() == 0)
+                            {//mode: 1->new file   2->new folder  3->rename
+                                char* a[5];
+                                a[4] = (char*)0;
+                                a[0] = listresult.parseresult[last_right_clicked_fileno];
+                                a[1] = current_path;
+                                a[2] = "3";
+                                a[3] = UInt2String(windowparent);
+                                exec("/fshandlekbd", a);
+                            }
+                            wait();
+                            setattr(GUIENT_IMG, loading_icon, GUIATTR_IMG_Y, parh(320));
+                            invalidate(scrollview);
+                            setattr(GUIENT_IMG, loading_icon, GUIATTR_IMG_Y, parh(-222));
+                        }
+                    }
+                    else if (mm->dom_id == openbutton)
+                    {
+                        if (listresult.fileinfo[last_right_clicked_fileno + 2] == FOLDERTYPE)
+                        {
+                            changedirectory(listresult.parseresult[last_right_clicked_fileno]);
+                            setattr(GUIENT_DIV, scrollview, GUIATTR_DIV_Y, parh(0));
+                            setattr(GUIENT_IMG, loading_icon, GUIATTR_IMG_Y, parh(320));
+                            invalidate(scrollview);
+                            setattr(GUIENT_IMG, loading_icon, GUIATTR_IMG_Y, parh(-222));
+                        }
+                        else
+                        {
+                            int typ = 0;
+                            typ = judgeTypeByName(listresult.parseresult[last_right_clicked_fileno]);
+                            if (typ == N_TEXTTYPE)
+                            {
+                                char* s = (char*)malloc(MAX_DIRECTORY_LEN);
+                                memset(s, '\0', MAX_DIRECTORY_LEN);
+                                strcpy(s, current_path);
+                                strcpy(s + strlen(s), listresult.parseresult[last_right_clicked_fileno]);
+                                informhometoopenfile("fileEditor", s);
+                            }
+                            else if (typ == N_IMGTYPE)
+                            {
+                                char* s = (char*)malloc(MAX_DIRECTORY_LEN);
+                                memset(s, '\0', MAX_DIRECTORY_LEN);
+                                strcpy(s, current_path);
+                                strcpy(s + strlen(s), listresult.parseresult[last_right_clicked_fileno]);
+                                informhometoopenfile("picviewer", s);
+                            }
+                            else if (typ == N_FILETYPE)
+                            {
+                                createWarningWindow("Unknown type, Can't open!", window);
+                            }
+                        }
                     }
                     else    //open folder or file
                     {
@@ -1346,7 +1445,31 @@ int main(int argc, char *argv[])
                         if (nodeno != -1 && listresult.fileinfo[nodeno + 2] == FOLDERTYPE)
                         {
                             changedirectory(listresult.parseresult[nodeno]);
+                            setattr(GUIENT_DIV, scrollview, GUIATTR_DIV_Y, parh(0));
+                            setattr(GUIENT_IMG, loading_icon, GUIATTR_IMG_Y, parh(320));
                             invalidate(scrollview);
+                            setattr(GUIENT_IMG, loading_icon, GUIATTR_IMG_Y, parh(-222));
+                        }
+                        else
+                        {
+                            int typ = 0;
+                            typ = judgeTypeByName(listresult.parseresult[nodeno]);
+                            if (typ == N_TEXTTYPE)
+                            {
+                                char* s = (char*)malloc(MAX_DIRECTORY_LEN);
+                                memset(s, '\0', MAX_DIRECTORY_LEN);
+                                strcpy(s, current_path);
+                                strcpy(s + strlen(s), listresult.parseresult[nodeno]);
+                                informhometoopenfile("fileEditor", s);
+                            }
+                            else if (typ == N_IMGTYPE)
+                            {
+                                char* s = (char*)malloc(MAX_DIRECTORY_LEN);
+                                memset(s, '\0', MAX_DIRECTORY_LEN);
+                                strcpy(s, current_path);
+                                strcpy(s + strlen(s), listresult.parseresult[nodeno]);
+                                informhometoopenfile("picviewer", s);
+                            }
                         }
                     }
                 }
@@ -1386,6 +1509,7 @@ int main(int argc, char *argv[])
 
     //we must release text and img first and div can cascade release.
     releasedom(GUIENT_TXT, window_title);
+    releasedom(GUIENT_TXT, path_textview);
     releasedom(GUIENT_IMG, close_icon);
     releasedom(GUIENT_IMG, gobackbutton);
     releasedom(GUIENT_IMG, upbutton);
@@ -1398,6 +1522,7 @@ int main(int argc, char *argv[])
     releasedom(GUIENT_IMG, new_folder_button);
     releasedom(GUIENT_IMG, new_file_button);
     releasedom(GUIENT_IMG, paste_button);
+    releasedom(GUIENT_IMG, loading_icon);
     releasefilenodes();
     releasedom(GUIENT_DIV, window);
 
