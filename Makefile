@@ -198,6 +198,7 @@ DEFAULTFILES=\
 	newfile.mx\
 	paste.mx\
 	guide.txt\
+	loading.mx\
 
 UPROGS=\
 	_cat\

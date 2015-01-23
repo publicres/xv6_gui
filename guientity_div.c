@@ -113,7 +113,7 @@ void div_setXY(uint elem_, int x, int y)
 uint div_setAttr(uint elem_, int attr, void *val)
 {
     div *elem=(div*)elem_;
-    int i,j;
+    int i,j,k,l;
 
     switch (attr)
     {
@@ -160,6 +160,18 @@ uint div_setAttr(uint elem_, int attr, void *val)
 		return 0;
     case GUIATTR_DIV_FOCUS:
         setABSFocus(&elem->ds);
+        return 0;
+    case GUIATTR_DIV_XYWH:
+        i=elem->ds.x;
+        j=elem->ds.y;
+        k=elem->ds.width;
+        l=elem->ds.height;
+        elem->ds.x=*((int*)val);
+        elem->ds.y=*(((int*)val)+1);
+        elem->ds.width=*(((uint*)val)+2);
+        elem->ds.height=*(((uint*)val)+3);
+        reDraw_(elem->ds.parent,i,j,k,l);
+        reDraw(&elem->ds);
         return 0;
     default:
         return -1;

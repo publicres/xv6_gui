@@ -612,9 +612,8 @@ int sys_informhometoopenfile(void)
     char* fname;
     if (argptr(0, &pname, 4) < 0)
         return -1;
-    if (argptr(0, &fname, 4) < 0)
+    if (argptr(1, &fname, 4) < 0)
         return -1;
-
     informHomeToOpenFile(pname, fname);
     return 0;
 }
