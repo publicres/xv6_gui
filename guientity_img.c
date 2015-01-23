@@ -8,6 +8,11 @@
 #include "events.h"
 
 extern img* mouseIcon;
+//===========================================
+#define min(x,y) (x<y?x:y)
+#define max(x,y) (x>y?x:y)
+#define abs(x) (x>=0?(x):(-(x)))
+//===========================================
 //==============================================
 uchar drawImg(dom* elem, int x, int y, int w, int h)
 {
@@ -128,6 +133,7 @@ uint img_setAttr(uint elem_, int attr, void *val)
 {
     img *elem=(elem_==0xfffffffe)?mouseIcon:(img*)elem_;
     int i,j,k,l;
+    int qq,ww,ee,rr;
     contentStruct* p;
     void* q;
     switch (attr)
@@ -135,26 +141,54 @@ uint img_setAttr(uint elem_, int attr, void *val)
     case GUIATTR_IMG_X:
         i=elem->ds.x;
         elem->ds.x=*((int*)val);
+
+        qq=min(i,elem->ds.x);
+        ww=elem->ds.y;
+        ee=elem->ds.width+abs(elem->ds.x-i);
+        rr=elem->ds.height;
+        if (ee*rr<=2*elem->ds.width*elem->ds.height)
+        {
+            reDraw_(elem->ds.parent,qq,ww,ee,rr);
+            return 0;
+        }
+
         reDraw_(elem->ds.parent,i,elem->ds.y,elem->ds.width,elem->ds.height);
         reDraw(&elem->ds);
         return 0;
     case GUIATTR_IMG_Y:
         j=elem->ds.y;
         elem->ds.y=*((int*)val);
+
+        qq=elem->ds.x;
+        ww=min(j,elem->ds.y);
+        ee=elem->ds.width;
+        rr=elem->ds.height+abs(elem->ds.y-j);
+        if (ee*rr<=2*elem->ds.width*elem->ds.height)
+        {
+            reDraw_(elem->ds.parent,qq,ww,ee,rr);
+            return 0;
+        }
+
         reDraw_(elem->ds.parent,elem->ds.x,j,elem->ds.width,elem->ds.height);
         reDraw(&elem->ds);
         return 0;
     case GUIATTR_IMG_WIDTH:
         i=elem->ds.width;
         elem->ds.width=*((uint*)val);
-        reDraw_(elem->ds.parent,elem->ds.x,elem->ds.y,i,elem->ds.height);
-        reDraw(&elem->ds);
+
+        reDraw_(elem->ds.parent,elem->ds.x,elem->ds.y,max(i,elem->ds.width),elem->ds.height);
+
+        //reDraw_(elem->ds.parent,elem->ds.x,elem->ds.y,i,elem->ds.height);
+        //reDraw(&elem->ds);
         return 0;
     case GUIATTR_IMG_HEIGHT:
         j=elem->ds.height;
         elem->ds.height=*((uint*)val);
-        reDraw_(elem->ds.parent,elem->ds.x,elem->ds.y,elem->ds.width,j);
-        reDraw(&elem->ds);
+
+        reDraw_(elem->ds.parent,elem->ds.x,elem->ds.y,elem->ds.width,max(j,elem->ds.height));
+
+        //reDraw_(elem->ds.parent,elem->ds.x,elem->ds.y,elem->ds.width,j);
+        //reDraw(&elem->ds);
         return 0;
     case GUIATTR_IMG_CONTENT:
         p=(contentStruct*)val;
@@ -189,6 +223,17 @@ uint img_setAttr(uint elem_, int attr, void *val)
         elem->ds.y=*(((int*)val)+1);
         elem->ds.width=*(((uint*)val)+2);
         elem->ds.height=*(((uint*)val)+3);
+
+        qq=min(i,elem->ds.x);
+        ww=min(j,elem->ds.y);
+        ee=elem->ds.width+abs(elem->ds.x-i);
+        rr=elem->ds.height+abs(elem->ds.y-j);
+        if (ee*rr<=k*l+elem->ds.width*elem->ds.height)
+        {
+            reDraw_(elem->ds.parent,qq,ww,ee,rr);
+            return 0;
+        }
+
         reDraw_(elem->ds.parent,i,j,k,l);
         reDraw(&elem->ds);
         return 0;

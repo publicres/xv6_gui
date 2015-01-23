@@ -13,6 +13,11 @@
 static uint fontSize[FONT_NUM][2];
 static uchar* fontArray[FONT_NUM][128];
 static uchar inited[FONT_NUM];
+//===========================================
+#define min(x,y) (x<y?x:y)
+#define max(x,y) (x>y?x:y)
+#define abs(x) (x>=0?(x):(-(x)))
+//===========================================
 
 //==============================================
 void txt_initLock()
@@ -494,7 +499,7 @@ uint txt_insert(uint elem_, char val)
     elem->tail=nextPos;
     cha_setContentNotRedraw((uint)nextPos, elem->chImgArray[(uint)val], val);
     cha_setColor((uint)nextPos, elem->txtColor);
-    
+
     elem->cursor=nextPos;
     minX=elem->cursor->data.ds.x;
     minY=elem->cursor->data.ds.y;
@@ -546,7 +551,7 @@ uint txt_insert(uint elem_, char val)
 
         nextPos=nextPos->next;
     }
-    
+
     reDraw_(&elem->ds,minX,minY,maxX-minX,maxY-minY);
 
     return 0;
@@ -811,6 +816,7 @@ uint txt_setAttr(uint elem_, int attr, void *val)
 {
     txt *elem=(txt*)elem_;
     int i,j,k,l;
+    int qq,ww,ee,rr;
     uint u;
 
     switch (attr)
@@ -818,24 +824,68 @@ uint txt_setAttr(uint elem_, int attr, void *val)
     case GUIATTR_TXT_X:
         i=elem->ds.x;
         elem->ds.x=*((int*)val);
+
+        qq=min(i,elem->ds.x);
+        ww=elem->ds.y;
+        ee=elem->ds.width+abs(elem->ds.x-i);
+        rr=elem->ds.height;
+        if (ee*rr<=2*elem->ds.width*elem->ds.height)
+        {
+            reDraw_(elem->ds.parent,qq,ww,ee,rr);
+            return 0;
+        }
+
         reDraw_(elem->ds.parent,i,elem->ds.y,elem->ds.width,elem->ds.height);
         reDraw(&elem->ds);
         return 0;
     case GUIATTR_TXT_Y:
         j=elem->ds.y;
         elem->ds.y=*((int*)val);
+
+        qq=elem->ds.x;
+        ww=min(j,elem->ds.y);
+        ee=elem->ds.width;
+        rr=elem->ds.height+abs(elem->ds.y-j);
+        if (ee*rr<=2*elem->ds.width*elem->ds.height)
+        {
+            reDraw_(elem->ds.parent,qq,ww,ee,rr);
+            return 0;
+        }
+
         reDraw_(elem->ds.parent,elem->ds.x,j,elem->ds.width,elem->ds.height);
         reDraw(&elem->ds);
         return 0;
     case GUIATTR_TXT_INCX:
         i=elem->ds.x;
         elem->ds.x=(*((int*)val))+i;
+
+        qq=min(i,elem->ds.x);
+        ww=elem->ds.y;
+        ee=elem->ds.width+abs(elem->ds.x-i);
+        rr=elem->ds.height;
+        if (ee*rr<=2*elem->ds.width*elem->ds.height)
+        {
+            reDraw_(elem->ds.parent,qq,ww,ee,rr);
+            return 0;
+        }
+
         reDraw_(elem->ds.parent,i,elem->ds.y,elem->ds.width,elem->ds.height);
         reDraw(&elem->ds);
         return 0;
     case GUIATTR_TXT_INCY:
         j=elem->ds.y;
         elem->ds.y=(*((int*)val))+j;
+
+        qq=elem->ds.x;
+        ww=min(j,elem->ds.y);
+        ee=elem->ds.width;
+        rr=elem->ds.height+abs(elem->ds.y-j);
+        if (ee*rr<=2*elem->ds.width*elem->ds.height)
+        {
+            reDraw_(elem->ds.parent,qq,ww,ee,rr);
+            return 0;
+        }
+
         reDraw_(elem->ds.parent,elem->ds.x,j,elem->ds.width,elem->ds.height);
         reDraw(&elem->ds);
         return 0;
@@ -918,6 +968,17 @@ uint txt_setAttr(uint elem_, int attr, void *val)
         elem->ds.y=*(((int*)val)+1);
         elem->ds.width=*(((uint*)val)+2);
         elem->ds.height=*(((uint*)val)+3);
+
+        qq=min(i,elem->ds.x);
+        ww=min(j,elem->ds.y);
+        ee=elem->ds.width+abs(elem->ds.x-i);
+        rr=elem->ds.height+abs(elem->ds.y-j);
+        if (ee*rr<=k*l+elem->ds.width*elem->ds.height)
+        {
+            reDraw_(elem->ds.parent,qq,ww,ee,rr);
+            return 0;
+        }
+
         reDraw_(elem->ds.parent,i,j,k,l);
         reDraw(&elem->ds);
         return 0;
