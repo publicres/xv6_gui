@@ -561,7 +561,7 @@ int main(int argc, char *argv[])
         {
             fm=(FocusMsg*)msg;
             if (fm->focus_or_not==0)
-                OnBlur(km->dom_id);
+                OnBlur(fm->dom_id);
         }
         else if (*msg==CALL_MESSAGE)
         {
