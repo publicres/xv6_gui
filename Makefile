@@ -224,6 +224,7 @@ UPROGS=\
 	_readmegui\
 	_undefined\
     _picviewer\
+    _minesweeper\
     
 fs.img: mkfs README $(UPROGS) $(DEFAULTFILES)
 	./mkfs fs.img README $(UPROGS) $(DEFAULTFILES)
