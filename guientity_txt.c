@@ -810,7 +810,7 @@ uint txt_isChild(uint elem_, uint val)
 uint txt_setAttr(uint elem_, int attr, void *val)
 {
     txt *elem=(txt*)elem_;
-    int i,j;
+    int i,j,k,l;
     uint u;
 
     switch (attr)
@@ -908,6 +908,18 @@ uint txt_setAttr(uint elem_, int attr, void *val)
         return u;
     case GUIATTR_TXT_INTEGRL:
         elem->ds.isIntegral=*(uchar*)val;
+        return 0;
+    case GUIATTR_TXT_XYWH:
+        i=elem->ds.x;
+        j=elem->ds.y;
+        k=elem->ds.width;
+        l=elem->ds.height;
+        elem->ds.x=*((int*)val);
+        elem->ds.y=*(((int*)val)+1);
+        elem->ds.width=*(((uint*)val)+2);
+        elem->ds.height=*(((uint*)val)+3);
+        reDraw_(elem->ds.parent,i,j,k,l);
+        reDraw(&elem->ds);
         return 0;
     default:
         return -1;
