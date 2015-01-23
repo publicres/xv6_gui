@@ -10,8 +10,8 @@ uint windowParent = 0xffffffff;
 uint windowDom;
 
 uint txtDomNum = 0;
-#define minegrid_width 5
-#define minegrid_height 5
+#define minegrid_width 19
+#define minegrid_height 19
 #define UNKNOWN 9
 #define GUESSMINE 10
 #define NOMINE 11
@@ -259,7 +259,7 @@ uint validclick(uint someclick, uint *xa, uint *ya)
     	}
     }
     return 0;
-} 
+}
 void setGridDom(uint xa, uint ya, uint ctype);
 void setGridTxt(uint xa, uint ya, uint counter)
 {
@@ -323,6 +323,7 @@ void setGridDom(uint xa, uint ya, uint ctype)
     		}
 		    else
 		    {
+                setattr(GUIENT_DIV, minegrid[ya][xa], GUIATTR_DIV_BGCOLOR, &safe);
 		    	setGridTxt(xa,ya,countaroundmines);
 		    }
     	}
@@ -349,7 +350,7 @@ void setGridDom(uint xa, uint ya, uint ctype)
     {
     	if(gridvalue[ya][xa] == 0)
     	{
-    		
+
     		countaroundmines = countaroundmine(xa,ya);
     		if(countaroundmines == 0)
             {
@@ -366,7 +367,7 @@ void setGridDom(uint xa, uint ya, uint ctype)
 		    }
 		    else
 		    {
-
+                setattr(GUIENT_DIV, minegrid[ya][xa], GUIATTR_DIV_BGCOLOR, &safe);
 		    	setGridTxt(xa,ya,countaroundmines);
 		    }
     	}
@@ -392,7 +393,7 @@ int main(int argc, char *argv[])
         uint statusFrame;
             uint statusTxt;
         uint contentFrame;
-            
+
     warning = rgba(251, 237, 6, 0);
     error = rgba(251, 6, 6, 0);
     safe  = rgba(6, 251, 214, 0);
@@ -428,7 +429,7 @@ int main(int argc, char *argv[])
             setattr(GUIENT_DIV, appNameTxtFrame, GUIATTR_DIV_WIDTH, parh(200));
             setattr(GUIENT_DIV, appNameTxtFrame, GUIATTR_DIV_HEIGHT, parh(30));
             setattr(GUIENT_DIV, appNameTxtFrame, GUIATTR_DIV_BGCOLOR, &appNameTxtFrame_color);
-    
+
                 createdom(GUIENT_TXT, appNameTxtFrame, &appNameTxt);    txtDomId[txtDomNum++]=appNameTxt;
                 setattr(GUIENT_TXT, appNameTxt, GUIATTR_TXT_X, parh(5));
                 setattr(GUIENT_TXT, appNameTxt, GUIATTR_TXT_Y, parh(3));
@@ -436,22 +437,22 @@ int main(int argc, char *argv[])
                 setattr(GUIENT_TXT, appNameTxt, GUIATTR_TXT_HEIGHT, parh(24));
                 setattr(GUIENT_TXT, appNameTxt, GUIATTR_TXT_STR, pars("MineSweeper"));
                 setattr(GUIENT_TXT, appNameTxt, GUIATTR_TXT_COLOR, &appNameTxt_color);
-        
+
         createdom(GUIENT_DIV, titleBar, &closeButton);
         setattr(GUIENT_DIV, closeButton, GUIATTR_DIV_X, parh(994));
         setattr(GUIENT_DIV, closeButton, GUIATTR_DIV_Y, parh(0));
         setattr(GUIENT_DIV, closeButton, GUIATTR_DIV_WIDTH, parh(30));
         setattr(GUIENT_DIV, closeButton, GUIATTR_DIV_HEIGHT, parh(30));
         setattr(GUIENT_DIV, closeButton, GUIATTR_DIV_BGCOLOR, &closeButton_color);
-        
+
         createdom(GUIENT_DIV, window, &statusFrame);
         setattr(GUIENT_DIV, statusFrame, GUIATTR_DIV_X, parh(0));
         setattr(GUIENT_DIV, statusFrame, GUIATTR_DIV_Y, parh(30));
         setattr(GUIENT_DIV, statusFrame, GUIATTR_DIV_WIDTH, parh(1024));
         setattr(GUIENT_DIV, statusFrame, GUIATTR_DIV_HEIGHT, parh(24));
         setattr(GUIENT_DIV, statusFrame, GUIATTR_DIV_BGCOLOR, &appNameTxtFrame_color);
-        
-            
+
+
 
         createdom(GUIENT_DIV, window, &contentFrame);
         setattr(GUIENT_DIV, contentFrame, GUIATTR_DIV_X, parh(0));
@@ -459,7 +460,7 @@ int main(int argc, char *argv[])
         setattr(GUIENT_DIV, contentFrame, GUIATTR_DIV_WIDTH, parh(1024));
         setattr(GUIENT_DIV, contentFrame, GUIATTR_DIV_HEIGHT, parh(720));
         setattr(GUIENT_DIV, contentFrame, GUIATTR_DIV_BGCOLOR, &contentFrame_color);
-        
+
             uint i, j, contentWidth, contentHeight, gridx, gridy;
             contentWidth = minegrid_width * grid_unit_width + (minegrid_width - 1) * grid_unit_interval;
             contentHeight = minegrid_height * grid_unit_height + (minegrid_height -1) * grid_unit_interval;
@@ -482,7 +483,7 @@ int main(int argc, char *argv[])
             		setattr(GUIENT_DIV, minegrid[i][j], GUIATTR_DIV_BGCOLOR, &contentGridUnit_color);
             	}
             }
-    
+
     randGrid();
     showgrid(gridvalue);
     cleangrid(gridplayerknow,UNKNOWN);
@@ -539,7 +540,7 @@ int main(int argc, char *argv[])
     }
     //releasedom(GUIENT_IMG, contentPic);
     releasedom(GUIENT_DIV, window);
-    
+
 
     releaseprocessqueue();
     exit();

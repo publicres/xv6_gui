@@ -109,7 +109,7 @@ tile* initTiles()
     (p+3)->x=187; (p+3)->y=334; (p+3)->w=210; (p+3)->h=100; (p+3)->bgcolor=rgba(95,60,186,0);
     (p+3)->px=80; (p+3)->py=17; (p+3)->picname="bug.mx";
     (p+3)->text="Minesweeper";
-    (p+3)->execName="undefined";
+    (p+3)->execName="minesweeper";
 
     (p+4)->x=407; (p+4)->y=334; (p+4)->w=210; (p+4)->h=100; (p+4)->bgcolor=rgba(0,156,0,0);
     (p+4)->px=80; (p+4)->py=17; (p+4)->picname="users.mx";
